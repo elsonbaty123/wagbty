@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
+import { isDisposableEmail } from '@/lib/disposable-emails';
 
 export default function ForgotPasswordPage() {
     const [email, setEmail] = useState('');
@@ -20,6 +21,16 @@ export default function ForgotPasswordPage() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        
+        if (isDisposableEmail(email)) {
+            toast({
+                variant: 'destructive',
+                title: 'بريد إلكتروني غير صالح',
+                description: 'يرجى استخدام بريد إلكتروني رسمي وموثوق. لا يُسمح باستخدام الإيميلات المؤقتة.',
+            });
+            return;
+        }
+
         setIsLoading(true);
 
         const userExists = users.some(u => u.email.toLowerCase() === email.toLowerCase());
@@ -100,4 +111,3 @@ export default function ForgotPasswordPage() {
         </Card>
     );
 }
-

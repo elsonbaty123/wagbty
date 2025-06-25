@@ -4,6 +4,7 @@
 import { useRouter } from 'next/navigation';
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import type { User, UserRole } from '@/lib/types';
+import { isDisposableEmail } from '@/lib/disposable-emails';
 
 type StoredUser = User & { password: string };
 
@@ -73,6 +74,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }
 
   const login = async (email: string, password: string, role: UserRole): Promise<User> => {
+    if (isDisposableEmail(email)) {
+      throw new Error('يرجى استخدام بريد إلكتروني رسمي وموثوق. لا يُسمح باستخدام الإيميلات المؤقتة.');
+    }
+
     const potentialUser = allUsers.find(
       u => u.email.toLowerCase() === email.toLowerCase() && u.role === role
     );
@@ -87,6 +92,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signup = async (details: Partial<User> & { password: string, role: UserRole }): Promise<User> => {
+    if (isDisposableEmail(details.email!)) {
+      throw new Error('يرجى استخدام بريد إلكتروني رسمي وموثوق. لا يُسمح باستخدام الإيميلات المؤقتة.');
+    }
+
     if (allUsers.some(u => u.email.toLowerCase() === details.email.toLowerCase())) {
       throw new Error('هذا البريد الإلكتروني مستخدم بالفعل.');
     }
