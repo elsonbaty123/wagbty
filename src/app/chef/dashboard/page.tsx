@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { DollarSign, Utensils, Star, BookOpenCheck, Loader2, Upload, User as UserIcon, MessageSquare } from 'lucide-react';
+import { DollarSign, Utensils, Star, BookOpenCheck, Loader2, Upload, User as UserIcon, ArrowUp, ArrowDown } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { useAuth } from '@/context/auth-context';
 import { useOrders } from '@/context/order-context';
@@ -21,7 +21,7 @@ import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PasswordChangeForm } from '@/components/password-change-form';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
-import { format } from 'date-fns';
+import { format, isWithinInterval, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { ar } from 'date-fns/locale';
 
 export default function ChefDashboardPage() {
@@ -58,15 +58,41 @@ export default function ChefDashboardPage() {
     pendingOrders,
     ongoingOrders,
     completedOrders,
-    totalRevenue,
+    currentMonthRevenue,
+    revenuePercentageChange,
     allReviews,
   } = useMemo(() => {
     const pending = chefOrders.filter(o => o.status === 'جارٍ المراجعة');
     const ongoing = chefOrders.filter(o => ['قيد التحضير', 'جاهز للتوصيل'].includes(o.status));
     const completed = chefOrders.filter(o => o.status === 'تم التوصيل');
     
-    const revenue = completed.reduce((acc, order) => acc + order.dish.price * order.quantity, 0);
-    
+    const now = new Date();
+    const startOfCurrentMonth = startOfMonth(now);
+    const endOfCurrentMonth = endOfMonth(now);
+    const startOfLastMonth = startOfMonth(subMonths(now, 1));
+    const endOfLastMonth = endOfMonth(subMonths(now, 1));
+
+    const revenueThisMonth = completed
+        .filter(o => {
+            if (!o.createdAt || isNaN(new Date(o.createdAt).getTime())) return false;
+            return isWithinInterval(new Date(o.createdAt), { start: startOfCurrentMonth, end: endOfCurrentMonth });
+        })
+        .reduce((acc, order) => acc + order.dish.price * order.quantity, 0);
+
+    const revenueLastMonth = completed
+        .filter(o => {
+            if (!o.createdAt || isNaN(new Date(o.createdAt).getTime())) return false;
+            return isWithinInterval(new Date(o.createdAt), { start: startOfLastMonth, end: endOfLastMonth });
+        })
+        .reduce((acc, order) => acc + order.dish.price * order.quantity, 0);
+
+    let percentageChange = 0;
+    if (revenueLastMonth > 0) {
+        percentageChange = ((revenueThisMonth - revenueLastMonth) / revenueLastMonth) * 100;
+    } else if (revenueThisMonth > 0) {
+        percentageChange = 100; 
+    }
+
     const reviews = chefDishes
       .flatMap(dish => dish.ratings?.map(r => ({ ...r, dishName: dish.name })) || [])
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -75,31 +101,35 @@ export default function ChefDashboardPage() {
       pendingOrders: pending,
       ongoingOrders: ongoing,
       completedOrders: completed,
-      totalRevenue: revenue,
+      currentMonthRevenue: revenueThisMonth,
+      revenuePercentageChange: percentageChange,
       allReviews: reviews,
     };
   }, [chefOrders, chefDishes]);
   
   const chartData = useMemo(() => {
-     const monthlyRevenue: { [key: string]: number } = {};
+     const monthlyData: { [key: string]: number } = {};
+     const now = new Date();
+     
+     // Initialize months of the current year up to the current month
+     for (let i = 0; i <= now.getMonth(); i++) {
+         const monthName = format(new Date(now.getFullYear(), i, 1), 'MMM', { locale: ar });
+         monthlyData[monthName] = 0;
+     }
+ 
      completedOrders.forEach(order => {
         if (order.createdAt && !isNaN(new Date(order.createdAt).getTime())) {
-          const month = format(new Date(order.createdAt), 'MMM', { locale: ar });
-          monthlyRevenue[month] = (monthlyRevenue[month] || 0) + (order.dish.price * order.quantity);
+          const orderDate = new Date(order.createdAt);
+          if (orderDate.getFullYear() === now.getFullYear()) {
+             const month = format(orderDate, 'MMM', { locale: ar });
+             if (monthlyData.hasOwnProperty(month)) {
+                 monthlyData[month] += (order.dish.price * order.quantity);
+             }
+          }
         }
      });
-     // Mock data for past months if no real data exists
-     const mockMonths = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو"];
-     mockMonths.forEach(month => {
-        if (!monthlyRevenue[month]) monthlyRevenue[month] = 0;
-     });
-     // Add some mock data for demo
-     if (Object.keys(monthlyRevenue).length < 3) {
-        monthlyRevenue['مارس'] = (monthlyRevenue['مارس'] || 0) + 1200;
-        monthlyRevenue['أبريل'] = (monthlyRevenue['أبريل'] || 0) + 2500;
-     }
-
-     return Object.entries(monthlyRevenue).map(([name, total]) => ({ name, total }));
+ 
+     return Object.entries(monthlyData).map(([name, total]) => ({ name, total }));
   }, [completedOrders]);
 
 
@@ -162,12 +192,19 @@ export default function ChefDashboardPage() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 my-8">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">إجمالي الإيرادات</CardTitle>
+                        <CardTitle className="text-sm font-medium">إيرادات هذا الشهر</CardTitle>
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{totalRevenue.toFixed(2)} جنيه</div>
-                        <p className="text-xs text-muted-foreground">+15.2% عن الشهر الماضي</p>
+                        <div className="text-2xl font-bold">{currentMonthRevenue.toFixed(2)} جنيه</div>
+                        <p className={cn(
+                            "text-xs text-muted-foreground flex items-center",
+                            revenuePercentageChange > 0 && "text-green-600",
+                            revenuePercentageChange < 0 && "text-red-600"
+                        )}>
+                             {revenuePercentageChange > 0 ? <ArrowUp className="h-4 w-4" /> : revenuePercentageChange < 0 ? <ArrowDown className="h-4 w-4" /> : null}
+                            {revenuePercentageChange.toFixed(1)}% عن الشهر الماضي
+                        </p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -346,3 +383,5 @@ export default function ChefDashboardPage() {
     </div>
   );
 }
+
+    
