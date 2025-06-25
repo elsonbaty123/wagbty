@@ -9,8 +9,8 @@ import { AuthProvider } from '@/context/auth-context';
 import { OrderProvider } from '@/context/order-context';
 
 export const metadata: Metadata = {
-  title: 'شيف كونكت',
-  description: 'تواصل مع طهاة موهوبين واستمتع بتجارب طهي فريدة.',
+  title: 'اكل بيتي',
+  description: 'اكتشف أفضل الأكل البيتي المعد خصيصًا لك.',
 };
 
 export default function RootLayout({

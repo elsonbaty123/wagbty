@@ -96,14 +96,14 @@ export function Header() {
       <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
         <Link href="/" className="flex items-center gap-2">
           <UtensilsCrossed className="h-6 w-6 text-primary" />
-          <span className="text-xl font-bold font-headline text-primary">شيف كونكت</span>
+          <span className="text-xl font-bold font-headline text-primary">اكل بيتي</span>
         </Link>
         <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
           <Link href="/" className="transition-colors hover:text-primary">
             الرئيسية
           </Link>
-          <Link href="/#featured-chefs" className="transition-colors hover:text-primary">
-            الطهاة
+          <Link href="/#dishes" className="transition-colors hover:text-primary">
+            الوجبات
           </Link>
         </nav>
         <div className="hidden items-center gap-4 md:flex">
@@ -120,14 +120,14 @@ export function Header() {
             <div className="grid gap-4 py-6">
               <Link href="/" className="flex items-center gap-2">
                 <UtensilsCrossed className="h-6 w-6 text-primary" />
-                <span className="text-xl font-bold font-headline text-primary">شيف كونكت</span>
+                <span className="text-xl font-bold font-headline text-primary">اكل بيتي</span>
               </Link>
               <nav className="grid gap-2 text-lg font-medium">
                  <Link href="/" className="transition-colors hover:text-primary">
                     الرئيسية
                  </Link>
-                 <Link href="/#featured-chefs" className="transition-colors hover:text-primary">
-                    الطهاة
+                 <Link href="/#dishes" className="transition-colors hover:text-primary">
+                    الوجبات
                  </Link>
               </nav>
               <div className="flex flex-col gap-2">
