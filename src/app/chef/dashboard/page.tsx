@@ -1,27 +1,24 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import Image from 'next/image';
 import { OrderCard } from '@/components/order-card';
 import type { Order, Dish } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { DollarSign, Utensils, ClipboardList, PlusCircle, Edit } from 'lucide-react';
-import { Dialog } from '@/components/ui/dialog';
+import { DollarSign, Utensils, ClipboardList, PlusCircle, Edit, BookOpenCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { DishForm } from '@/components/dish-form';
 import { useAuth } from '@/context/auth-context';
 import { useOrders } from '@/context/order-context';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function ChefDashboardPage() {
   const { user, loading } = useAuth();
-  const { dishes, getOrdersByChefId, updateOrderStatus } = useOrders();
+  const { getOrdersByChefId } = useOrders();
   const router = useRouter();
-  const [isDishDialogOpen, setDishDialogOpen] = useState(false);
-  const [selectedDish, setSelectedDish] = useState<Dish | null>(null);
 
   useEffect(() => {
     if (!loading && (!user || user.role !== 'chef')) {
@@ -46,20 +43,13 @@ export default function ChefDashboardPage() {
         </div>
     )
   }
-
+  
+  const { updateOrderStatus } = useOrders();
   const chefOrders = getOrdersByChefId(user.id);
-  const chefDishes = dishes.filter(d => d.chefId === user.id);
   const pendingOrders = chefOrders.filter(o => o.status === 'قيد الانتظار');
   const otherOrders = chefOrders.filter(o => o.status !== 'قيد الانتظار');
 
-  const handleOpenDialog = (dish: Dish | null) => {
-    setSelectedDish(dish);
-    setDishDialogOpen(true);
-  };
-
-
   return (
-    <>
     <div className="container mx-auto px-4 py-8 md:px-6 md:py-12 text-right">
       <div className="flex flex-col md:flex-row justify-between md:items-center mb-8 gap-4">
         <h1 className="font-headline text-3xl md:text-4xl font-bold text-primary">لوحة تحكم الشيف</h1>
@@ -101,7 +91,26 @@ export default function ChefDashboardPage() {
         </Card>
       </div>
 
-      <div>
+      <div className="mt-12">
+        <Card>
+          <CardHeader>
+            <CardTitle>إدارة قائمة الطعام</CardTitle>
+            <CardDescription>
+              أضف أطباقًا جديدة، عدّل الأسعار، وحدّث حالة التوفر من صفحة إدارة القائمة المخصصة.
+            </CardDescription>
+          </CardHeader>
+          <CardFooter>
+            <Button asChild className="bg-accent text-accent-foreground hover:bg-accent/90">
+              <Link href="/chef/menu">
+                <BookOpenCheck className="ml-2 h-4 w-4" />
+                الانتقال إلى إدارة القائمة
+              </Link>
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+
+      <div className="mt-12">
         <h2 className="font-headline text-2xl font-bold mb-4">طلبات جديدة</h2>
         {pendingOrders.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -127,50 +136,6 @@ export default function ChefDashboardPage() {
         )}
       </div>
 
-       <div className="mt-12">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="font-headline text-2xl font-bold">قائمة طعامي</h2>
-            <Button onClick={() => handleOpenDialog(null)}>
-              <PlusCircle className="ml-2 h-4 w-4" />
-              أضف طبق جديد
-            </Button>
-          </div>
-          {chefDishes.length > 0 ? (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {chefDishes.map((dish) => (
-                <Card key={dish.id} className="flex flex-col">
-                  <Image
-                      alt={dish.name}
-                      className="aspect-video w-full rounded-t-lg object-cover"
-                      height="225"
-                      src={dish.imageUrl}
-                      data-ai-hint="plated food"
-                      width="400"
-                    />
-                  <CardHeader>
-                    <CardTitle>{dish.name}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="flex-grow">
-                    <p className="text-sm text-muted-foreground min-h-[40px]">{dish.description}</p>
-                    <p className="font-bold text-primary mt-2">{dish.price.toFixed(2)} جنيه</p>
-                  </CardContent>
-                  <CardFooter>
-                      <Button variant="outline" className="w-full" onClick={() => handleOpenDialog(dish)}>
-                        <Edit className="ml-2 h-4 w-4" />
-                        تعديل
-                      </Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-           ) : (
-             <p className="text-muted-foreground">لم تقم بإضافة أي أطباق بعد.</p>
-           )}
-        </div>
     </div>
-    <Dialog open={isDishDialogOpen} onOpenChange={setDishDialogOpen}>
-        <DishForm dish={selectedDish} onFinished={() => setDishDialogOpen(false)} />
-    </Dialog>
-    </>
   );
 }

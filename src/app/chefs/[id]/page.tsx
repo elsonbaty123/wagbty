@@ -1,7 +1,7 @@
 
 'use client';
 import Image from 'next/image';
-import { Star } from 'lucide-react';
+import { Star, Clock } from 'lucide-react';
 import { DishCard } from '@/components/dish-card';
 import { allChefs, allDishes } from '@/lib/data';
 import { notFound, useParams } from 'next/navigation';
@@ -14,7 +14,7 @@ export default function ChefProfilePage() {
     notFound();
   }
 
-  const chefDishes = allDishes.filter(dish => dish.chefId === chef.id);
+  const chefDishes = allDishes.filter(dish => dish.chefId === chef.id && dish.status !== 'مخفية');
 
   return (
     <div className="container mx-auto px-4 py-8 md:px-6 md:py-12">

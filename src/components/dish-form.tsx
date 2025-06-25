@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
@@ -19,6 +19,9 @@ const dishFormSchema = z.object({
   description: z.string().min(1, 'الوصف مطلوب'),
   price: z.coerce.number().positive('السعر يجب أن يكون رقمًا موجبًا'),
   imageUrl: z.string().url('رابط الصورة غير صالح').or(z.literal('')),
+  ingredients: z.string().min(1, 'المكونات مطلوبة'),
+  prepTime: z.coerce.number().int().positive('وقت التحضير يجب أن يكون رقمًا صحيحًا موجبًا'),
+  category: z.string().min(1, 'التصنيف مطلوب'),
 });
 
 type DishFormValues = z.infer<typeof dishFormSchema>;
@@ -40,6 +43,9 @@ export function DishForm({ dish, onFinished }: DishFormProps) {
       description: dish?.description || '',
       price: dish?.price || 0,
       imageUrl: dish?.imageUrl || 'https://placehold.co/400x225.png',
+      ingredients: dish?.ingredients?.join(', ') || '',
+      prepTime: dish?.prepTime || 0,
+      category: dish?.category || '',
     },
   });
 
@@ -48,17 +54,20 @@ export function DishForm({ dish, onFinished }: DishFormProps) {
       toast({ variant: 'destructive', title: 'خطأ', description: 'يجب أن تكون طاهياً لتنفيذ هذا الإجراء.' });
       return;
     }
+    
+    const dishPayload = {
+      ...data,
+      ingredients: data.ingredients.split(',').map(item => item.trim()).filter(item => item.length > 0),
+    };
 
     if (dish) {
-      // Update existing dish
-      updateDish({ ...data, id: dish.id, chefId: dish.chefId });
+      updateDish({ ...dish, ...dishPayload });
       toast({
         title: 'تم تحديث الطبق',
         description: `تم حفظ طبق "${data.name}" بنجاح.`,
       });
     } else {
-      // Add new dish
-      addDish({ ...data, chefId: user.id });
+      addDish({ ...dishPayload, chefId: user.id, status: 'متوفرة' });
        toast({
         title: 'تم إضافة الطبق',
         description: `تم إضافة طبق "${data.name}" بنجاح.`,
@@ -68,12 +77,12 @@ export function DishForm({ dish, onFinished }: DishFormProps) {
   };
 
   return (
-    <DialogContent className="sm:max-w-[425px] text-right">
+    <DialogContent className="sm:max-w-md text-right">
       <DialogHeader>
         <DialogTitle>{dish ? 'تعديل الطبق' : 'إضافة طبق جديد'}</DialogTitle>
       </DialogHeader>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pr-2">
           <FormField
             control={form.control}
             name="name"
@@ -100,14 +109,58 @@ export function DishForm({ dish, onFinished }: DishFormProps) {
               </FormItem>
             )}
           />
-          <FormField
+           <FormField
             control={form.control}
-            name="price"
+            name="ingredients"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>السعر (بالجنيه المصري)</FormLabel>
+                <FormLabel>المكونات</FormLabel>
                 <FormControl>
-                  <Input type="number" placeholder="150" {...field} className="text-right" />
+                  <Textarea placeholder="شوكولاتة، حليب، سكر..." {...field} className="text-right" />
+                </FormControl>
+                <FormDescription>
+                  افصل بين كل مكون بفاصلة (,).
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <div className="grid grid-cols-2 gap-4">
+             <FormField
+                control={form.control}
+                name="price"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>السعر (جنيه)</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="150" {...field} className="text-right" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={form.control}
+                name="prepTime"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>وقت التحضير (دقائق)</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="30" {...field} className="text-right" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+          </div>
+          <FormField
+            control={form.control}
+            name="category"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>التصنيف</FormLabel>
+                <FormControl>
+                  <Input placeholder="حلويات، مشويات، ..." {...field} className="text-right" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -126,7 +179,7 @@ export function DishForm({ dish, onFinished }: DishFormProps) {
               </FormItem>
             )}
           />
-          <DialogFooter>
+          <DialogFooter className="pt-4">
             <DialogClose asChild>
                 <Button type="button" variant="secondary">إلغاء</Button>
             </DialogClose>

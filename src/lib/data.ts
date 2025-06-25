@@ -1,3 +1,4 @@
+
 import type { Chef, Dish, Order } from '@/lib/types';
 
 export const allChefs: Chef[] = [
@@ -29,17 +30,17 @@ export const allChefs: Chef[] = [
 
 export const allDishes: Dish[] = [
     // Chef Isabella dishes
-    { id: 'd1', chefId: 'chef1', name: 'تالياتيلي مصنوعة يدوياً بصلصة الراجو', description: 'راجو لحم مطبوخ ببطء فوق باستا البيض الطازجة المصنوعة يدويًا.', price: 240.0, imageUrl: 'https://placehold.co/400x225.png' },
-    { id: 'd2', chefId: 'chef1', name: 'ريزوتو بفطر البورشيني', description: 'ريزوتو كريمي مع فطر البورشيني البري، جبنة بارميزان، وزيت الكمأة البيضاء.', price: 265.0, imageUrl: 'https://placehold.co/400x225.png' },
-    { id: 'd3', chefId: 'chef1', name: 'تيراميسو كلاسيكو', description: 'الحلوى الإيطالية الكلاسيكية مع أصابع السيدة المنقوعة في الإسبريسو وكريمة الماسكاربوني.', price: 120.0, imageUrl: 'https://placehold.co/400x225.png' },
+    { id: 'd1', chefId: 'chef1', name: 'تالياتيلي مصنوعة يدوياً بصلصة الراجو', description: 'راجو لحم مطبوخ ببطء فوق باستا البيض الطازجة المصنوعة يدويًا.', price: 240.0, imageUrl: 'https://placehold.co/400x225.png', ingredients: ['باستا تالياتيلي', 'لحم بقري مفروم', 'طماطم', 'بصل', 'جزر', 'كرفس'], prepTime: 30, category: 'باستا', status: 'متوفرة' },
+    { id: 'd2', chefId: 'chef1', name: 'ريزوتو بفطر البورشيني', description: 'ريزوتو كريمي مع فطر البورشيني البري، جبنة بارميزان، وزيت الكمأة البيضاء.', price: 265.0, imageUrl: 'https://placehold.co/400x225.png', ingredients: ['أرز أربوريو', 'فطر بورشيني', 'مرق خضروات', 'جبنة بارميزان'], prepTime: 25, category: 'ريزوتو', status: 'متوفرة' },
+    { id: 'd3', chefId: 'chef1', name: 'تيراميسو كلاسيكو', description: 'الحلوى الإيطالية الكلاسيكية مع أصابع السيدة المنقوعة في الإسبريسو وكريمة الماسكاربوني.', price: 120.0, imageUrl: 'https://placehold.co/400x225.png', ingredients: ['أصابع السيدة', 'إسبريسو', 'جبنة ماسكاربوني', 'بيض', 'كاكاو بودرة'], prepTime: 20, category: 'حلويات', status: 'غير متوفرة' },
     // Chef Antoine dishes
-    { id: 'd4', chefId: 'chef2', name: 'كيكة الشوكولاتة الذائبة', description: 'كيكة شوكولاتة ذائبة غنية مع مركز من كولي التوت.', price: 140.0, imageUrl: 'https://placehold.co/400x225.png' },
-    { id: 'd5', chefId: 'chef2', name: 'كريم بروليه', description: 'كاسترد غني بحبوب الفانيليا مع طبقة علوية من السكر المكرمل بشكل مثالي.', price: 115.0, imageUrl: 'https://placehold.co/400x225.png' },
-    { id: 'd6', chefId: 'chef2', name: 'تشكيلة ماكارون', description: 'مجموعة مختارة من ستة قطع ماكارون فرنسية رقيقة بنكهات مختلفة.', price: 180.0, imageUrl: 'https://placehold.co/400x225.png' },
+    { id: 'd4', chefId: 'chef2', name: 'كيكة الشوكولاتة الذائبة', description: 'كيكة شوكولاتة ذائبة غنية مع مركز من كولي التوت.', price: 140.0, imageUrl: 'https://placehold.co/400x225.png', ingredients: ['شوكولاتة داكنة', 'زبدة', 'بيض', 'سكر', 'توت'], prepTime: 25, category: 'حلويات', status: 'متوفرة' },
+    { id: 'd5', chefId: 'chef2', name: 'كريم بروليه', description: 'كاسترد غني بحبوب الفانيليا مع طبقة علوية من السكر المكرمل بشكل مثالي.', price: 115.0, imageUrl: 'https://placehold.co/400x225.png', ingredients: ['كريمة ثقيلة', 'صفار بيض', 'سكر', 'فانيليا'], prepTime: 15, category: 'حلويات', status: 'متوفرة' },
+    { id: 'd6', chefId: 'chef2', name: 'تشكيلة ماكارون', description: 'مجموعة مختارة من ستة قطع ماكارون فرنسية رقيقة بنكهات مختلفة.', price: 180.0, imageUrl: 'https://placehold.co/400x225.png', ingredients: ['دقيق لوز', 'بياض بيض', 'سكر', 'نكهات متنوعة'], prepTime: 45, category: 'حلويات', status: 'مخفية' },
     // Chef Kenji dishes
-    { id: 'd7', chefId: 'chef3', name: 'مجموعة سوشي أوماكاسي', description: 'مجموعة من اختيار الشيف مكونة من 12 قطعة من سوشي نيجيري الفاخر.', price: 650.0, imageUrl: 'https://placehold.co/400x225.png' },
-    { id: 'd8', chefId: 'chef3', name: 'أسياخ لحم الواغيو', description: 'أسياخ لحم بقر واغيو A5 مشوية مع صلصة صويا حلوة.', price: 350.0, imageUrl: 'https://placehold.co/400x225.png' },
-    { id: 'd9', chefId: 'chef3', name: 'أرز مقرمش بالتونة الحارة', description: 'أرز مقلي مقرمش يعلوه تونة حارة وهالبينو.', price: 190.0, imageUrl: 'https://placehold.co/400x225.png' },
+    { id: 'd7', chefId: 'chef3', name: 'مجموعة سوشي أوماكاسي', description: 'مجموعة من اختيار الشيف مكونة من 12 قطعة من سوشي نيجيري الفاخر.', price: 650.0, imageUrl: 'https://placehold.co/400x225.png', ingredients: ['أرز سوشي', 'تونة', 'سلمون', 'روبيان', 'ثعابين البحر'], prepTime: 40, category: 'سوشي', status: 'متوفرة' },
+    { id: 'd8', chefId: 'chef3', name: 'أسياخ لحم الواغيو', description: 'أسياخ لحم بقر واغيو A5 مشوية مع صلصة صويا حلوة.', price: 350.0, imageUrl: 'https://placehold.co/400x225.png', ingredients: ['لحم بقر واغيو A5', 'صلصة صويا', 'ميرين', 'ساكي'], prepTime: 15, category: 'شواية', status: 'متوفرة' },
+    { id: 'd9', chefId: 'chef3', name: 'أرز مقرمش بالتونة الحارة', description: 'أرز مقلي مقرمش يعلوه تونة حارة وهالبينو.', price: 190.0, imageUrl: 'https://placehold.co/400x225.png', ingredients: ['أرز سوشي', 'تونة', 'مايونيز حار', 'هالبينو'], prepTime: 20, category: 'مقبلات', status: 'متوفرة' },
 ];
 
 

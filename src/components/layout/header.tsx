@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Menu, UtensilsCrossed, User, LogOut, ClipboardList } from "lucide-react"
+import { Menu, UtensilsCrossed, User, LogOut, ClipboardList, BookOpenCheck } from "lucide-react"
 import { useAuth } from "@/context/auth-context"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -59,6 +59,14 @@ export function Header() {
                 <Link href="/profile">
                   <ClipboardList className="ml-2 h-4 w-4" />
                   <span>طلباتي</span>
+                </Link>
+              </DropdownMenuItem>
+            )}
+            {user.role === 'chef' && (
+              <DropdownMenuItem asChild>
+                <Link href="/chef/menu">
+                  <BookOpenCheck className="ml-2 h-4 w-4" />
+                  <span>إدارة القائمة</span>
                 </Link>
               </DropdownMenuItem>
             )}
@@ -133,6 +141,11 @@ export function Header() {
                      {user.role === 'customer' && (
                        <Button variant="ghost" asChild>
                           <Link href="/profile">طلباتي</Link>
+                       </Button>
+                     )}
+                     {user.role === 'chef' && (
+                       <Button variant="ghost" asChild>
+                          <Link href="/chef/menu">إدارة القائمة</Link>
                        </Button>
                      )}
                     <Button onClick={logout} variant="outline">تسجيل الخروج</Button>

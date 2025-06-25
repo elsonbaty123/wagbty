@@ -1,3 +1,6 @@
+
+export type DishStatus = 'متوفرة' | 'غير متوفرة' | 'مخفية';
+
 export type Dish = {
   id: string;
   chefId: string;
@@ -5,6 +8,10 @@ export type Dish = {
   description: string;
   price: number;
   imageUrl: string;
+  ingredients: string[];
+  prepTime: number; // in minutes
+  category: string;
+  status: DishStatus;
 };
 
 export type Chef = {

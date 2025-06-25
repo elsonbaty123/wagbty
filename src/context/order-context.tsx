@@ -16,6 +16,7 @@ interface OrderContextType {
   updateOrderStatus: (orderId: string, status: OrderStatus) => void;
   addDish: (dishData: Omit<Dish, 'id'>) => void;
   updateDish: (dishData: Dish) => void;
+  deleteDish: (dishId: string) => void;
 }
 
 const OrderContext = createContext<OrderContextType | undefined>(undefined);
@@ -65,6 +66,11 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
     );
   };
 
+  const deleteDish = (dishId: string) => {
+    setDishes((prevDishes) => prevDishes.filter((dish) => dish.id !== dishId));
+  };
+
+
   const value = {
     orders,
     dishes,
@@ -74,6 +80,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
     updateOrderStatus,
     addDish,
     updateDish,
+    deleteDish,
   };
 
   return (
