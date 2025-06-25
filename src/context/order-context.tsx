@@ -3,6 +3,7 @@
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import type { Order, Dish, DishRating, Coupon } from '@/lib/types';
+import { useNotifications } from './notification-context';
 
 type OrderStatus = Order['status'];
 
@@ -32,6 +33,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
   const [dishes, setDishes] = useState<Dish[]>([]);
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(true);
+  const { createNotification } = useNotifications();
 
   useEffect(() => {
     try {
@@ -95,13 +97,66 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
     }
     
     persistOrders([newOrder, ...orders]);
+    
+    // Notify the chef
+    createNotification({
+      recipientId: orderData.chef.id,
+      title: 'طلب جديد!',
+      message: `لديك طلب جديد لـ'${orderData.dish.name}' من ${orderData.customerName}.`,
+      link: '/chef/dashboard',
+    });
   };
 
   const updateOrderStatus = (orderId: string, status: OrderStatus) => {
-    const newOrders = orders.map((order) =>
-        order.id === orderId ? { ...order, status } : order
-      );
-    persistOrders(newOrders);
+    let updatedOrder: Order | undefined;
+    const newOrders = orders.map((order) => {
+      if (order.id === orderId) {
+        updatedOrder = { ...order, status };
+        return updatedOrder;
+      }
+      return order;
+    });
+
+    if (updatedOrder) {
+      persistOrders(newOrders);
+
+      const { customerId, dish: { name: dishName } } = updatedOrder;
+      
+      switch (status) {
+        case 'قيد التحضير':
+          createNotification({
+            recipientId: customerId,
+            title: 'تم تأكيد طلبك',
+            message: `طلبك لـ'${dishName}' قيد التحضير الآن!`,
+            link: '/profile',
+          });
+          break;
+        case 'جاهز للتوصيل':
+          createNotification({
+            recipientId: customerId,
+            title: 'طلبك في الطريق!',
+            message: `وجبتك اللذيذة '${dishName}' في طريقها إليك.`,
+            link: '/profile',
+          });
+          break;
+        case 'تم التوصيل':
+          createNotification({
+            recipientId: customerId,
+            title: 'تم توصيل طلبك!',
+            message: `استمتع بوجبتك '${dishName}'. لا تنس تقييم التجربة.`,
+            link: '/profile',
+          });
+          break;
+        case 'مرفوض':
+          createNotification({
+            recipientId: customerId,
+            title: 'تم رفض طلبك',
+            message: `للأسف، تم رفض طلبك لوجبة '${dishName}'.`,
+            link: '/profile',
+          });
+          break;
+      }
+    }
   };
     
   const addDish = (dishData: Omit<Dish, 'id' | 'ratings'>) => {

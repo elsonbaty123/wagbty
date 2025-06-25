@@ -7,6 +7,7 @@ import { Footer } from '@/components/layout/footer';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/context/auth-context';
 import { OrderProvider } from '@/context/order-context';
+import { NotificationProvider } from '@/context/notification-context';
 
 export const metadata: Metadata = {
   title: 'اكل بيتي',
@@ -31,14 +32,16 @@ export default function RootLayout({
         )}
       >
         <AuthProvider>
-          <OrderProvider>
-            <div className="relative flex min-h-screen flex-col">
-              <Header />
-              <main className="flex-1">{children}</main>
-              <Footer />
-            </div>
-            <Toaster />
-          </OrderProvider>
+          <NotificationProvider>
+            <OrderProvider>
+              <div className="relative flex min-h-screen flex-col">
+                <Header />
+                <main className="flex-1">{children}</main>
+                <Footer />
+              </div>
+              <Toaster />
+            </OrderProvider>
+          </NotificationProvider>
         </AuthProvider>
       </body>
     </html>

@@ -1,4 +1,5 @@
 
+
 export type DishStatus = 'متوفرة' | 'غير متوفرة' | 'مخفية';
 
 export type DishRating = {
@@ -73,4 +74,14 @@ export type Coupon = {
   usageLimit: number;
   timesUsed: number;
   isActive: boolean;
+};
+
+export type Notification = {
+  id: string;
+  recipientId: string; // ID of the user (customer or chef) who should receive this
+  title: string;
+  message: string;
+  link: string; // URL to navigate to when clicked
+  createdAt: string; // ISO date string
+  isRead: boolean;
 };
