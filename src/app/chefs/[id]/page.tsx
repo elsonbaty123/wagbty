@@ -4,9 +4,10 @@ import Image from 'next/image';
 import { Star } from 'lucide-react';
 import { DishCard } from '@/components/dish-card';
 import { allChefs, allDishes } from '@/lib/data';
-import { notFound } from 'next/navigation';
+import { notFound, useParams } from 'next/navigation';
 
-export default function ChefProfilePage({ params }: { params: { id: string } }) {
+export default function ChefProfilePage() {
+  const params = useParams<{ id: string }>();
   const chef = allChefs.find(c => c.id === params.id);
   
   if (!chef) {
