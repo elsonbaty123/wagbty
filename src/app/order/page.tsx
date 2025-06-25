@@ -75,10 +75,10 @@ export default function OrderPage() {
               </CardHeader>
               <CardContent className="flex flex-col gap-4">
                 <Button asChild className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-                  <Link href={`/login?redirect=/order?dishId=${dish.id}`}>تسجيل الدخول</Link>
+                  <Link href={`/login`}>تسجيل الدخول</Link>
                 </Button>
                 <Button asChild variant="outline" className="w-full">
-                  <Link href={`/signup?redirect=/order?dishId=${dish.id}`}>إنشاء حساب جديد</Link>
+                  <Link href={`/signup`}>إنشاء حساب جديد</Link>
                 </Button>
               </CardContent>
             </Card>

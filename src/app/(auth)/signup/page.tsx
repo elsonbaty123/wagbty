@@ -9,23 +9,47 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PasswordInput } from '@/components/password-input';
 import { useAuth } from '@/context/auth-context';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
+
 
 export default function SignupPage() {
   const [customerName, setCustomerName] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
   const [customerPassword, setCustomerPassword] = useState('');
-  const [chefName, setChefName] = useState('');
-  const [chefPassword, setChefPassword] = useState('');
-  const { login } = useAuth();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const redirectUrl = searchParams.get('redirect') || '';
 
-  const handleSignup = (role: 'customer' | 'chef') => {
+  const [chefName, setChefName] = useState('');
+  const [chefEmail, setChefEmail] = useState('');
+  const [chefSpecialty, setChefSpecialty] = useState('');
+  const [chefPhone, setChefPhone] = useState('');
+  const [chefPassword, setChefPassword] = useState('');
+  
+  const [isLoading, setIsLoading] = useState(false);
+
+  const { signup } = useAuth();
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const handleSignup = async (role: 'customer' | 'chef') => {
+    setIsLoading(true);
     const name = role === 'customer' ? customerName : chefName;
-    login(role, name || (role === 'customer' ? 'العميل الجديد' : 'الشيف الجديد'));
-    const destination = redirectUrl || (role === 'chef' ? '/chef/dashboard' : '/profile');
-    router.push(destination);
+    const email = role === 'customer' ? customerEmail : chefEmail;
+    const password = role === 'customer' ? customerPassword : chefPassword;
+
+    try {
+      await signup(name, email, password, role);
+      router.push('/');
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'فشل إنشاء الحساب',
+        description: error.message || 'حدث خطأ ما، يرجى المحاولة مرة أخرى.',
+      });
+    } finally {
+        setIsLoading(false);
+    }
   };
 
   return (
@@ -47,11 +71,11 @@ export default function SignupPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="customer-email">البريد الإلكتروني</Label>
-              <Input id="customer-email" type="email" placeholder="m@example.com" required className="text-right"/>
+              <Input id="customer-email" type="email" placeholder="m@example.com" required className="text-right" value={customerEmail} onChange={(e) => setCustomerEmail(e.target.value)} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="customer-phone">رقم الهاتف</Label>
-              <Input id="customer-phone" type="tel" placeholder="01XXXXXXXXX" required className="text-right" />
+              <Input id="customer-phone" type="tel" placeholder="01XXXXXXXXX" required className="text-right" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)}/>
             </div>
             <div className="space-y-2">
               <Label htmlFor="customer-password">كلمة المرور</Label>
@@ -65,7 +89,8 @@ export default function SignupPage() {
                 showStrength
               />
             </div>
-            <Button onClick={() => handleSignup('customer')} type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+            <Button onClick={() => handleSignup('customer')} type="submit" disabled={isLoading} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+              {isLoading && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
               إنشاء حساب
             </Button>
             <div className="mt-4 text-center text-sm">
@@ -90,15 +115,15 @@ export default function SignupPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="chef-specialty">تخصص المطبخ</Label>
-              <Input id="chef-specialty" placeholder="مثال: فرنسي، إيطالي، نباتي" required className="text-right"/>
+              <Input id="chef-specialty" placeholder="مثال: فرنسي، إيطالي، نباتي" required className="text-right" value={chefSpecialty} onChange={(e) => setChefSpecialty(e.target.value)} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="chef-email">البريد الإلكتروني</Label>
-              <Input id="chef-email" type="email" placeholder="chef@example.com" required className="text-right"/>
+              <Input id="chef-email" type="email" placeholder="chef@example.com" required className="text-right" value={chefEmail} onChange={(e) => setChefEmail(e.target.value)} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="chef-phone">رقم الهاتف</Label>
-              <Input id="chef-phone" type="tel" placeholder="01XXXXXXXXX" required className="text-right" />
+              <Input id="chef-phone" type="tel" placeholder="01XXXXXXXXX" required className="text-right" value={chefPhone} onChange={(e) => setChefPhone(e.target.value)} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="chef-password">كلمة المرور</Label>
@@ -112,7 +137,8 @@ export default function SignupPage() {
                 showStrength
               />
             </div>
-            <Button onClick={() => handleSignup('chef')} type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+            <Button onClick={() => handleSignup('chef')} type="submit" disabled={isLoading} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+               {isLoading && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
               تقدم لتكون طاهيًا
             </Button>
             <div className="mt-4 text-center text-sm">

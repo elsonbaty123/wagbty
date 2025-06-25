@@ -1,6 +1,6 @@
 
 'use client';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,20 +10,38 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PasswordInput } from '@/components/password-input';
 import { useAuth } from '@/context/auth-context';
 import Link from 'next/link';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
 
 
 export default function LoginPage() {
-  const [customerPassword, setCustomerPassword] = useState('');
-  const [chefPassword, setChefPassword] = useState('');
-  const { login } = useAuth();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const redirectUrl = searchParams.get('redirect') || '';
+  const [customerEmail, setCustomerEmail] = useState('jane.doe@example.com');
+  const [customerPassword, setCustomerPassword] = useState('Password123!');
+  const [chefEmail, setChefEmail] = useState('chef.antoine@example.com');
+  const [chefPassword, setChefPassword] = useState('Password123!');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = (role: 'customer' | 'chef') => {
-    login(role);
-    const destination = redirectUrl || (role === 'chef' ? '/chef/dashboard' : '/profile');
-    router.push(destination);
+  const { login } = useAuth();
+  const { toast } = useToast();
+  const router = useRouter();
+
+  const handleLogin = async (role: 'customer' | 'chef') => {
+    setIsLoading(true);
+    const email = role === 'customer' ? customerEmail : chefEmail;
+    const password = role === 'customer' ? customerPassword : chefPassword;
+
+    try {
+      await login(email, password, role);
+      router.push('/');
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "فشل تسجيل الدخول",
+        description: error.message || 'حدث خطأ ما، يرجى المحاولة مرة أخرى.',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -41,7 +59,15 @@ export default function LoginPage() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="customer-email">البريد الإلكتروني</Label>
-              <Input id="customer-email" type="email" placeholder="m@example.com" required className="text-right" />
+              <Input 
+                id="customer-email" 
+                type="email" 
+                placeholder="m@example.com" 
+                required 
+                className="text-right" 
+                value={customerEmail}
+                onChange={(e) => setCustomerEmail(e.target.value)}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="customer-password">كلمة المرور</Label>
@@ -53,7 +79,8 @@ export default function LoginPage() {
                 onChange={(e) => setCustomerPassword(e.target.value)}
               />
             </div>
-            <Button onClick={() => handleLogin('customer')} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
+            <Button onClick={() => handleLogin('customer')} disabled={isLoading} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
+               {isLoading && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
               تسجيل الدخول
             </Button>
             <div className="mt-4 text-center text-sm">
@@ -74,7 +101,15 @@ export default function LoginPage() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="chef-email">البريد الإلكتروني</Label>
-              <Input id="chef-email" type="email" placeholder="chef@example.com" required className="text-right" />
+              <Input 
+                id="chef-email" 
+                type="email" 
+                placeholder="chef@example.com" 
+                required 
+                className="text-right" 
+                value={chefEmail}
+                onChange={(e) => setChefEmail(e.target.value)}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="chef-password">كلمة المرور</Label>
@@ -86,7 +121,8 @@ export default function LoginPage() {
                 onChange={(e) => setChefPassword(e.target.value)}
               />
             </div>
-            <Button onClick={() => handleLogin('chef')} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
+            <Button onClick={() => handleLogin('chef')} disabled={isLoading} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
+              {isLoading && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
               تسجيل الدخول
             </Button>
             <div className="mt-4 text-center text-sm">

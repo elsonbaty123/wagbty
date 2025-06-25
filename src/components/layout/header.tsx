@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Menu, UtensilsCrossed, User, LogOut } from "lucide-react"
+import { Menu, UtensilsCrossed, User, LogOut, ClipboardList } from "lucide-react"
 import { useAuth } from "@/context/auth-context"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -51,9 +51,18 @@ export function Header() {
             <DropdownMenuItem asChild>
               <Link href={getProfileLink()}>
                 <User className="ml-2 h-4 w-4" />
-                <span>الملف الشخصي</span>
+                <span>{user.role === 'chef' ? 'لوحة التحكم' : 'الملف الشخصي'}</span>
               </Link>
             </DropdownMenuItem>
+             {user.role === 'customer' && (
+              <DropdownMenuItem asChild>
+                <Link href="/profile">
+                  <ClipboardList className="ml-2 h-4 w-4" />
+                  <span>طلباتي</span>
+                </Link>
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={logout}>
               <LogOut className="ml-2 h-4 w-4" />
               <span>تسجيل الخروج</span>
@@ -119,8 +128,13 @@ export function Header() {
                 ) : user ? (
                     <>
                     <Button variant="ghost" asChild>
-                        <Link href={getProfileLink()}>الملف الشخصي</Link>
+                        <Link href={getProfileLink()}>{user.role === 'chef' ? 'لوحة التحكم' : 'الملف الشخصي'}</Link>
                     </Button>
+                     {user.role === 'customer' && (
+                       <Button variant="ghost" asChild>
+                          <Link href="/profile">طلباتي</Link>
+                       </Button>
+                     )}
                     <Button onClick={logout} variant="outline">تسجيل الخروج</Button>
                     </>
                 ) : (
