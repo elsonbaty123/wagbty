@@ -2,7 +2,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import type { Order, Dish } from '@/lib/types';
+import type { Order, Dish, DishRating } from '@/lib/types';
 
 type OrderStatus = Order['status'];
 
@@ -12,11 +12,12 @@ interface OrderContextType {
   loading: boolean;
   getOrdersByCustomerId: (customerId: string) => Order[];
   getOrdersByChefId: (chefId: string) => Order[];
-  createOrder: (orderData: Omit<Order, 'id' | 'status'>) => void;
+  createOrder: (orderData: Omit<Order, 'id' | 'status' | 'createdAt'>) => void;
   updateOrderStatus: (orderId: string, status: OrderStatus) => void;
-  addDish: (dishData: Omit<Dish, 'id'>) => void;
+  addDish: (dishData: Omit<Dish, 'id' | 'ratings'>) => void;
   updateDish: (dishData: Dish) => void;
   deleteDish: (dishId: string) => void;
+  addReviewToOrder: (orderId: string, rating: number, review: string) => void;
 }
 
 const OrderContext = createContext<OrderContextType | undefined>(undefined);
@@ -62,11 +63,12 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
     return orders.filter((order) => order.chef.id === chefId);
   };
 
-  const createOrder = (orderData: Omit<Order, 'id' | 'status'>) => {
+  const createOrder = (orderData: Omit<Order, 'id' | 'status' | 'createdAt'>) => {
     const newOrder: Order = {
       ...orderData,
       id: `ORD${Date.now()}`,
       status: 'جارٍ المراجعة',
+      createdAt: new Date().toISOString(),
     };
     persistOrders([newOrder, ...orders]);
   };
@@ -78,10 +80,11 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
     persistOrders(newOrders);
   };
     
-  const addDish = (dishData: Omit<Dish, 'id'>) => {
+  const addDish = (dishData: Omit<Dish, 'id' | 'ratings'>) => {
     const newDish: Dish = {
       ...dishData,
       id: `d${Date.now()}`,
+      ratings: [],
     };
     persistDishes([newDish, ...dishes]);
   };
@@ -97,6 +100,37 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
     const newDishes = dishes.filter((dish) => dish.id !== dishId);
     persistDishes(newDishes);
   };
+  
+  const addReviewToOrder = (orderId: string, rating: number, review: string) => {
+    let orderToUpdate: Order | undefined;
+
+    const newOrders = orders.map(o => {
+      if (o.id === orderId) {
+        orderToUpdate = { ...o, rating, review };
+        return orderToUpdate;
+      }
+      return o;
+    });
+
+    if (orderToUpdate) {
+      const newRating: DishRating = {
+        customerName: orderToUpdate.customerName,
+        rating,
+        review,
+        createdAt: new Date().toISOString(),
+      };
+      
+      const newDishes = dishes.map(d => {
+        if (d.id === orderToUpdate!.dish.id) {
+          return { ...d, ratings: [...d.ratings, newRating] };
+        }
+        return d;
+      });
+
+      persistDishes(newDishes);
+      persistOrders(newOrders);
+    }
+  };
 
 
   const value = {
@@ -110,6 +144,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
     addDish,
     updateDish,
     deleteDish,
+    addReviewToOrder,
   };
 
   return (

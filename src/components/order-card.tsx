@@ -10,31 +10,45 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import type { Order } from '@/lib/types';
-import { Home, Phone, User, Check, X, CreditCard, ChevronDown } from 'lucide-react';
+import type { Order, OrderStatus } from '@/lib/types';
+import { Home, Phone, User, CreditCard, ChevronDown, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useState } from 'react';
+import { cn } from '@/lib/utils';
+import { Textarea } from './ui/textarea';
 
 interface OrderCardProps {
   order: Order;
   isChefView?: boolean;
   updateOrderStatus?: (orderId: string, status: Order['status']) => void;
+  addReview?: (orderId: string, rating: number, review: string) => void;
 }
 
-export function OrderCard({ order, isChefView = false, updateOrderStatus }: OrderCardProps) {
+export function OrderCard({ order, isChefView = false, updateOrderStatus, addReview }: OrderCardProps) {
   const { toast } = useToast();
+  const [rating, setRating] = useState(order.rating || 0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [reviewText, setReviewText] = useState(order.review || '');
 
-  const handleStatusChange = (status: Order['status']) => {
+  const handleStatusChange = (status: OrderStatus) => {
     if (updateOrderStatus) {
       updateOrderStatus(order.id, status);
       toast({
         title: 'تم تحديث حالة الطلب',
-        description: `تم تحديث الطلب #${order.id} إلى "${status}".`,
+        description: `تم تحديث الطلب #${order.id.slice(-4)} إلى "${status}".`,
       });
     }
   };
+  
+  const handleSubmitReview = () => {
+    if (rating > 0 && addReview) {
+      addReview(order.id, rating, reviewText);
+      toast({ title: 'شكرًا لتقييمك!', description: 'تم إرسال تقييمك بنجاح.' });
+    }
+  };
 
-  const getStatusVariant = (status: Order['status']) => {
+  const getStatusVariant = (status: OrderStatus) => {
     switch (status) {
       case 'قيد التحضير':
         return 'default';
@@ -52,6 +66,7 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus }: Orde
   };
 
   const total = order.dish.price * order.quantity;
+  const isCustomerView = !isChefView;
 
   return (
     <Card className="text-right flex flex-col">
@@ -59,7 +74,7 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus }: Orde
         <div className="flex justify-between items-start">
           <div>
             <CardTitle className="font-headline text-xl">{order.dish.name}</CardTitle>
-            <CardDescription>طلب #{order.id}</CardDescription>
+            <CardDescription>طلب #{order.id.slice(-6)}</CardDescription>
           </div>
           <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
         </div>
@@ -96,6 +111,44 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus }: Orde
             </div>
         </div>
       </CardContent>
+      {isCustomerView && order.status === 'تم التوصيل' && !order.rating && addReview && (
+        <CardFooter className="flex-col items-start gap-2 border-t pt-4">
+            <h4 className="font-medium">تقييم الطلب</h4>
+            <div className="flex items-center gap-1" dir="ltr">
+                {[1, 2, 3, 4, 5].map((star) => (
+                    <Star
+                        key={star}
+                        className={cn(
+                            "h-6 w-6 cursor-pointer transition-colors",
+                            (hoverRating || rating) >= star ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground"
+                        )}
+                        onMouseEnter={() => setHoverRating(star)}
+                        onMouseLeave={() => setHoverRating(0)}
+                        onClick={() => setRating(star)}
+                    />
+                ))}
+            </div>
+            <Textarea
+                placeholder="أخبرنا عن رأيك في الوجبة..."
+                value={reviewText}
+                onChange={(e) => setReviewText(e.target.value)}
+                className="text-right"
+            />
+            <Button onClick={handleSubmitReview} disabled={rating === 0} size="sm">إرسال التقييم</Button>
+        </CardFooter>
+      )}
+       {isCustomerView && order.rating && (
+        <CardFooter className="border-t pt-4">
+            <div className="flex items-center gap-2">
+                 <span className="text-sm text-muted-foreground">تقييمك:</span>
+                 <div className="flex items-center gap-0.5" dir="ltr">
+                    {[...Array(5)].map((_, i) => (
+                        <Star key={i} className={cn("h-4 w-4", i < order.rating! ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground")} />
+                    ))}
+                 </div>
+            </div>
+        </CardFooter>
+      )}
        {isChefView && order.status !== 'تم التوصيل' && order.status !== 'مرفوض' && (
         <CardFooter>
           <DropdownMenu>

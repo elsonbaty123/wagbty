@@ -42,6 +42,12 @@ export default function ChefProfilePage() {
   }
 
   const chefDishes = dishes.filter(dish => dish.chefId === chef.id && dish.status !== 'مخفية');
+  
+  const allRatings = chefDishes.flatMap(d => d.ratings?.map(r => r.rating) || []);
+  const chefAverageRating = allRatings.length > 0
+    ? allRatings.reduce((a, b) => a + b, 0) / allRatings.length
+    : chef.rating || 0;
+  const totalRatingsCount = allRatings.length;
 
   return (
     <div className="container mx-auto px-4 py-8 md:px-6 md:py-12">
@@ -59,8 +65,8 @@ export default function ChefProfilePage() {
             <h1 className="font-headline text-3xl font-bold mt-4">{chef.name}</h1>
             <p className="text-lg text-primary font-semibold mt-1">{chef.specialty}</p>
             <div className="flex items-center justify-end gap-2 mt-2">
-              <span className="text-sm text-muted-foreground">(24 تقييم)</span>
-              <span className="font-bold text-lg">{chef.rating}</span>
+              <span className="text-sm text-muted-foreground">({totalRatingsCount} تقييم)</span>
+              <span className="font-bold text-lg">{chefAverageRating.toFixed(1)}</span>
               <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
             </div>
             <p className="mt-4 text-muted-foreground">{chef.bio}</p>
@@ -72,7 +78,7 @@ export default function ChefProfilePage() {
           <div className="grid gap-6">
             {chefDishes.length > 0 ? (
                 chefDishes.map((dish) => (
-                    <DishCard key={dish.id} dish={dish} />
+                    <DishCard key={dish.id} dish={dish} chefName={chef.name} />
                 ))
             ) : (
                 <div className="text-center py-16 border-2 border-dashed rounded-lg">

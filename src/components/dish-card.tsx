@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import type { Dish } from '@/lib/types';
 import Link from 'next/link';
-import { Clock, ChefHat } from 'lucide-react';
+import { Clock, ChefHat, Star } from 'lucide-react';
 import { Badge } from './ui/badge';
 
 interface DishCardProps {
@@ -14,6 +14,11 @@ interface DishCardProps {
 
 export function DishCard({ dish, chefName }: DishCardProps) {
   const isAvailable = dish.status === 'متوفرة';
+
+  const ratingsCount = dish.ratings?.length || 0;
+  const averageRating = ratingsCount > 0
+    ? dish.ratings.reduce((sum, r) => sum + r.rating, 0) / ratingsCount
+    : 0;
 
   return (
     <Card className="flex flex-col text-right overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
@@ -37,9 +42,19 @@ export function DishCard({ dish, chefName }: DishCardProps) {
             <ChefHat className="w-4 h-4 text-muted-foreground" />
         </div>
         <CardDescription className="mt-2 text-sm text-muted-foreground min-h-[40px]">{dish.description}</CardDescription>
-        <div className="flex items-center justify-end gap-2 text-sm text-muted-foreground mt-2">
-            <span>~{dish.prepTime} دقيقة</span>
-            <Clock className="w-4 h-4" />
+        
+        <div className="flex items-center justify-between mt-2">
+            <div className="flex items-center justify-end gap-2 text-sm text-muted-foreground">
+                <span>~{dish.prepTime} دقيقة</span>
+                <Clock className="w-4 h-4" />
+            </div>
+            {ratingsCount > 0 && (
+                 <div className="flex items-center gap-1">
+                    <span className="text-sm text-muted-foreground">({ratingsCount})</span>
+                    <span className="font-bold text-sm">{averageRating.toFixed(1)}</span>
+                    <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                </div>
+            )}
         </div>
       </CardContent>
       <CardFooter className="p-4 flex justify-between items-center bg-muted/50 mt-auto">

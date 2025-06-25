@@ -21,7 +21,7 @@ import { PasswordChangeForm } from '@/components/password-change-form';
 
 export default function ProfilePage() {
     const { user, loading, logout, updateUser } = useAuth();
-    const { getOrdersByCustomerId } = useOrders();
+    const { getOrdersByCustomerId, addReviewToOrder } = useOrders();
     const router = useRouter();
     const { toast } = useToast();
 
@@ -59,7 +59,9 @@ export default function ProfilePage() {
     }
 
     const myOrders = getOrdersByCustomerId(user.id);
-    
+    const ongoingOrders = myOrders.filter(o => o.status !== 'تم التوصيل' && o.status !== 'مرفوض');
+    const completedOrders = myOrders.filter(o => o.status === 'تم التوصيل' || o.status === 'مرفوض');
+
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
@@ -105,32 +107,59 @@ export default function ProfilePage() {
           <TabsTrigger value="settings">الإعدادات</TabsTrigger>
         </TabsList>
         <TabsContent value="orders">
-          <Card>
-            <CardHeader>
-              <CardTitle>سجل الطلبات</CardTitle>
-              <CardDescription>عرض طلباتك السابقة والحالية وتتبع حالتها.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {myOrders.length > 0 ? (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {myOrders.map((order) => (
-                    <OrderCard key={order.id} order={order} />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-16">
-                  <Utensils className="mx-auto h-12 w-12 text-muted-foreground" />
-                  <h3 className="mt-4 text-lg font-medium">لا توجد طلبات بعد</h3>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    يبدو أنك لم تقم بأي طلب بعد. تصفح الأطباق وابدأ الطلب!
-                  </p>
-                  <Button asChild className="mt-6">
-                    <a href="/">تصفح الأطباق</a>
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+            <Tabs defaultValue="ongoing" className="w-full mt-4">
+                 <TabsList className="grid w-full grid-cols-2 max-w-md">
+                    <TabsTrigger value="ongoing">طلبات جارية</TabsTrigger>
+                    <TabsTrigger value="completed">طلبات مكتملة</TabsTrigger>
+                </TabsList>
+                <TabsContent value="ongoing">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>الطلبات الجارية</CardTitle>
+                            <CardDescription>تتبع طلباتك الحالية.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                             {ongoingOrders.length > 0 ? (
+                                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                                {ongoingOrders.map((order) => (
+                                    <OrderCard key={order.id} order={order} />
+                                ))}
+                                </div>
+                            ) : (
+                                <p className="text-muted-foreground py-8 text-center">لا توجد طلبات جارية حاليًا.</p>
+                            )}
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+                <TabsContent value="completed">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>الطلبات المكتملة</CardTitle>
+                            <CardDescription>عرض سجل طلباتك السابقة وتقييمها.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            {completedOrders.length > 0 ? (
+                                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                                {completedOrders.map((order) => (
+                                    <OrderCard key={order.id} order={order} addReview={addReviewToOrder}/>
+                                ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-16">
+                                    <Utensils className="mx-auto h-12 w-12 text-muted-foreground" />
+                                    <h3 className="mt-4 text-lg font-medium">لا توجد طلبات بعد</h3>
+                                    <p className="mt-2 text-sm text-muted-foreground">
+                                        يبدو أنك لم تقم بأي طلب بعد. تصفح الأطباق وابدأ الطلب!
+                                    </p>
+                                    <Button asChild className="mt-6">
+                                        <a href="/">تصفح الأطباق</a>
+                                    </Button>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+            </Tabs>
         </TabsContent>
         <TabsContent value="settings">
           <Card>
