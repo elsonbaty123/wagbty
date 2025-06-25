@@ -15,11 +15,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { NotificationsPopover } from "../notifications-popover"
+import { ThemeToggleButton } from "../theme-toggle-button"
 
 export function Header() {
   const { user, logout, loading } = useAuth()
 
-  const getProfileLink = () => {
+  const getDashboardLink = () => {
     if (!user) return "/login";
     return user.role === 'chef' ? '/chef/dashboard' : '/profile';
   }
@@ -32,12 +33,13 @@ export function Header() {
       return (
         <div className="flex items-center gap-2">
             <NotificationsPopover />
-             <Link href={getProfileLink()}>
+            <Link href="/settings">
                 <Button variant="ghost" size="icon" className="h-10 w-10">
                     <Settings className="h-5 w-5" />
                     <span className="sr-only">الإعدادات</span>
                 </Button>
             </Link>
+            <ThemeToggleButton />
             <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
@@ -58,19 +60,11 @@ export function Header() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                <Link href={getProfileLink()}>
+                <Link href={getDashboardLink()}>
                     <User className="ml-2 h-4 w-4" />
-                    <span>{user.role === 'chef' ? 'لوحة التحكم' : 'الملف الشخصي'}</span>
+                    <span>{user.role === 'chef' ? 'لوحة التحكم' : 'طلباتي'}</span>
                 </Link>
                 </DropdownMenuItem>
-                {user.role === 'customer' && (
-                <DropdownMenuItem asChild>
-                    <Link href="/profile">
-                    <ClipboardList className="ml-2 h-4 w-4" />
-                    <span>طلباتي</span>
-                    </Link>
-                </DropdownMenuItem>
-                )}
                 {user.role === 'chef' && (
                 <DropdownMenuItem asChild>
                     <Link href="/chef/menu">
@@ -79,6 +73,12 @@ export function Header() {
                     </Link>
                 </DropdownMenuItem>
                 )}
+                <DropdownMenuItem asChild>
+                    <Link href="/settings">
+                        <Settings className="ml-2 h-4 w-4" />
+                        <span>الإعدادات</span>
+                    </Link>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={logout}>
                 <LogOut className="ml-2 h-4 w-4" />
@@ -90,14 +90,15 @@ export function Header() {
       )
     }
     return (
-      <>
+      <div className="flex items-center gap-2">
+        <ThemeToggleButton />
         <Button variant="ghost" asChild>
           <Link href="/login">تسجيل الدخول</Link>
         </Button>
         <Button asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
           <Link href="/signup">إنشاء حساب</Link>
         </Button>
-      </>
+      </div>
     )
   }
 
@@ -140,18 +141,11 @@ export function Header() {
                 ) : user ? (
                     <>
                     <Button variant="ghost" asChild>
-                        <Link href={getProfileLink()}>{user.role === 'chef' ? 'لوحة التحكم' : 'الملف الشخصي'}</Link>
+                        <Link href={getDashboardLink()}>{user.role === 'chef' ? 'لوحة التحكم' : 'طلباتي'}</Link>
                     </Button>
-                     {user.role === 'customer' && (
-                       <Button variant="ghost" asChild>
-                          <Link href="/profile">طلباتي</Link>
-                       </Button>
-                     )}
-                     {user.role === 'chef' && (
-                       <Button variant="ghost" asChild>
-                          <Link href="/chef/menu">إدارة القائمة</Link>
-                       </Button>
-                     )}
+                     <Button variant="ghost" asChild>
+                        <Link href="/settings">الإعدادات</Link>
+                     </Button>
                     <Button onClick={logout} variant="outline">تسجيل الخروج</Button>
                     </>
                 ) : (

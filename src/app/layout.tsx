@@ -8,6 +8,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/context/auth-context';
 import { OrderProvider } from '@/context/order-context';
 import { NotificationProvider } from '@/context/notification-context';
+import { ThemeProvider } from '@/components/theme-provider';
 
 export const metadata: Metadata = {
   title: 'اكل بيتي',
@@ -31,18 +32,25 @@ export default function RootLayout({
           'min-h-screen bg-background font-body antialiased'
         )}
       >
-        <AuthProvider>
-          <NotificationProvider>
-            <OrderProvider>
-              <div className="relative flex min-h-screen flex-col">
-                <Header />
-                <main className="flex-1">{children}</main>
-                <Footer />
-              </div>
-              <Toaster />
-            </OrderProvider>
-          </NotificationProvider>
-        </AuthProvider>
+        <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+        >
+            <AuthProvider>
+            <NotificationProvider>
+                <OrderProvider>
+                <div className="relative flex min-h-screen flex-col">
+                    <Header />
+                    <main className="flex-1">{children}</main>
+                    <Footer />
+                </div>
+                <Toaster />
+                </OrderProvider>
+            </NotificationProvider>
+            </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

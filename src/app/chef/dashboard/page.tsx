@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
@@ -12,47 +11,24 @@ import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { OrderCard } from '@/components/order-card';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { PasswordChangeForm } from '@/components/password-change-form';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
 import { format, isWithinInterval, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { CouponManagementTab } from '@/components/coupon-management-tab';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useNotifications } from '@/context/notification-context';
-import type { User } from '@/lib/types';
 
 
 export default function ChefDashboardPage() {
-  const { user, loading, updateUser } = useAuth();
+  const { user, loading } = useAuth();
   const { dishes, getOrdersByChefId, updateOrderStatus } = useOrders();
   const { createNotification } = useNotifications();
   const router = useRouter();
-  const { toast } = useToast();
-
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [specialty, setSpecialty] = useState('');
-  const [bio, setBio] = useState('');
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (!loading && (!user || user.role !== 'chef')) {
         router.push('/login');
-    } else if (user) {
-        setName(user.name);
-        setEmail(user.email);
-        setPhone(user.phone || '');
-        setSpecialty(user.specialty || '');
-        setBio(user.bio || '');
-        setImagePreview(user.imageUrl || null);
     }
   }, [user, loading, router]);
 
@@ -146,60 +122,6 @@ export default function ChefDashboardPage() {
         </div>
     )
   }
-  
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            setImagePreview(reader.result as string);
-        };
-        reader.readAsDataURL(file);
-    }
-  };
-
-  const handleSaveChanges = async () => {
-    setIsSaving(true);
-    try {
-        await updateUser({ name, email, phone, specialty, bio, imageUrl: imagePreview });
-        toast({
-            title: 'تم تحديث الملف الشخصي',
-            description: 'تم حفظ تغييراتك بنجاح.',
-        });
-    } catch (error: any) {
-        toast({
-            variant: 'destructive',
-            title: 'خطأ في التحديث',
-            description: error.message || 'فشل حفظ التغييرات. يرجى المحاولة مرة أخرى.',
-        });
-    } finally {
-        setIsSaving(false);
-    }
-  };
-  
-  const handleStatusChange = async (newStatus: User['availabilityStatus']) => {
-    if (!user) return;
-    await updateUser({ availabilityStatus: newStatus });
-    toast({ title: "تم تحديث حالة التوفر بنجاح." });
-
-    if (user.availabilityStatus === 'busy' && newStatus === 'available') {
-      const queuedOrders = getOrdersByChefId(user.id).filter(o => o.status === 'بانتظار توفر الطاهي');
-      if (queuedOrders.length > 0) {
-        createNotification({
-          recipientId: user.id,
-          title: `لديك ${queuedOrders.length} طلبات معلقة`,
-          message: 'أصبحت متاحًا الآن. يرجى مراجعة الطلبات التي كانت في قائمة الانتظار.',
-          link: '/chef/dashboard',
-        });
-      }
-    }
-  };
-
-  const statusMap = {
-    available: { label: 'متاح', color: 'bg-green-500' },
-    busy: { label: 'مشغول', color: 'bg-yellow-500' },
-    closed: { label: 'مغلق', color: 'bg-red-500' },
-  };
 
   return (
     <div className="container mx-auto px-4 py-8 md:px-6 md:py-12 text-right">
@@ -209,12 +131,11 @@ export default function ChefDashboardPage() {
       </div>
 
       <Tabs defaultValue="dashboard" className="w-full">
-        <TabsList className="grid w-full grid-cols-5 max-w-2xl">
+        <TabsList className="grid w-full grid-cols-4 max-w-lg">
             <TabsTrigger value="dashboard">نظرة عامة</TabsTrigger>
             <TabsTrigger value="orders">الطلبات</TabsTrigger>
             <TabsTrigger value="menu">قائمة الطعام</TabsTrigger>
             <TabsTrigger value="coupons">القسائم</TabsTrigger>
-            <TabsTrigger value="settings">الإعدادات</TabsTrigger>
         </TabsList>
         
         <TabsContent value="dashboard">
@@ -265,8 +186,8 @@ export default function ChefDashboardPage() {
                     <CardContent className="pl-2">
                          <ResponsiveContainer width="100%" height={300}>
                             <BarChart data={chartData}>
-                                <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                                <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value} ج`} />
+                                <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value} ج`} />
                                 <Tooltip cursor={{ fill: 'hsl(var(--muted))' }} contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}/>
                                 <Bar dataKey="total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                             </BarChart>
@@ -353,88 +274,6 @@ export default function ChefDashboardPage() {
         
         <TabsContent value="coupons">
             <CouponManagementTab />
-        </TabsContent>
-
-        <TabsContent value="settings">
-             <Card className="mt-4">
-                <CardHeader>
-                <CardTitle>إعدادات الحساب</CardTitle>
-                <CardDescription>تحديث معلوماتك الشخصية، حالتك، وصورة ملفك الشخصي.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6 max-w-2xl">
-                    <div className="space-y-2">
-                        <Label>حالة التوفر</Label>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="outline" className="w-full justify-end text-right">
-                                    <span>{statusMap[user.availabilityStatus || 'available'].label}</span>
-                                    <Circle className={`mr-2 h-3 w-3 flex-shrink-0 fill-current ${statusMap[user.availabilityStatus || 'available'].color}`} />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-56 text-right">
-                                <DropdownMenuItem onClick={() => handleStatusChange('available')}>
-                                    <Circle className="ml-2 h-3 w-3 fill-current bg-green-500" />
-                                    <span>متاح</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleStatusChange('busy')}>
-                                    <Circle className="ml-2 h-3 w-3 fill-current bg-yellow-500" />
-                                    <span>مشغول</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleStatusChange('closed')}>
-                                    <Circle className="ml-2 h-3 w-3 fill-current bg-red-500" />
-                                    <span>مغلق</span>
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </div>
-                    <div className="space-y-2">
-                        <Label>الصورة الشخصية</Label>
-                        <div className="flex items-center gap-4">
-                             <Avatar className="h-20 w-20">
-                                <AvatarImage src={imagePreview || ''} alt={user.name} />
-                                <AvatarFallback><UserIcon className="h-8 w-8" /></AvatarFallback>
-                            </Avatar>
-                            <Input id="chef-image-upload" type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-                            <Label htmlFor="chef-image-upload" className={cn(buttonVariants({ variant: 'outline' }), 'cursor-pointer')}>
-                                <Upload className="ml-2 h-4 w-4" />
-                                <span>تغيير الصورة</span>
-                            </Label>
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="chef-name">الاسم الكامل</Label>
-                            <Input id="chef-name" value={name} onChange={(e) => setName(e.target.value)} className="text-right" placeholder="الاسم الكامل للطاهي" />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="chef-email">البريد الإلكتروني</Label>
-                            <Input id="chef-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="text-right" placeholder="chef@example.com" />
-                        </div>
-                    </div>
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="chef-phone">رقم الهاتف</Label>
-                            <Input id="chef-phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="text-right" placeholder="01XXXXXXXXX" />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="chef-specialty">تخصص المطبخ</Label>
-                            <Input id="chef-specialty" value={specialty} onChange={(e) => setSpecialty(e.target.value)} className="text-right" placeholder="مثال: مطبخ إيطالي" />
-                        </div>
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="chef-bio">نبذة تعريفية (Bio)</Label>
-                        <Textarea id="chef-bio" value={bio} onChange={(e) => setBio(e.target.value)} className="text-right" placeholder="نبذة تعريفية عنك وعن أسلوبك في الطهي..." />
-                    </div>
-
-                    <div className="flex justify-start gap-2 pt-4 border-t">
-                        <Button onClick={handleSaveChanges} disabled={isSaving} className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                            {isSaving && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-                            حفظ التغييرات
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
-            <PasswordChangeForm />
         </TabsContent>
 
       </Tabs>
