@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import type { User } from '@/lib/types';
 import { Star, Utensils } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 // The chef object passed here will be augmented with dishCount and averageRating
 interface ChefCardProps {
@@ -11,9 +13,16 @@ interface ChefCardProps {
 }
 
 export function ChefCard({ chef }: ChefCardProps) {
+  const statusMap: { [key: string]: { label: string; className: string; } } = {
+    available: { label: 'متاح', className: 'bg-green-500 text-white hover:bg-green-500/90' },
+    busy: { label: 'مشغول', className: 'bg-yellow-500 text-white hover:bg-yellow-500/90' },
+    closed: { label: 'مغلق', className: 'bg-red-500 text-white hover:bg-red-500/90' },
+  };
+  const statusInfo = chef.availabilityStatus ? statusMap[chef.availabilityStatus] : null;
+
   return (
     <Card className="flex flex-col text-right overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
-      <CardHeader className="p-0">
+      <CardHeader className="p-0 relative">
         <Link href={`/chefs/${chef.id}`}>
           <Image
             alt={chef.name}
@@ -24,6 +33,11 @@ export function ChefCard({ chef }: ChefCardProps) {
             width="400"
           />
         </Link>
+        {statusInfo && (
+          <Badge className={cn('absolute top-3 right-3 border-none', statusInfo.className)}>
+            {statusInfo.label}
+          </Badge>
+        )}
       </CardHeader>
       <CardContent className="p-4 flex-grow">
         <Link href={`/chefs/${chef.id}`} className="hover:text-primary transition-colors">

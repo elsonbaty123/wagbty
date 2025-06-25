@@ -111,6 +111,12 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
             message: `الشيف مشغول حاليًا. تم وضع طلبك لـ'${orderData.dish.name}' في قائمة الانتظار.`,
             link: '/profile',
         });
+        createNotification({
+            recipientId: orderData.chef.id,
+            title: 'طلب جديد في قائمة الانتظار',
+            message: `لديك طلب جديد من ${orderData.customerName} في الانتظار. سيظهر عند عودتك للحالة "متاح".`,
+            link: '/chef/dashboard',
+        });
     } else {
         createNotification({
           recipientId: orderData.chef.id,

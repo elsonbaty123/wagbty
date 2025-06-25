@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useMemo } from 'react';
 import { Badge } from '@/components/ui/badge';
 import type { User } from '@/lib/types';
+import { cn } from '@/lib/utils';
 
 export default function ChefProfilePage() {
   const params = useParams<{ id: string }>();
@@ -63,11 +64,12 @@ export default function ChefProfilePage() {
     notFound();
   }
   
-  const statusMap: { [key: string]: { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' } } = {
-    available: { label: 'متاح', variant: 'default' },
-    busy: { label: 'مشغول', variant: 'secondary' },
-    closed: { label: 'مغلق', variant: 'destructive' },
+  const statusMap: { [key: string]: { label: string; className: string; } } = {
+    available: { label: 'متاح', className: 'bg-green-500 text-white hover:bg-green-500/90' },
+    busy: { label: 'مشغول', className: 'bg-yellow-500 text-white hover:bg-yellow-500/90' },
+    closed: { label: 'مغلق', className: 'bg-red-500 text-white hover:bg-red-500/90' },
   };
+  const statusInfo = chef.availabilityStatus ? statusMap[chef.availabilityStatus] : null;
 
   return (
     <div className="container mx-auto px-4 py-8 md:px-6 md:py-12">
@@ -83,9 +85,9 @@ export default function ChefProfilePage() {
               width="400"
             />
             <h1 className="font-headline text-3xl font-bold mt-4">{chef.name}</h1>
-            {chef.availabilityStatus && (
-                <Badge variant={statusMap[chef.availabilityStatus].variant} className="mt-2">
-                    {statusMap[chef.availabilityStatus].label}
+            {statusInfo && (
+                <Badge className={cn('mt-2 border-none', statusInfo.className)}>
+                    {statusInfo.label}
                 </Badge>
             )}
             <p className="text-lg text-primary font-semibold mt-1">{chef.specialty}</p>

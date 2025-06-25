@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { ArrowRight, Plus, Minus, Loader2, Tag } from 'lucide-react';
+import { ArrowRight, Plus, Minus, Loader2, Tag, Clock } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { useOrders } from '@/context/order-context';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -15,6 +15,7 @@ import { notFound } from 'next/navigation';
 import { useState, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function OrderPage() {
   const searchParams = useSearchParams();
@@ -57,6 +58,9 @@ export default function OrderPage() {
   if (!dish || !chef) {
     notFound();
   }
+  
+  const isChefBusy = chef.availabilityStatus === 'busy';
+  const isChefClosed = chef.availabilityStatus === 'closed';
 
   const subtotal = dish.price * quantity;
   const deliveryFee = 50.0;
@@ -109,7 +113,7 @@ export default function OrderPage() {
 
     toast({
       title: 'تم إرسال طلبك بنجاح!',
-      description: chef.availabilityStatus === 'busy' 
+      description: isChefBusy
         ? `الشيف مشغول، تم وضع طلبك في قائمة الانتظار.`
         : `طلبك لـ ${quantity}x ${dish.name} قيد المراجعة.`,
     });
@@ -118,8 +122,8 @@ export default function OrderPage() {
   };
   
   const getButtonText = () => {
-      if (chef.availabilityStatus === 'closed') return 'الطاهي مغلق حاليًا';
-      if (chef.availabilityStatus === 'busy') return 'تأكيد الطلب (انتظار)';
+      if (isChefClosed) return 'الطاهي مغلق حاليًا';
+      if (isChefBusy) return 'تأكيد الطلب (انتظار)';
       return 'تأكيد الطلب';
   }
 
@@ -136,6 +140,14 @@ export default function OrderPage() {
       <div className="grid gap-12 md:grid-cols-2">
         <div>
           <h1 className="font-headline text-3xl font-bold text-primary mb-6">أكمل طلبك</h1>
+           {isChefClosed && (
+              <Alert variant="destructive" className="mb-6">
+                  <AlertTitle>الطاهي مغلق حاليًا</AlertTitle>
+                  <AlertDescription>
+                      لا يمكن إكمال هذا الطلب لأن الطاهي غير متاح لاستقبال الطلبات في الوقت الحالي.
+                  </AlertDescription>
+              </Alert>
+          )}
           {!user ? (
              <Card>
               <CardHeader>
@@ -171,6 +183,15 @@ export default function OrderPage() {
           )}
         </div>
         <div className="space-y-6">
+           {isChefBusy && (
+              <Alert>
+                <Clock className="h-4 w-4" />
+                <AlertTitle>الشيف مشغول</AlertTitle>
+                <AlertDescription>
+                  سيتم وضع طلبك في قائمة الانتظار وسيتم إعلامك عند تأكيده.
+                </AlertDescription>
+              </Alert>
+            )}
            <h2 className="font-headline text-2xl font-bold">ملخص الطلب</h2>
             <Card>
                 <CardContent className="p-6 flex items-center gap-4">
@@ -212,9 +233,9 @@ export default function OrderPage() {
                             className="text-right"
                             value={couponCode}
                             onChange={(e) => setCouponCode(e.target.value)}
-                            disabled={!user}
+                            disabled={!user || isChefClosed}
                         />
-                        <Button onClick={handleApplyCoupon} disabled={!user || isApplyingCoupon}>
+                        <Button onClick={handleApplyCoupon} disabled={!user || isApplyingCoupon || isChefClosed}>
                             {isApplyingCoupon && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
                             تطبيق
                         </Button>
@@ -251,7 +272,7 @@ export default function OrderPage() {
                     </div>
                 </CardContent>
                 <CardFooter>
-                  <Button onClick={handleConfirmOrder} size="lg" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" disabled={!user || chef.availabilityStatus === 'closed'}>
+                  <Button onClick={handleConfirmOrder} size="lg" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" disabled={!user || isChefClosed}>
                     {getButtonText()}
                   </Button>
                 </CardFooter>
