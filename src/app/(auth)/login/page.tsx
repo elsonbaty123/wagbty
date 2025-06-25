@@ -85,6 +85,7 @@ export default function LoginPage() {
                   className="text-right"
                   value={customerPassword}
                   onChange={(e) => setCustomerPassword(e.target.value)}
+                  placeholder="********"
                 />
               </div>
               <Button type="submit" disabled={isLoading} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
@@ -132,6 +133,7 @@ export default function LoginPage() {
                   className="text-right"
                   value={chefPassword}
                   onChange={(e) => setChefPassword(e.target.value)}
+                  placeholder="********"
                 />
               </div>
               <Button type="submit" disabled={isLoading} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">

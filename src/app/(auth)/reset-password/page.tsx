@@ -85,6 +85,7 @@ function ResetPasswordComponent() {
                             required
                             className="text-right"
                             showStrength
+                            placeholder="********"
                         />
                     </div>
                     <div className="space-y-2">
@@ -95,6 +96,7 @@ function ResetPasswordComponent() {
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             required
                             className="text-right"
+                            placeholder="********"
                         />
                     </div>
                 </CardContent>

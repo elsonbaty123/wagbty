@@ -190,16 +190,16 @@ export default function ProfilePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">الاسم الكامل</Label>
-                  <Input id="name" value={name} onChange={(e) => setName(e.target.value)} className="text-right" />
+                  <Input id="name" value={name} onChange={(e) => setName(e.target.value)} className="text-right" placeholder="الاسم الكامل" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">البريد الإلكتروني</Label>
-                  <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="text-right" />
+                  <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="text-right" placeholder="example@email.com" />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone">رقم الهاتف</Label>
-                <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="text-right" />
+                <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="text-right" placeholder="01XXXXXXXXX" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="address">عنوان التوصيل</Label>

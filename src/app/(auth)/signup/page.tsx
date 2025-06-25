@@ -91,7 +91,7 @@ export default function SignupPage() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="customer-name">الاسم الكامل</Label>
-              <Input id="customer-name" required className="text-right" value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
+              <Input id="customer-name" required className="text-right" value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="مثال: أحمد محمد" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="customer-email">البريد الإلكتروني</Label>
@@ -139,7 +139,7 @@ export default function SignupPage() {
           <CardContent className="space-y-4">
              <div className="space-y-2">
               <Label htmlFor="chef-name">الاسم الكامل</Label>
-              <Input id="chef-name" required className="text-right" value={chefName} onChange={(e) => setChefName(e.target.value)}/>
+              <Input id="chef-name" required className="text-right" value={chefName} onChange={(e) => setChefName(e.target.value)} placeholder="مثال: الشيف أنطوان"/>
             </div>
             <div className="space-y-2">
               <Label htmlFor="chef-specialty">تخصص المطبخ</Label>

@@ -346,26 +346,26 @@ export default function ChefDashboardPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label htmlFor="chef-name">الاسم الكامل</Label>
-                            <Input id="chef-name" value={name} onChange={(e) => setName(e.target.value)} className="text-right" />
+                            <Input id="chef-name" value={name} onChange={(e) => setName(e.target.value)} className="text-right" placeholder="الاسم الكامل للطاهي" />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="chef-email">البريد الإلكتروني</Label>
-                            <Input id="chef-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="text-right" />
+                            <Input id="chef-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="text-right" placeholder="chef@example.com" />
                         </div>
                     </div>
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label htmlFor="chef-phone">رقم الهاتف</Label>
-                            <Input id="chef-phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="text-right" />
+                            <Input id="chef-phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="text-right" placeholder="01XXXXXXXXX" />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="chef-specialty">تخصص المطبخ</Label>
-                            <Input id="chef-specialty" value={specialty} onChange={(e) => setSpecialty(e.target.value)} className="text-right" />
+                            <Input id="chef-specialty" value={specialty} onChange={(e) => setSpecialty(e.target.value)} className="text-right" placeholder="مثال: مطبخ إيطالي" />
                         </div>
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="chef-bio">نبذة تعريفية (Bio)</Label>
-                        <Textarea id="chef-bio" value={bio} onChange={(e) => setBio(e.target.value)} className="text-right" />
+                        <Textarea id="chef-bio" value={bio} onChange={(e) => setBio(e.target.value)} className="text-right" placeholder="نبذة تعريفية عنك وعن أسلوبك في الطهي..." />
                     </div>
 
                     <div className="flex justify-start gap-2 pt-4 border-t">
