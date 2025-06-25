@@ -1,6 +1,6 @@
 
 'use client';
-import Link from 'next/link';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,10 +8,23 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PasswordInput } from '@/components/password-input';
+import { useAuth } from '@/context/auth-context';
+import Link from 'next/link';
+
 
 export default function LoginPage() {
   const [customerPassword, setCustomerPassword] = useState('');
   const [chefPassword, setChefPassword] = useState('');
+  const { login } = useAuth();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get('redirect') || '';
+
+  const handleLogin = (role: 'customer' | 'chef') => {
+    login(role);
+    const destination = redirectUrl || (role === 'chef' ? '/chef/dashboard' : '/profile');
+    router.push(destination);
+  }
 
   return (
     <Tabs defaultValue="customer" className="w-full max-w-md text-right">
@@ -40,8 +53,8 @@ export default function LoginPage() {
                 onChange={(e) => setCustomerPassword(e.target.value)}
               />
             </div>
-            <Button asChild className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-              <Link href="/profile">تسجيل الدخول</Link>
+            <Button onClick={() => handleLogin('customer')} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
+              تسجيل الدخول
             </Button>
             <div className="mt-4 text-center text-sm">
               ليس لديك حساب؟{' '}
@@ -73,8 +86,8 @@ export default function LoginPage() {
                 onChange={(e) => setChefPassword(e.target.value)}
               />
             </div>
-            <Button asChild className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-              <Link href="/chef/dashboard">تسجيل الدخول</Link>
+            <Button onClick={() => handleLogin('chef')} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
+              تسجيل الدخول
             </Button>
             <div className="mt-4 text-center text-sm">
               لست طاهيًا معنا بعد؟{' '}

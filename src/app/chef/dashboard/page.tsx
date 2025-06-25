@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { OrderCard } from '@/components/order-card';
 import type { Order, Dish } from '@/lib/types';
@@ -10,6 +11,9 @@ import { DollarSign, Utensils, ClipboardList, PlusCircle, Edit } from 'lucide-re
 import { Dialog } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { DishForm } from '@/components/dish-form';
+import { useAuth } from '@/context/auth-context';
+import { useRouter } from 'next/navigation';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const mockChefOrders: Order[] = [
   {
@@ -49,8 +53,34 @@ const mockChefDishes: Dish[] = [
 
 
 export default function ChefDashboardPage() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
   const [isDishDialogOpen, setDishDialogOpen] = useState(false);
   const [selectedDish, setSelectedDish] = useState<Dish | null>(null);
+
+  useEffect(() => {
+    if (!loading && (!user || user.role !== 'chef')) {
+        router.push('/login');
+    }
+  }, [user, loading, router]);
+
+  if (loading || !user) {
+    return (
+        <div className="container mx-auto px-4 py-8 md:px-6 md:py-12">
+            <Skeleton className="h-12 w-64 mb-8" />
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-8">
+                <Skeleton className="h-32 w-full" />
+                <Skeleton className="h-32 w-full" />
+                <Skeleton className="h-32 w-full" />
+            </div>
+            <Skeleton className="h-10 w-48 mb-4" />
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <Skeleton className="h-64 w-full" />
+                <Skeleton className="h-64 w-full" />
+            </div>
+        </div>
+    )
+  }
 
   const pendingOrders = mockChefOrders.filter(o => o.status === 'قيد الانتظار');
   const otherOrders = mockChefOrders.filter(o => o.status !== 'قيد الانتظار');
@@ -66,7 +96,7 @@ export default function ChefDashboardPage() {
     <div className="container mx-auto px-4 py-8 md:px-6 md:py-12 text-right">
       <div className="flex flex-col md:flex-row justify-between md:items-center mb-8 gap-4">
         <h1 className="font-headline text-3xl md:text-4xl font-bold text-primary">لوحة تحكم الشيف</h1>
-        <p className="font-semibold text-lg">مرحبًا بعودتك، شيف أنطوان!</p>
+        <p className="font-semibold text-lg">مرحبًا بعودتك، {user.name}!</p>
       </div>
 
        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-8">

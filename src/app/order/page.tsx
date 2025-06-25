@@ -1,10 +1,15 @@
 
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import type { Dish } from '@/lib/types';
 import { ArrowRight } from 'lucide-react';
+import { useAuth } from '@/context/auth-context';
+import { useSearchParams } from 'next/navigation';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const mockDishes: Record<string, Dish> = {
   'd1': { id: 'd1', name: 'تالياتيلي مصنوعة يدوياً بصلصة الراجو', description: 'راجو لحم مطبوخ ببطء فوق باستا البيض الطازجة المصنوعة يدويًا.', price: 240.0, imageUrl: 'https://placehold.co/400x225.png' },
@@ -18,15 +23,34 @@ const mockDishes: Record<string, Dish> = {
   'd9': { id: 'd9', name: 'أرز مقرمش بالتونة الحارة', description: 'أرز مقلي مقرمش يعلوه تونة حارة وهالبينو.', price: 190.0, imageUrl: 'https://placehold.co/400x225.png' },
 };
 
-export default function OrderPage({ searchParams }: { searchParams: { dishId: string } }) {
-  const dish = mockDishes[searchParams.dishId] || Object.values(mockDishes)[0];
-  // We simulate a "not logged in" state to demonstrate the feature.
-  // In a real app, this would come from an auth context.
-  const isLoggedIn = false; 
+export default function OrderPage() {
+  const searchParams = useSearchParams();
+  const dishId = searchParams.get('dishId');
+  const dish = mockDishes[dishId || 'd1'] || Object.values(mockDishes)[0];
+  const { user, loading } = useAuth();
 
   const subtotal = dish.price;
   const deliveryFee = 50.0;
   const total = subtotal + deliveryFee;
+
+  if (loading) {
+      return (
+        <div className="container mx-auto px-4 py-8 md:px-6 md:py-12 text-right">
+            <Skeleton className="h-8 w-48 mb-6" />
+            <div className="grid gap-12 md:grid-cols-2">
+                <div>
+                    <Skeleton className="h-10 w-72 mb-6" />
+                    <Skeleton className="h-64 w-full" />
+                </div>
+                <div className="space-y-6">
+                    <Skeleton className="h-8 w-48" />
+                    <Skeleton className="h-32 w-full" />
+                    <Skeleton className="h-64 w-full" />
+                </div>
+            </div>
+        </div>
+      );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 md:px-6 md:py-12 text-right">
@@ -41,7 +65,7 @@ export default function OrderPage({ searchParams }: { searchParams: { dishId: st
       <div className="grid gap-12 md:grid-cols-2">
         <div>
           <h1 className="font-headline text-3xl font-bold text-primary mb-6">أكمل طلبك</h1>
-          {!isLoggedIn ? (
+          {!user ? (
              <Card>
               <CardHeader>
                 <CardTitle>مطلوب تسجيل الدخول</CardTitle>
@@ -60,13 +84,15 @@ export default function OrderPage({ searchParams }: { searchParams: { dishId: st
             </Card>
           ) : (
             <Card>
-              {/* The original form for delivery details would go here if the user was logged in. */}
               <CardHeader>
                 <CardTitle>معلومات التوصيل</CardTitle>
-                <CardDescription>هذه هي المعلومات التي سيتم استخدامها لتوصيل طلبك.</CardDescription>
+                <CardDescription>هذا هو عنوان التوصيل المسجل في حسابك.</CardDescription>
               </CardHeader>
-              <CardContent>
-                <p>مرحباً بعودتك! تفاصيل التوصيل الخاصة بك مُعبأة مسبقاً.</p>
+              <CardContent className="space-y-4">
+                 <p className="font-semibold">{user.name}</p>
+                 <p>456 شارع الجزيرة، الزمالك، القاهرة</p>
+                 <p>01012345678</p>
+                 <Button variant="outline">تغيير العنوان</Button>
               </CardContent>
             </Card>
           )}
@@ -109,7 +135,7 @@ export default function OrderPage({ searchParams }: { searchParams: { dishId: st
                     </div>
                 </CardContent>
                 <CardFooter>
-                  <Button size="lg" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" disabled={!isLoggedIn}>
+                  <Button size="lg" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" disabled={!user}>
                     تأكيد الطلب
                   </Button>
                 </CardFooter>

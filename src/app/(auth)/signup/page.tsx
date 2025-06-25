@@ -8,10 +8,25 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PasswordInput } from '@/components/password-input';
+import { useAuth } from '@/context/auth-context';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function SignupPage() {
+  const [customerName, setCustomerName] = useState('');
   const [customerPassword, setCustomerPassword] = useState('');
+  const [chefName, setChefName] = useState('');
   const [chefPassword, setChefPassword] = useState('');
+  const { login } = useAuth();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get('redirect') || '';
+
+  const handleSignup = (role: 'customer' | 'chef') => {
+    const name = role === 'customer' ? customerName : chefName;
+    login(role, name || (role === 'customer' ? 'العميل الجديد' : 'الشيف الجديد'));
+    const destination = redirectUrl || (role === 'chef' ? '/chef/dashboard' : '/profile');
+    router.push(destination);
+  };
 
   return (
     <Tabs defaultValue="customer" className="w-full max-w-md text-right">
@@ -28,7 +43,7 @@ export default function SignupPage() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="customer-name">الاسم الكامل</Label>
-              <Input id="customer-name" required className="text-right"/>
+              <Input id="customer-name" required className="text-right" value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="customer-email">البريد الإلكتروني</Label>
@@ -50,7 +65,7 @@ export default function SignupPage() {
                 showStrength
               />
             </div>
-            <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+            <Button onClick={() => handleSignup('customer')} type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
               إنشاء حساب
             </Button>
             <div className="mt-4 text-center text-sm">
@@ -71,7 +86,7 @@ export default function SignupPage() {
           <CardContent className="space-y-4">
              <div className="space-y-2">
               <Label htmlFor="chef-name">الاسم الكامل</Label>
-              <Input id="chef-name" required className="text-right"/>
+              <Input id="chef-name" required className="text-right" value={chefName} onChange={(e) => setChefName(e.target.value)}/>
             </div>
             <div className="space-y-2">
               <Label htmlFor="chef-specialty">تخصص المطبخ</Label>
@@ -97,7 +112,7 @@ export default function SignupPage() {
                 showStrength
               />
             </div>
-            <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+            <Button onClick={() => handleSignup('chef')} type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
               تقدم لتكون طاهيًا
             </Button>
             <div className="mt-4 text-center text-sm">
