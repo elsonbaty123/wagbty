@@ -1,12 +1,18 @@
+
 'use client';
 import Link from 'next/link';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { PasswordInput } from '@/components/password-input';
 
 export default function LoginPage() {
+  const [customerPassword, setCustomerPassword] = useState('');
+  const [chefPassword, setChefPassword] = useState('');
+
   return (
     <Tabs defaultValue="customer" className="w-full max-w-md text-right">
       <TabsList className="grid w-full grid-cols-2">
@@ -26,7 +32,13 @@ export default function LoginPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="customer-password">كلمة المرور</Label>
-              <Input id="customer-password" type="password" required className="text-right" />
+              <PasswordInput
+                id="customer-password"
+                required
+                className="text-right"
+                value={customerPassword}
+                onChange={(e) => setCustomerPassword(e.target.value)}
+              />
             </div>
             <Button asChild className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
               <Link href="/profile">تسجيل الدخول</Link>
@@ -53,7 +65,13 @@ export default function LoginPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="chef-password">كلمة المرور</Label>
-              <Input id="chef-password" type="password" required className="text-right" />
+               <PasswordInput
+                id="chef-password"
+                required
+                className="text-right"
+                value={chefPassword}
+                onChange={(e) => setChefPassword(e.target.value)}
+              />
             </div>
             <Button asChild className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
               <Link href="/chef/dashboard">تسجيل الدخول</Link>

@@ -1,10 +1,8 @@
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import type { Dish } from '@/lib/types';
 import { ArrowRight } from 'lucide-react';
 
@@ -22,6 +20,9 @@ const mockDishes: Record<string, Dish> = {
 
 export default function OrderPage({ searchParams }: { searchParams: { dishId: string } }) {
   const dish = mockDishes[searchParams.dishId] || Object.values(mockDishes)[0];
+  // We simulate a "not logged in" state to demonstrate the feature.
+  // In a real app, this would come from an auth context.
+  const isLoggedIn = false; 
 
   const subtotal = dish.price;
   const deliveryFee = 50.0;
@@ -33,37 +34,42 @@ export default function OrderPage({ searchParams }: { searchParams: { dishId: st
         <Button variant="ghost" asChild>
           <Link href={`/`}>
             العودة للرئيسية
-            <ArrowRight className="ml-2 h-4 w-4" />
+            <ArrowRight className="mr-2 h-4 w-4" />
           </Link>
         </Button>
       </div>
       <div className="grid gap-12 md:grid-cols-2">
         <div>
           <h1 className="font-headline text-3xl font-bold text-primary mb-6">أكمل طلبك</h1>
-          <Card>
-            <CardHeader>
-              <CardTitle>معلومات التوصيل</CardTitle>
-              <CardDescription>يرجى تقديم عنوان التوصيل ورقم الاتصال.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">الاسم الكامل</Label>
-                <Input id="name" placeholder="فلان الفلاني" required className="text-right" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="phone">رقم الهاتف</Label>
-                <Input id="phone" type="tel" placeholder="01234567890" required className="text-right" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="address">عنوان التوصيل</Label>
-                <Textarea id="address" placeholder="123 شارع النيل، القاهرة، مصر" required className="text-right" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="notes">تعليمات خاصة</Label>
-                <Textarea id="notes" placeholder="مثال: اتركه عند الباب الأمامي." className="text-right" />
-              </div>
-            </CardContent>
-          </Card>
+          {!isLoggedIn ? (
+             <Card>
+              <CardHeader>
+                <CardTitle>مطلوب تسجيل الدخول</CardTitle>
+                <CardDescription>
+                  يجب عليك تسجيل الدخول أو إنشاء حساب جديد لتتمكن من إكمال طلبك.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-4">
+                <Button asChild className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
+                  <Link href={`/login?redirect=/order?dishId=${dish.id}`}>تسجيل الدخول</Link>
+                </Button>
+                <Button asChild variant="outline" className="w-full">
+                  <Link href={`/signup?redirect=/order?dishId=${dish.id}`}>إنشاء حساب جديد</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              {/* The original form for delivery details would go here if the user was logged in. */}
+              <CardHeader>
+                <CardTitle>معلومات التوصيل</CardTitle>
+                <CardDescription>هذه هي المعلومات التي سيتم استخدامها لتوصيل طلبك.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p>مرحباً بعودتك! تفاصيل التوصيل الخاصة بك مُعبأة مسبقاً.</p>
+              </CardContent>
+            </Card>
+          )}
         </div>
         <div className="space-y-6">
            <h2 className="font-headline text-2xl font-bold">ملخص الطلب</h2>
@@ -90,20 +96,20 @@ export default function OrderPage({ searchParams }: { searchParams: { dishId: st
                 </CardHeader>
                  <CardContent className="grid gap-4">
                     <div className="flex items-center justify-between">
-                        <span>{subtotal.toFixed(2)} جنيه</span>
                         <span className="text-muted-foreground">المجموع الفرعي</span>
+                        <span>{subtotal.toFixed(2)} جنيه</span>
                     </div>
                     <div className="flex items-center justify-between">
-                        <span>{deliveryFee.toFixed(2)} جنيه</span>
                         <span className="text-muted-foreground">رسوم التوصيل</span>
+                        <span>{deliveryFee.toFixed(2)} جنيه</span>
                     </div>
                      <div className="flex items-center justify-between font-bold text-lg">
-                        <span className="text-primary">{total.toFixed(2)} جنيه</span>
-                        <span>المجموع الكلي</span>
+                        <span className="text-primary">المجموع الكلي</span>
+                        <span>{total.toFixed(2)} جنيه</span>
                     </div>
                 </CardContent>
                 <CardFooter>
-                  <Button size="lg" className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+                  <Button size="lg" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" disabled={!isLoggedIn}>
                     تأكيد الطلب
                   </Button>
                 </CardFooter>

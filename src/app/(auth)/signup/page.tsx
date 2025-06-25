@@ -1,12 +1,18 @@
+
 'use client';
 import Link from 'next/link';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { PasswordInput } from '@/components/password-input';
 
 export default function SignupPage() {
+  const [customerPassword, setCustomerPassword] = useState('');
+  const [chefPassword, setChefPassword] = useState('');
+
   return (
     <Tabs defaultValue="customer" className="w-full max-w-md text-right">
       <TabsList className="grid w-full grid-cols-2">
@@ -30,7 +36,15 @@ export default function SignupPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="customer-password">كلمة المرور</Label>
-              <Input id="customer-password" type="password" required className="text-right"/>
+              <PasswordInput
+                id="customer-password"
+                required
+                className="text-right"
+                placeholder="********"
+                value={customerPassword}
+                onChange={(e) => setCustomerPassword(e.target.value)}
+                showStrength
+              />
             </div>
             <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
               إنشاء حساب
@@ -65,7 +79,15 @@ export default function SignupPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="chef-password">كلمة المرور</Label>
-              <Input id="chef-password" type="password" required className="text-right"/>
+              <PasswordInput
+                id="chef-password"
+                required
+                className="text-right"
+                placeholder="********"
+                value={chefPassword}
+                onChange={(e) => setChefPassword(e.target.value)}
+                showStrength
+              />
             </div>
             <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
               تقدم لتكون طاهيًا
