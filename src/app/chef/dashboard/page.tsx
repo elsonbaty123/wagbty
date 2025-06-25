@@ -83,8 +83,10 @@ export default function ChefDashboardPage() {
   const chartData = useMemo(() => {
      const monthlyRevenue: { [key: string]: number } = {};
      completedOrders.forEach(order => {
-        const month = format(new Date(order.createdAt), 'MMM', { locale: ar });
-        monthlyRevenue[month] = (monthlyRevenue[month] || 0) + (order.dish.price * order.quantity);
+        if (order.createdAt && !isNaN(new Date(order.createdAt).getTime())) {
+          const month = format(new Date(order.createdAt), 'MMM', { locale: ar });
+          monthlyRevenue[month] = (monthlyRevenue[month] || 0) + (order.dish.price * order.quantity);
+        }
      });
      // Mock data for past months if no real data exists
      const mockMonths = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو"];
