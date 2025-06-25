@@ -25,8 +25,10 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // A mock user database
 const mockUserStore: Record<string, User & { password: string }> = {
-  'jane.doe@example.com': { id: 'user1', name: 'فلانة الفلانية', email: 'jane.doe@example.com', role: 'customer', password: 'Password123!' },
+  'jane.doe@example.com': { id: 'customer1', name: 'فلانة الفلانية', email: 'jane.doe@example.com', role: 'customer', password: 'Password123!' },
   'chef.antoine@example.com': { id: 'chef2', name: 'الشيف أنطوان', email: 'chef.antoine@example.com', role: 'chef', password: 'Password123!' },
+  'chef.isabella@example.com': { id: 'chef1', name: 'الشيف إيزابيلا', email: 'chef.isabella@example.com', role: 'chef', password: 'Password123!' },
+  'chef.kenji@example.com': { id: 'chef3', name: 'الشيف كينجي', email: 'chef.kenji@example.com', role: 'chef', password: 'Password123!' },
 };
 
 
@@ -50,8 +52,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const login = async (email: string, password: string, role: UserRole): Promise<void> => {
-    // In a real app, this would be an API call.
-    // Here, we simulate checking credentials against our mock store.
     const potentialUser = Object.values(mockUserStore).find(
       u => u.email.toLowerCase() === email.toLowerCase() && u.role === role
     );
@@ -60,30 +60,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { password: _, ...userToLogin } = potentialUser;
       localStorage.setItem('user', JSON.stringify(userToLogin));
       setUser(userToLogin);
-      // No need to return anything on success
     } else {
-      // Throw an error on failure
       throw new Error('البريد الإلكتروني أو كلمة المرور غير صحيحة.');
     }
   };
 
   const signup = async (name: string, email: string, password: string, role: UserRole): Promise<void> => {
-     // In a real app, you'd check if the user exists in the DB, then create them.
     if (mockUserStore[email.toLowerCase()]) {
       throw new Error('هذا البريد الإلكتروني مستخدم بالفعل.');
     }
     
     const newUser: User = {
-        id: `user-${Date.now()}`,
+        id: `${role}-${Date.now()}`,
         name,
         email,
         role,
     };
     
-    // Add to our mock store
     mockUserStore[email.toLowerCase()] = { ...newUser, password };
     
-    // Log the user in
     localStorage.setItem('user', JSON.stringify(newUser));
     setUser(newUser);
   };

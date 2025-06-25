@@ -12,48 +12,13 @@ import { Dialog } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { DishForm } from '@/components/dish-form';
 import { useAuth } from '@/context/auth-context';
+import { useOrders } from '@/context/order-context';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 
-const mockChefOrders: Order[] = [
-  {
-    id: 'ORD125',
-    customerName: 'جين دو',
-    customerPhone: '01123456789',
-    deliveryAddress: '456 شارع أوك، سبرينغفيلد، مصر',
-    dish: { id: 'd5', name: 'كريم بروليه', description: '', price: 115, imageUrl: '' },
-    chef: { id: '2', name: 'الشيف أنطوان دوبوا' },
-    status: 'قيد الانتظار',
-  },
-  {
-    id: 'ORD126',
-    customerName: 'جون سميث',
-    customerPhone: '01234567890',
-    deliveryAddress: '789 شارع باين، متروفيل، مصر',
-    dish: { id: 'd4', name: 'كيكة الشوكولاتة الذائبة', description: '', price: 140.0, imageUrl: '' },
-    chef: { id: '2', name: 'الشيف أنطوان دوبوا' },
-    status: 'قيد الانتظار',
-  },
-  {
-    id: 'ORD127',
-    customerName: 'إيميلي جونسون',
-    customerPhone: '01567891234',
-    deliveryAddress: '101 طريق ميبل، جوثام، مصر',
-    dish: { id: 'd6', name: 'تشكيلة ماكارون', description: '', price: 180.0, imageUrl: '' },
-    chef: { id: '2', name: 'الشيف أنطوان دوبوا' },
-    status: 'مؤكد',
-  },
-];
-
-const mockChefDishes: Dish[] = [
-    { id: 'd4', name: 'كيكة الشوكولاتة الذائبة', description: 'كيكة شوكولاتة ذائبة غنية مع مركز من كولي التوت.', price: 140.0, imageUrl: 'https://placehold.co/400x225.png' },
-    { id: 'd5', name: 'كريم بروليه', description: 'كاسترد غني بحبوب الفانيليا مع طبقة علوية من السكر المكرمل بشكل مثالي.', price: 115.0, imageUrl: 'https://placehold.co/400x225.png' },
-    { id: 'd6', name: 'تشكيلة ماكارون', description: 'مجموعة مختارة من ستة قطع ماكارون فرنسية رقيقة بنكهات مختلفة.', price: 180.0, imageUrl: 'https://placehold.co/400x225.png' },
-];
-
-
 export default function ChefDashboardPage() {
   const { user, loading } = useAuth();
+  const { dishes, getOrdersByChefId, updateOrderStatus } = useOrders();
   const router = useRouter();
   const [isDishDialogOpen, setDishDialogOpen] = useState(false);
   const [selectedDish, setSelectedDish] = useState<Dish | null>(null);
@@ -82,8 +47,10 @@ export default function ChefDashboardPage() {
     )
   }
 
-  const pendingOrders = mockChefOrders.filter(o => o.status === 'قيد الانتظار');
-  const otherOrders = mockChefOrders.filter(o => o.status !== 'قيد الانتظار');
+  const chefOrders = getOrdersByChefId(user.id);
+  const chefDishes = dishes.filter(d => d.chefId === user.id);
+  const pendingOrders = chefOrders.filter(o => o.status === 'قيد الانتظار');
+  const otherOrders = chefOrders.filter(o => o.status !== 'قيد الانتظار');
 
   const handleOpenDialog = (dish: Dish | null) => {
     setSelectedDish(dish);
@@ -116,7 +83,7 @@ export default function ChefDashboardPage() {
             <Utensils className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+5</div>
+            <div className="text-2xl font-bold">+{chefOrders.filter(o => o.status === 'مؤكد').length}</div>
              <p className="text-xs text-muted-foreground">قيد التنفيذ حاليًا</p>
           </CardContent>
         </Card>
@@ -139,7 +106,7 @@ export default function ChefDashboardPage() {
         {pendingOrders.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {pendingOrders.map((order) => (
-              <OrderCard key={order.id} order={order} isChefView />
+              <OrderCard key={order.id} order={order} isChefView updateOrderStatus={updateOrderStatus}/>
             ))}
           </div>
         ) : (
@@ -149,11 +116,15 @@ export default function ChefDashboardPage() {
 
       <div className="mt-12">
         <h2 className="font-headline text-2xl font-bold mb-4">سجل الطلبات</h2>
-         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {otherOrders.map((order) => (
-            <OrderCard key={order.id} order={order} />
-          ))}
-        </div>
+         {otherOrders.length > 0 ? (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {otherOrders.map((order) => (
+              <OrderCard key={order.id} order={order} />
+            ))}
+          </div>
+        ) : (
+          <p className="text-muted-foreground">لا يوجد طلبات سابقة.</p>
+        )}
       </div>
 
        <div className="mt-12">
@@ -164,33 +135,37 @@ export default function ChefDashboardPage() {
               أضف طبق جديد
             </Button>
           </div>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {mockChefDishes.map((dish) => (
-              <Card key={dish.id} className="flex flex-col">
-                 <Image
-                    alt={dish.name}
-                    className="aspect-video w-full rounded-t-lg object-cover"
-                    height="225"
-                    src={dish.imageUrl}
-                    data-ai-hint="plated food"
-                    width="400"
-                  />
-                <CardHeader>
-                  <CardTitle>{dish.name}</CardTitle>
-                </CardHeader>
-                <CardContent className="flex-grow">
-                  <p className="text-sm text-muted-foreground min-h-[40px]">{dish.description}</p>
-                  <p className="font-bold text-primary mt-2">{dish.price.toFixed(2)} جنيه</p>
-                </CardContent>
-                <CardFooter>
-                    <Button variant="outline" className="w-full" onClick={() => handleOpenDialog(dish)}>
-                      <Edit className="ml-2 h-4 w-4" />
-                      تعديل
-                    </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
+          {chefDishes.length > 0 ? (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {chefDishes.map((dish) => (
+                <Card key={dish.id} className="flex flex-col">
+                  <Image
+                      alt={dish.name}
+                      className="aspect-video w-full rounded-t-lg object-cover"
+                      height="225"
+                      src={dish.imageUrl}
+                      data-ai-hint="plated food"
+                      width="400"
+                    />
+                  <CardHeader>
+                    <CardTitle>{dish.name}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex-grow">
+                    <p className="text-sm text-muted-foreground min-h-[40px]">{dish.description}</p>
+                    <p className="font-bold text-primary mt-2">{dish.price.toFixed(2)} جنيه</p>
+                  </CardContent>
+                  <CardFooter>
+                      <Button variant="outline" className="w-full" onClick={() => handleOpenDialog(dish)}>
+                        <Edit className="ml-2 h-4 w-4" />
+                        تعديل
+                      </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+           ) : (
+             <p className="text-muted-foreground">لم تقم بإضافة أي أطباق بعد.</p>
+           )}
         </div>
     </div>
     <Dialog open={isDishDialogOpen} onOpenChange={setDishDialogOpen}>

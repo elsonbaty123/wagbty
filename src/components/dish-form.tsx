@@ -1,3 +1,4 @@
+
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,6 +11,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import type { Dish } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
+import { useOrders } from '@/context/order-context';
+import { useAuth } from '@/context/auth-context';
 
 const dishFormSchema = z.object({
   name: z.string().min(1, 'الاسم مطلوب'),
@@ -27,6 +30,9 @@ interface DishFormProps {
 
 export function DishForm({ dish, onFinished }: DishFormProps) {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const { addDish, updateDish } = useOrders();
+
   const form = useForm<DishFormValues>({
     resolver: zodResolver(dishFormSchema),
     defaultValues: {
@@ -38,11 +44,26 @@ export function DishForm({ dish, onFinished }: DishFormProps) {
   });
 
   const onSubmit = (data: DishFormValues) => {
-    console.log(data);
-    toast({
-      title: dish ? 'تم تحديث الطبق' : 'تم إضافة الطبق',
-      description: `تم حفظ طبق "${data.name}" بنجاح.`,
-    });
+    if (!user || user.role !== 'chef') {
+      toast({ variant: 'destructive', title: 'خطأ', description: 'يجب أن تكون طاهياً لتنفيذ هذا الإجراء.' });
+      return;
+    }
+
+    if (dish) {
+      // Update existing dish
+      updateDish({ ...data, id: dish.id, chefId: dish.chefId });
+      toast({
+        title: 'تم تحديث الطبق',
+        description: `تم حفظ طبق "${data.name}" بنجاح.`,
+      });
+    } else {
+      // Add new dish
+      addDish({ ...data, chefId: user.id });
+       toast({
+        title: 'تم إضافة الطبق',
+        description: `تم إضافة طبق "${data.name}" بنجاح.`,
+      });
+    }
     onFinished?.();
   };
 

@@ -1,40 +1,12 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ChefCard } from '@/components/chef-card';
-import type { Chef } from '@/lib/types';
+import { allChefs } from '@/lib/data';
 import { ArrowLeft } from 'lucide-react';
 
-const featuredChefs: Chef[] = [
-  {
-    id: '1',
-    name: 'الشيف إيزابيلا روسي',
-    specialty: 'المطبخ الإيطالي',
-    bio: 'نكهات إيطالية أصيلة تناقلتها الأجيال. جرب قلب إيطاليا في طبقك.',
-    imageUrl: 'https://placehold.co/400x400.png',
-    rating: 4.9,
-    dishes: [],
-  },
-  {
-    id: '2',
-    name: 'الشيف أنطوان دوبوا',
-    specialty: 'الحلويات الفرنسية',
-    bio: 'خبير المعجنات الرقيقة والحلويات الفاخرة. كل قضمة هي قطعة صغيرة من جنة باريس.',
-    imageUrl: 'https://placehold.co/400x400.png',
-    rating: 4.8,
-    dishes: [],
-  },
-  {
-    id: '3',
-    name: 'الشيف كينجي تاناكا',
-    specialty: 'سوشي وشواية يابانية',
-    bio: 'دقة وشغف في كل لفة. نحضر المكونات الطازجة لتجربة سوشي راقية.',
-    imageUrl: 'https://placehold.co/400x400.png',
-    rating: 4.9,
-    dishes: [],
-  },
-];
-
 export default function Home() {
+  const featuredChefs = allChefs.slice(0, 3);
+
   return (
     <div className="flex flex-col">
       <section className="w-full py-20 md:py-32 lg:py-40 bg-card">

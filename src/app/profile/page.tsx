@@ -10,42 +10,14 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { OrderCard } from '@/components/order-card';
-import type { Order } from '@/lib/types';
 import { useAuth } from '@/context/auth-context';
+import { useOrders } from '@/context/order-context';
 import { Skeleton } from '@/components/ui/skeleton';
-
-const mockOrders: Order[] = [
-  {
-    id: 'ORD123',
-    customerName: 'فلانة الفلانية',
-    customerPhone: '01012345678',
-    deliveryAddress: '456 شارع الجزيرة، الزمالك، القاهرة',
-    dish: { id: 'd1', name: 'تالياتيلي مصنوعة يدوياً بصلصة الراجو', description: '', price: 240.0, imageUrl: '' },
-    chef: { id: '1', name: 'الشيف إيزابيلا روسي' },
-    status: 'تم التوصيل',
-  },
-  {
-    id: 'ORD124',
-    customerName: 'فلانة الفلانية',
-    customerPhone: '01012345678',
-    deliveryAddress: '456 شارع الجزيرة، الزمالك، القاهرة',
-    dish: { id: 'd7', name: 'مجموعة سوشي أوماكاسي', description: '', price: 650.0, imageUrl: '' },
-    chef: { id: '3', name: 'الشيف كينجي تاناكا' },
-    status: 'مؤكد',
-  },
-  {
-    id: 'ORD125',
-    customerName: 'فلانة الفلانية',
-    customerPhone: '01012345678',
-    deliveryAddress: '456 شارع الجزيرة، الزمالك، القاهرة',
-    dish: { id: 'd5', name: 'كريم بروليه', description: '', price: 115.0, imageUrl: '' },
-    chef: { id: '2', name: 'الشيف أنطوان دوبوا' },
-    status: 'قيد الانتظار',
-  },
-];
+import { Utensils } from 'lucide-react';
 
 export default function ProfilePage() {
     const { user, loading, logout } = useAuth();
+    const { getOrdersByCustomerId } = useOrders();
     const router = useRouter();
 
     useEffect(() => {
@@ -69,6 +41,8 @@ export default function ProfilePage() {
         return null;
     }
 
+    const myOrders = getOrdersByCustomerId(user.id);
+
   return (
     <div className="container mx-auto px-4 py-8 md:px-6 md:py-12 text-right">
       <h1 className="font-headline text-3xl md:text-4xl font-bold text-primary mb-8">أهلاً، {user.name}!</h1>
@@ -83,10 +57,25 @@ export default function ProfilePage() {
               <CardTitle>سجل الطلبات</CardTitle>
               <CardDescription>عرض طلباتك السابقة والحالية.</CardDescription>
             </CardHeader>
-            <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {mockOrders.map((order) => (
-                <OrderCard key={order.id} order={order} />
-              ))}
+            <CardContent>
+              {myOrders.length > 0 ? (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {myOrders.map((order) => (
+                    <OrderCard key={order.id} order={order} />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-16">
+                  <Utensils className="mx-auto h-12 w-12 text-muted-foreground" />
+                  <h3 className="mt-4 text-lg font-medium">لا توجد طلبات بعد</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    يبدو أنك لم تقم بأي طلب بعد. تصفح الطهاة وابدأ الطلب!
+                  </p>
+                  <Button asChild className="mt-6">
+                    <a href="/#featured-chefs">تصفح الطهاة</a>
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

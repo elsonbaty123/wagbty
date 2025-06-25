@@ -5,33 +5,29 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import type { Dish } from '@/lib/types';
-import { ArrowRight } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { ArrowRight, Plus, Minus } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
-import { useSearchParams } from 'next/navigation';
+import { useOrders } from '@/context/order-context';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
-
-const mockDishes: Record<string, Dish> = {
-  'd1': { id: 'd1', name: 'تالياتيلي مصنوعة يدوياً بصلصة الراجو', description: 'راجو لحم مطبوخ ببطء فوق باستا البيض الطازجة المصنوعة يدويًا.', price: 240.0, imageUrl: 'https://placehold.co/400x225.png' },
-  'd2': { id: 'd2', name: 'ريزوتو بفطر البورشيني', description: 'ريزوتو كريمي مع فطر البورشيني البري، جبنة بارميزان، وزيت الكمأة البيضاء.', price: 265.0, imageUrl: 'https://placehold.co/400x225.png' },
-  'd3': { id: 'd3', name: 'تيراميسو كلاسيكو', description: 'الحلوى الإيطالية الكلاسيكية مع أصابع السيدة المنقوعة في الإسبريسو وكريمة الماسكاربوني.', price: 120.0, imageUrl: 'https://placehold.co/400x225.png' },
-  'd4': { id: 'd4', name: 'كيكة الشوكولاتة الذائبة', description: 'كيكة شوكولاتة ذائبة غنية مع مركز من كولي التوت.', price: 140.0, imageUrl: 'https://placehold.co/400x225.png' },
-  'd5': { id: 'd5', name: 'كريم بروليه', description: 'كاسترد غني بحبوب الفانيليا مع طبقة علوية من السكر المكرمل بشكل مثالي.', price: 115.0, imageUrl: 'https://placehold.co/400x225.png' },
-  'd6': { id: 'd6', name: 'تشكيلة ماكارون', description: 'مجموعة مختارة من ستة قطع ماكارون فرنسية رقيقة بنكهات مختلفة.', price: 180.0, imageUrl: 'https://placehold.co/400x225.png' },
-  'd7': { id: 'd7', name: 'مجموعة سوشي أوماكاسي', description: 'مجموعة من اختيار الشيف مكونة من 12 قطعة من سوشي نيجيري الفاخر.', price: 650.0, imageUrl: 'https://placehold.co/400x225.png' },
-  'd8': { id: 'd8', name: 'أسياخ لحم الواغيو', description: 'أسياخ لحم بقر واغيو A5 مشوية مع صلصة صويا حلوة.', price: 350.0, imageUrl: 'https://placehold.co/400x225.png' },
-  'd9': { id: 'd9', name: 'أرز مقرمش بالتونة الحارة', description: 'أرز مقلي مقرمش يعلوه تونة حارة وهالبينو.', price: 190.0, imageUrl: 'https://placehold.co/400x225.png' },
-};
+import { allDishes, allChefs } from '@/lib/data';
+import { notFound } from 'next/navigation';
+import { useState, useMemo } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 export default function OrderPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const { toast } = useToast();
   const dishId = searchParams.get('dishId');
-  const dish = mockDishes[dishId || 'd1'] || Object.values(mockDishes)[0];
-  const { user, loading } = useAuth();
+  
+  const dish = useMemo(() => allDishes.find(d => d.id === dishId), [dishId]);
 
-  const subtotal = dish.price;
-  const deliveryFee = 50.0;
-  const total = subtotal + deliveryFee;
+  const { user, loading } = useAuth();
+  const { createOrder } = useOrders();
+  
+  const [quantity, setQuantity] = useState(1);
 
   if (loading) {
       return (
@@ -51,13 +47,44 @@ export default function OrderPage() {
         </div>
       );
   }
+  
+  if (!dish) {
+    notFound();
+  }
+
+  const chef = allChefs.find(c => c.id === dish.chefId);
+
+  const subtotal = dish.price * quantity;
+  const deliveryFee = 50.0;
+  const total = subtotal + deliveryFee;
+
+  const handleConfirmOrder = () => {
+    if (!user || !chef) return;
+
+    createOrder({
+      customerId: user.id,
+      customerName: user.name,
+      customerPhone: '01012345678', // Mock phone
+      deliveryAddress: '456 شارع الجزيرة، الزمالك، القاهرة', // Mock address
+      dish: dish,
+      chef: { id: chef.id, name: chef.name },
+      quantity: quantity,
+    });
+
+    toast({
+      title: 'تم تأكيد الطلب بنجاح!',
+      description: `طلبك لـ ${quantity}x ${dish.name} قيد المراجعة.`,
+    });
+
+    router.push('/profile');
+  };
 
   return (
     <div className="container mx-auto px-4 py-8 md:px-6 md:py-12 text-right">
       <div className="mb-6">
         <Button variant="ghost" asChild>
-          <Link href={`/`}>
-            العودة للرئيسية
+          <Link href={`/chefs/${dish.chefId}`}>
+            العودة لصفحة الشيف
             <ArrowRight className="mr-2 h-4 w-4" />
           </Link>
         </Button>
@@ -75,10 +102,10 @@ export default function OrderPage() {
               </CardHeader>
               <CardContent className="flex flex-col gap-4">
                 <Button asChild className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-                  <Link href={`/login`}>تسجيل الدخول</Link>
+                  <Link href={`/login?redirect=/order?dishId=${dishId}`}>تسجيل الدخول</Link>
                 </Button>
                 <Button asChild variant="outline" className="w-full">
-                  <Link href={`/signup`}>إنشاء حساب جديد</Link>
+                  <Link href={`/signup?redirect=/order?dishId=${dishId}`}>إنشاء حساب جديد</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -115,6 +142,18 @@ export default function OrderPage() {
                         <p className="font-bold text-primary">{dish.price.toFixed(2)} جنيه</p>
                     </div>
                 </CardContent>
+                <CardFooter className="flex justify-between items-center">
+                    <span className="font-medium">الكمية:</span>
+                    <div className="flex items-center gap-2">
+                        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setQuantity(q => Math.max(1, q-1))}>
+                            <Minus className="h-4 w-4" />
+                        </Button>
+                        <Input type="number" value={quantity} readOnly className="w-16 h-8 text-center" />
+                        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setQuantity(q => q+1)}>
+                            <Plus className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </CardFooter>
             </Card>
             <Card>
                 <CardHeader>
@@ -135,7 +174,7 @@ export default function OrderPage() {
                     </div>
                 </CardContent>
                 <CardFooter>
-                  <Button size="lg" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" disabled={!user}>
+                  <Button onClick={handleConfirmOrder} size="lg" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" disabled={!user}>
                     تأكيد الطلب
                   </Button>
                 </CardFooter>
