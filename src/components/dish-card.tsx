@@ -23,19 +23,23 @@ export function DishCard({ dish, chefName }: DishCardProps) {
   return (
     <Card className="flex flex-col text-right overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
       <CardHeader className="p-0">
-        <Image
-          alt={dish.name}
-          className="aspect-video w-full rounded-t-lg object-cover"
-          height="225"
-          src={dish.imageUrl}
-          data-ai-hint="plated food"
-          width="400"
-        />
+        <Link href={`/dishes/${dish.id}`}>
+          <Image
+            alt={dish.name}
+            className="aspect-video w-full rounded-t-lg object-cover"
+            height="225"
+            src={dish.imageUrl}
+            data-ai-hint="plated food"
+            width="400"
+          />
+        </Link>
       </CardHeader>
       <CardContent className="p-4 flex-grow">
         <div className='flex justify-between items-start'>
+          <Link href={`/dishes/${dish.id}`} className="hover:text-primary transition-colors">
             <CardTitle className="font-headline text-xl">{dish.name}</CardTitle>
-            <Badge variant="secondary">{dish.category}</Badge>
+          </Link>
+          <Badge variant="secondary">{dish.category}</Badge>
         </div>
         <div className="flex items-center gap-2 mt-2 justify-end">
             <span className="text-sm text-muted-foreground">بواسطة الشيف: {chefName}</span>
