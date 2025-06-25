@@ -2,32 +2,32 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ChefCard } from '@/components/chef-card';
 import type { Chef } from '@/lib/types';
-import { ArrowRight } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
 const featuredChefs: Chef[] = [
   {
     id: '1',
-    name: 'Chef Isabella Rossi',
-    specialty: 'Italian Cuisine',
-    bio: 'Authentic Italian flavors passed down through generations. Experience the heart of Italy on your plate.',
+    name: 'الشيف إيزابيلا روسي',
+    specialty: 'المطبخ الإيطالي',
+    bio: 'نكهات إيطالية أصيلة تناقلتها الأجيال. جرب قلب إيطاليا في طبقك.',
     imageUrl: 'https://placehold.co/400x400.png',
     rating: 4.9,
     dishes: [],
   },
   {
     id: '2',
-    name: 'Chef Antoine Dubois',
-    specialty: 'French Pâtisserie',
-    bio: 'Master of delicate pastries and decadent desserts. Every bite is a small piece of Parisian heaven.',
+    name: 'الشيف أنطوان دوبوا',
+    specialty: 'الحلويات الفرنسية',
+    bio: 'خبير المعجنات الرقيقة والحلويات الفاخرة. كل قضمة هي قطعة صغيرة من جنة باريس.',
     imageUrl: 'https://placehold.co/400x400.png',
     rating: 4.8,
     dishes: [],
   },
   {
     id: '3',
-    name: 'Chef Kenji Tanaka',
-    specialty: 'Sushi & Japanese Grill',
-    bio: 'Precision and passion in every roll. Sourcing the freshest ingredients for a sublime sushi experience.',
+    name: 'الشيف كينجي تاناكا',
+    specialty: 'سوشي وشواية يابانية',
+    bio: 'دقة وشغف في كل لفة. نحضر المكونات الطازجة لتجربة سوشي راقية.',
     imageUrl: 'https://placehold.co/400x400.png',
     rating: 4.9,
     dishes: [],
@@ -43,17 +43,17 @@ export default function Home() {
             <div className="flex flex-col justify-center space-y-4">
               <div className="space-y-2">
                 <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none text-primary">
-                  Discover Culinary Masters
+                  اكتشف أساتذة الطهي
                 </h1>
                 <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                  Connect with talented chefs, explore unique dishes, and have incredible meals delivered to your door.
+                  تواصل مع طهاة موهوبين، استكشف أطباقًا فريدة، واحصل على وجبات مذهلة تصل إلى بابك.
                 </p>
               </div>
               <div className="flex flex-col gap-2 min-[400px]:flex-row">
                 <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground">
                   <Link href="#featured-chefs">
-                    Find a Chef
-                    <ArrowRight className="ml-2 h-4 w-4" />
+                    ابحث عن طاهٍ
+                    <ArrowLeft className="mr-2 h-4 w-4" />
                   </Link>
                 </Button>
               </div>
@@ -72,9 +72,9 @@ export default function Home() {
         <div className="container mx-auto px-4 md:px-6">
           <div className="flex flex-col items-center justify-center space-y-4 text-center">
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline text-primary">Meet Our Top Chefs</h2>
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline text-primary">تعرف على أفضل طهاتنا</h2>
               <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                Hand-picked for their passion, skill, and unique culinary perspectives.
+                تم اختيارهم بعناية لشغفهم ومهاراتهم ووجهات نظرهم الفريدة في الطهي.
               </p>
             </div>
           </div>

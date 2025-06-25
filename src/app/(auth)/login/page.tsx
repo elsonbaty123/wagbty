@@ -8,33 +8,33 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function LoginPage() {
   return (
-    <Tabs defaultValue="customer" className="w-full max-w-md">
+    <Tabs defaultValue="customer" className="w-full max-w-md text-right">
       <TabsList className="grid w-full grid-cols-2">
-        <TabsTrigger value="customer">Customer</TabsTrigger>
-        <TabsTrigger value="chef">Chef</TabsTrigger>
+        <TabsTrigger value="customer">عميل</TabsTrigger>
+        <TabsTrigger value="chef">طاهٍ</TabsTrigger>
       </TabsList>
       <TabsContent value="customer">
         <Card>
           <CardHeader>
-            <CardTitle className="font-headline text-2xl">Customer Login</CardTitle>
-            <CardDescription>Welcome back! Please enter your details to order your next meal.</CardDescription>
+            <CardTitle className="font-headline text-2xl">تسجيل دخول العميل</CardTitle>
+            <CardDescription>مرحبًا بعودتك! يرجى إدخال بياناتك لطلب وجبتك التالية.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="customer-email">Email</Label>
-              <Input id="customer-email" type="email" placeholder="m@example.com" required />
+              <Label htmlFor="customer-email">البريد الإلكتروني</Label>
+              <Input id="customer-email" type="email" placeholder="m@example.com" required className="text-right" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="customer-password">Password</Label>
-              <Input id="customer-password" type="password" required />
+              <Label htmlFor="customer-password">كلمة المرور</Label>
+              <Input id="customer-password" type="password" required className="text-right" />
             </div>
             <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-              Log in
+              تسجيل الدخول
             </Button>
             <div className="mt-4 text-center text-sm">
-              Don&apos;t have an account?{' '}
+              ليس لديك حساب؟{' '}
               <Link href="/signup" className="underline text-accent">
-                Sign up
+                إنشاء حساب
               </Link>
             </div>
           </CardContent>
@@ -43,25 +43,25 @@ export default function LoginPage() {
       <TabsContent value="chef">
         <Card>
           <CardHeader>
-            <CardTitle className="font-headline text-2xl">Chef Login</CardTitle>
-            <CardDescription>Access your dashboard to manage orders and your menu.</CardDescription>
+            <CardTitle className="font-headline text-2xl">تسجيل دخول الطاهي</CardTitle>
+            <CardDescription>ادخل إلى لوحة التحكم الخاصة بك لإدارة الطلبات وقائمة طعامك.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="chef-email">Email</Label>
-              <Input id="chef-email" type="email" placeholder="chef@example.com" required />
+              <Label htmlFor="chef-email">البريد الإلكتروني</Label>
+              <Input id="chef-email" type="email" placeholder="chef@example.com" required className="text-right" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="chef-password">Password</Label>
-              <Input id="chef-password" type="password" required />
+              <Label htmlFor="chef-password">كلمة المرور</Label>
+              <Input id="chef-password" type="password" required className="text-right" />
             </div>
             <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-              Log in
+              تسجيل الدخول
             </Button>
             <div className="mt-4 text-center text-sm">
-              Not a chef with us yet?{' '}
+              لست طاهيًا معنا بعد؟{' '}
               <Link href="/signup" className="underline text-accent">
-                Join now
+                انضم الآن
               </Link>
             </div>
           </CardContent>

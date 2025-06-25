@@ -10,63 +10,63 @@ export function Header() {
       <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
         <Link href="/" className="flex items-center gap-2">
           <UtensilsCrossed className="h-6 w-6 text-primary" />
-          <span className="text-xl font-bold font-headline text-primary">ChefConnect</span>
+          <span className="text-xl font-bold font-headline text-primary">شيف كونكت</span>
         </Link>
         <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
           <Link href="/" className="transition-colors hover:text-primary">
-            Home
+            الرئيسية
           </Link>
           <Link href="/#featured-chefs" className="transition-colors hover:text-primary">
-            Chefs
+            الطهاة
           </Link>
           <Link href="/profile" className="transition-colors hover:text-primary">
-            My Profile
+            ملفي الشخصي
           </Link>
            <Link href="/chef/dashboard" className="transition-colors hover:text-primary">
-            Chef Dashboard
+            لوحة تحكم الشيف
           </Link>
         </nav>
         <div className="hidden items-center gap-4 md:flex">
           <Button variant="ghost" asChild>
-            <Link href="/login">Log In</Link>
+            <Link href="/login">تسجيل الدخول</Link>
           </Button>
           <Button asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
-            <Link href="/signup">Sign Up</Link>
+            <Link href="/signup">إنشاء حساب</Link>
           </Button>
         </div>
         <Sheet>
           <SheetTrigger asChild>
             <Button variant="outline" size="icon" className="md:hidden">
               <Menu className="h-6 w-6" />
-              <span className="sr-only">Toggle navigation menu</span>
+              <span className="sr-only">تبديل قائمة التنقل</span>
             </Button>
           </SheetTrigger>
           <SheetContent side="right">
             <div className="grid gap-4 py-6">
               <Link href="/" className="flex items-center gap-2">
                 <UtensilsCrossed className="h-6 w-6 text-primary" />
-                <span className="text-xl font-bold font-headline text-primary">ChefConnect</span>
+                <span className="text-xl font-bold font-headline text-primary">شيف كونكت</span>
               </Link>
               <nav className="grid gap-2 text-lg font-medium">
                  <Link href="/" className="transition-colors hover:text-primary">
-                    Home
+                    الرئيسية
                  </Link>
                  <Link href="/#featured-chefs" className="transition-colors hover:text-primary">
-                    Chefs
+                    الطهاة
                  </Link>
                  <Link href="/profile" className="transition-colors hover:text-primary">
-                    My Profile
+                    ملفي الشخصي
                  </Link>
                  <Link href="/chef/dashboard" className="transition-colors hover:text-primary">
-                    Chef Dashboard
+                    لوحة تحكم الشيف
                  </Link>
               </nav>
               <div className="flex flex-col gap-2">
                 <Button variant="ghost" asChild>
-                  <Link href="/login">Log In</Link>
+                  <Link href="/login">تسجيل الدخول</Link>
                 </Button>
                 <Button asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                  <Link href="/signup">Sign Up</Link>
+                  <Link href="/signup">إنشاء حساب</Link>
                 </Button>
               </div>
             </div>

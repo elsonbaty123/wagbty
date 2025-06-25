@@ -8,37 +8,37 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function SignupPage() {
   return (
-    <Tabs defaultValue="customer" className="w-full max-w-md">
+    <Tabs defaultValue="customer" className="w-full max-w-md text-right">
       <TabsList className="grid w-full grid-cols-2">
-        <TabsTrigger value="customer">I'm a Customer</TabsTrigger>
-        <TabsTrigger value="chef">I'm a Chef</TabsTrigger>
+        <TabsTrigger value="customer">أنا عميل</TabsTrigger>
+        <TabsTrigger value="chef">أنا طاهٍ</TabsTrigger>
       </TabsList>
       <TabsContent value="customer">
         <Card>
           <CardHeader>
-            <CardTitle className="font-headline text-2xl">Create a Customer Account</CardTitle>
-            <CardDescription>Join our community of food lovers.</CardDescription>
+            <CardTitle className="font-headline text-2xl">إنشاء حساب عميل</CardTitle>
+            <CardDescription>انضم إلى مجتمع محبي الطعام.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="customer-name">Full Name</Label>
-              <Input id="customer-name" required />
+              <Label htmlFor="customer-name">الاسم الكامل</Label>
+              <Input id="customer-name" required className="text-right"/>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="customer-email">Email</Label>
-              <Input id="customer-email" type="email" placeholder="m@example.com" required />
+              <Label htmlFor="customer-email">البريد الإلكتروني</Label>
+              <Input id="customer-email" type="email" placeholder="m@example.com" required className="text-right"/>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="customer-password">Password</Label>
-              <Input id="customer-password" type="password" required />
+              <Label htmlFor="customer-password">كلمة المرور</Label>
+              <Input id="customer-password" type="password" required className="text-right"/>
             </div>
             <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
-              Sign Up
+              إنشاء حساب
             </Button>
             <div className="mt-4 text-center text-sm">
-              Already have an account?{' '}
+              لديك حساب بالفعل؟{' '}
               <Link href="/login" className="underline text-primary">
-                Log in
+                تسجيل الدخول
               </Link>
             </div>
           </CardContent>
@@ -47,33 +47,33 @@ export default function SignupPage() {
       <TabsContent value="chef">
         <Card>
           <CardHeader>
-            <CardTitle className="font-headline text-2xl">Join as a Chef</CardTitle>
-            <CardDescription>Share your culinary creations with the world.</CardDescription>
+            <CardTitle className="font-headline text-2xl">انضم كطاهٍ</CardTitle>
+            <CardDescription>شارك إبداعاتك في الطهي مع العالم.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
              <div className="space-y-2">
-              <Label htmlFor="chef-name">Full Name</Label>
-              <Input id="chef-name" required />
+              <Label htmlFor="chef-name">الاسم الكامل</Label>
+              <Input id="chef-name" required className="text-right"/>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="chef-specialty">Cuisine Specialty</Label>
-              <Input id="chef-specialty" placeholder="e.g., French, Italian, Vegan" required />
+              <Label htmlFor="chef-specialty">تخصص المطبخ</Label>
+              <Input id="chef-specialty" placeholder="مثال: فرنسي، إيطالي، نباتي" required className="text-right"/>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="chef-email">Email</Label>
-              <Input id="chef-email" type="email" placeholder="chef@example.com" required />
+              <Label htmlFor="chef-email">البريد الإلكتروني</Label>
+              <Input id="chef-email" type="email" placeholder="chef@example.com" required className="text-right"/>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="chef-password">Password</Label>
-              <Input id="chef-password" type="password" required />
+              <Label htmlFor="chef-password">كلمة المرور</Label>
+              <Input id="chef-password" type="password" required className="text-right"/>
             </div>
             <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
-              Apply to be a Chef
+              تقدم لتكون طاهيًا
             </Button>
             <div className="mt-4 text-center text-sm">
-              Already a member?{' '}
+              عضو بالفعل؟{' '}
               <Link href="/login" className="underline text-primary">
-                Log in
+                تسجيل الدخول
               </Link>
             </div>
           </CardContent>

@@ -22,7 +22,7 @@ export function ChefCard({ chef }: ChefCardProps) {
           width="400"
         />
       </CardHeader>
-      <CardContent className="p-6">
+      <CardContent className="p-6 text-right">
         <CardTitle className="font-headline text-2xl mb-2">{chef.name}</CardTitle>
         <CardDescription className="text-primary font-semibold mb-2">{chef.specialty}</CardDescription>
         <p className="mb-4 text-sm text-muted-foreground">{chef.bio}</p>
@@ -33,7 +33,7 @@ export function ChefCard({ chef }: ChefCardProps) {
           </div>
           <Button asChild variant="link" className="text-accent hover:text-accent/80 p-0 h-auto">
             <Link href={`/chefs/${chef.id}`}>
-              View Profile
+              عرض الملف الشخصي
             </Link>
           </Button>
         </div>

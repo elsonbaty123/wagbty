@@ -6,41 +6,41 @@ import { DishCard } from '@/components/dish-card';
 const mockChefs: Record<string, Chef> = {
   '1': {
     id: '1',
-    name: 'Chef Isabella Rossi',
-    specialty: 'Italian Cuisine',
-    bio: 'With over 20 years of experience in traditional Italian cooking, Isabella brings the authentic taste of her hometown, Bologna, to your table. Her philosophy is simple: fresh, high-quality ingredients and a lot of love.',
+    name: 'الشيف إيزابيلا روسي',
+    specialty: 'المطبخ الإيطالي',
+    bio: 'بخبرة تزيد عن 20 عامًا في الطهي الإيطالي التقليدي، تجلب إيزابيلا المذاق الأصيل لمدينتها بولونيا إلى طاولتك. فلسفتها بسيطة: مكونات طازجة وعالية الجودة والكثير من الحب.',
     imageUrl: 'https://placehold.co/400x400.png',
     rating: 4.9,
     dishes: [
-      { id: 'd1', name: 'Handmade Tagliatelle al Ragù', description: 'Slow-cooked beef and pork ragù over fresh, handmade egg pasta.', price: 24.0, imageUrl: 'https://placehold.co/400x225.png' },
-      { id: 'd2', name: 'Risotto ai Funghi Porcini', description: 'Creamy risotto with wild porcini mushrooms, parmigiano, and white truffle oil.', price: 26.5, imageUrl: 'https://placehold.co/400x225.png' },
-      { id: 'd3', name: 'Tiramisù Classico', description: 'The classic Italian dessert with espresso-soaked ladyfingers and mascarpone cream.', price: 12.0, imageUrl: 'https://placehold.co/400x225.png' },
+      { id: 'd1', name: 'تالياتيلي مصنوعة يدوياً بصلصة الراجو', description: 'راجو لحم مطبوخ ببطء فوق باستا البيض الطازجة المصنوعة يدويًا.', price: 24.0, imageUrl: 'https://placehold.co/400x225.png' },
+      { id: 'd2', name: 'ريزوتو بفطر البورشيني', description: 'ريزوتو كريمي مع فطر البورشيني البري، جبنة بارميزان، وزيت الكمأة البيضاء.', price: 26.5, imageUrl: 'https://placehold.co/400x225.png' },
+      { id: 'd3', name: 'تيراميسو كلاسيكو', description: 'الحلوى الإيطالية الكلاسيكية مع أصابع السيدة المنقوعة في الإسبريسو وكريمة الماسكاربوني.', price: 12.0, imageUrl: 'https://placehold.co/400x225.png' },
     ],
   },
    '2': {
     id: '2',
-    name: 'Chef Antoine Dubois',
-    specialty: 'French Pâtisserie',
-    bio: 'Antoine is a Le Cordon Bleu-trained pastry chef who specializes in classic French desserts. He believes that dessert is not just an end to a meal, but an experience in itself.',
+    name: 'الشيف أنطوان دوبوا',
+    specialty: 'الحلويات الفرنسية',
+    bio: 'أنطوان هو شيف حلويات مدرب في لو كوردون بلو ومتخصص في الحلويات الفرنسية الكلاسيكية. يعتقد أن الحلوى ليست مجرد نهاية للوجبة، بل هي تجربة بحد ذاتها.',
     imageUrl: 'https://placehold.co/400x400.png',
     rating: 4.8,
     dishes: [
-      { id: 'd4', name: 'Chocolate Lava Cake', description: 'A decadent molten chocolate cake with a raspberry coulis center.', price: 14.0, imageUrl: 'https://placehold.co/400x225.png' },
-      { id: 'd5', name: 'Crème Brûlée', description: 'Rich vanilla bean custard with a perfectly caramelized sugar topping.', price: 11.5, imageUrl: 'https://placehold.co/400x225.png' },
-      { id: 'd6', name: 'Macaron Assortment', description: 'A selection of six delicate French macarons in various flavors.', price: 18.0, imageUrl: 'https://placehold.co/400x225.png' },
+      { id: 'd4', name: 'كيكة الشوكولاتة الذائبة', description: 'كيكة شوكولاتة ذائبة غنية مع مركز من كولي التوت.', price: 14.0, imageUrl: 'https://placehold.co/400x225.png' },
+      { id: 'd5', name: 'كريم بروليه', description: 'كاسترد غني بحبوب الفانيليا مع طبقة علوية من السكر المكرمل بشكل مثالي.', price: 11.5, imageUrl: 'https://placehold.co/400x225.png' },
+      { id: 'd6', name: 'تشكيلة ماكارون', description: 'مجموعة مختارة من ستة قطع ماكارون فرنسية رقيقة بنكهات مختلفة.', price: 18.0, imageUrl: 'https://placehold.co/400x225.png' },
     ],
   },
    '3': {
     id: '3',
-    name: 'Chef Kenji Tanaka',
-    specialty: 'Sushi & Japanese Grill',
-    bio: 'A third-generation sushi master from Tokyo, Kenji is dedicated to the art of Edomae sushi. His precision knife skills and respect for ingredients are evident in every piece.',
+    name: 'الشيف كينجي تاناكا',
+    specialty: 'سوشي وشواية يابانية',
+    bio: 'كينجي هو سيد سوشي من الجيل الثالث من طوكيو، وهو مكرس لفن سوشي إيدوماي. تتجلى مهاراته الدقيقة في استخدام السكين واحترامه للمكونات في كل قطعة.',
     imageUrl: 'https://placehold.co/400x400.png',
     rating: 4.9,
     dishes: [
-      { id: 'd7', name: 'Omakase Sushi Set', description: 'A chef\'s choice selection of 12 pieces of premium nigiri sushi.', price: 65.0, imageUrl: 'https://placehold.co/400x225.png' },
-      { id: 'd8', name: 'Wagyu Beef Skewers', description: 'Grilled A5 Wagyu beef skewers with a sweet soy glaze.', price: 35.0, imageUrl: 'https://placehold.co/400x225.png' },
-      { id: 'd9', name: 'Spicy Tuna Crispy Rice', description: 'Crispy fried rice topped with spicy tuna and jalapeño.', price: 19.0, imageUrl: 'https://placehold.co/400x225.png' },
+      { id: 'd7', name: 'مجموعة سوشي أوماكاسي', description: 'مجموعة من اختيار الشيف مكونة من 12 قطعة من سوشي نيجيري الفاخر.', price: 65.0, imageUrl: 'https://placehold.co/400x225.png' },
+      { id: 'd8', name: 'أسياخ لحم الواغيو', description: 'أسياخ لحم بقر واغيو A5 مشوية مع صلصة صويا حلوة.', price: 35.0, imageUrl: 'https://placehold.co/400x225.png' },
+      { id: 'd9', name: 'أرز مقرمش بالتونة الحارة', description: 'أرز مقلي مقرمش يعلوه تونة حارة وهالبينو.', price: 19.0, imageUrl: 'https://placehold.co/400x225.png' },
     ],
   },
 };
@@ -52,7 +52,7 @@ export default function ChefProfilePage({ params }: { params: { id: string } }) 
     <div className="container mx-auto px-4 py-8 md:px-6 md:py-12">
       <div className="grid md:grid-cols-3 gap-8">
         <div className="md:col-span-1">
-          <div className="sticky top-24">
+          <div className="sticky top-24 text-right">
             <Image
               alt={chef.name}
               className="aspect-square w-full rounded-xl object-cover shadow-lg"
@@ -63,17 +63,17 @@ export default function ChefProfilePage({ params }: { params: { id: string } }) 
             />
             <h1 className="font-headline text-3xl font-bold mt-4">{chef.name}</h1>
             <p className="text-lg text-primary font-semibold mt-1">{chef.specialty}</p>
-            <div className="flex items-center gap-2 mt-2">
-              <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+            <div className="flex items-center justify-end gap-2 mt-2">
+              <span className="text-sm text-muted-foreground">(24 تقييم)</span>
               <span className="font-bold text-lg">{chef.rating}</span>
-              <span className="text-sm text-muted-foreground">(24 reviews)</span>
+              <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
             </div>
             <p className="mt-4 text-muted-foreground">{chef.bio}</p>
           </div>
         </div>
 
         <div className="md:col-span-2">
-          <h2 className="font-headline text-3xl font-bold text-primary mb-6">Menu</h2>
+          <h2 className="font-headline text-3xl font-bold text-primary mb-6 text-right">قائمة الطعام</h2>
           <div className="grid gap-6">
             {chef.dishes.map((dish) => (
               <DishCard key={dish.id} dish={dish} />

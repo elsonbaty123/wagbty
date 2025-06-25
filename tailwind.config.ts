@@ -17,8 +17,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        body: ['Alegreya', 'serif'],
-        headline: ['Belleza', 'sans-serif'],
+        body: ['Cairo', 'sans-serif'],
+        headline: ['Cairo', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {

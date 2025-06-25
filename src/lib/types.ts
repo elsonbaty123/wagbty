@@ -23,5 +23,5 @@ export type Order = {
   deliveryAddress: string;
   dish: Dish;
   chef: Pick<Chef, 'id' | 'name'>;
-  status: 'Pending' | 'Confirmed' | 'Rejected' | 'Delivered';
+  status: 'قيد الانتظار' | 'مؤكد' | 'مرفوض' | 'تم التوصيل';
 };

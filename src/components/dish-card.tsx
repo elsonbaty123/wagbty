@@ -10,7 +10,7 @@ interface DishCardProps {
 
 export function DishCard({ dish }: DishCardProps) {
   return (
-    <Card className="flex flex-col">
+    <Card className="flex flex-col text-right">
       <CardHeader className="p-0">
         <Image
           alt={dish.name}
@@ -28,7 +28,7 @@ export function DishCard({ dish }: DishCardProps) {
       <CardFooter className="p-4 flex justify-between items-center">
         <p className="text-lg font-bold text-primary">${dish.price.toFixed(2)}</p>
         <Button asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
-          <Link href={`/order?dishId=${dish.id}`}>Order Now</Link>
+          <Link href={`/order?dishId=${dish.id}`}>اطلب الآن</Link>
         </Button>
       </CardFooter>
     </Card>
