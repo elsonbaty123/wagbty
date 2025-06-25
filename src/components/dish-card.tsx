@@ -4,18 +4,19 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import type { Dish } from '@/lib/types';
 import Link from 'next/link';
-import { Clock } from 'lucide-react';
+import { Clock, ChefHat } from 'lucide-react';
 import { Badge } from './ui/badge';
 
 interface DishCardProps {
   dish: Dish;
+  chefName: string;
 }
 
-export function DishCard({ dish }: DishCardProps) {
+export function DishCard({ dish, chefName }: DishCardProps) {
   const isAvailable = dish.status === 'متوفرة';
 
   return (
-    <Card className="flex flex-col text-right">
+    <Card className="flex flex-col text-right overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
       <CardHeader className="p-0">
         <Image
           alt={dish.name}
@@ -31,13 +32,17 @@ export function DishCard({ dish }: DishCardProps) {
             <CardTitle className="font-headline text-xl">{dish.name}</CardTitle>
             <Badge variant="secondary">{dish.category}</Badge>
         </div>
+        <div className="flex items-center gap-2 mt-2 justify-end">
+            <span className="text-sm text-muted-foreground">بواسطة الشيف: {chefName}</span>
+            <ChefHat className="w-4 h-4 text-muted-foreground" />
+        </div>
         <CardDescription className="mt-2 text-sm text-muted-foreground min-h-[40px]">{dish.description}</CardDescription>
         <div className="flex items-center justify-end gap-2 text-sm text-muted-foreground mt-2">
             <span>~{dish.prepTime} دقيقة</span>
             <Clock className="w-4 h-4" />
         </div>
       </CardContent>
-      <CardFooter className="p-4 flex justify-between items-center">
+      <CardFooter className="p-4 flex justify-between items-center bg-muted/50 mt-auto">
         <p className="text-lg font-bold text-primary">{dish.price.toFixed(2)} جنيه</p>
         <Button asChild className="bg-accent hover:bg-accent/90 text-accent-foreground disabled:bg-muted disabled:text-muted-foreground" disabled={!isAvailable}>
           <Link href={`/order?dishId=${dish.id}`}>{isAvailable ? 'اطلب الآن' : 'غير متوفر حالياً'}</Link>

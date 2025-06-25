@@ -11,8 +11,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Order } from '@/lib/types';
-import { Home, Phone, User, Check, X, CreditCard } from 'lucide-react';
+import { Home, Phone, User, Check, X, CreditCard, ChevronDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 interface OrderCardProps {
   order: Order;
@@ -23,32 +24,23 @@ interface OrderCardProps {
 export function OrderCard({ order, isChefView = false, updateOrderStatus }: OrderCardProps) {
   const { toast } = useToast();
 
-  const handleConfirm = () => {
+  const handleStatusChange = (status: Order['status']) => {
     if (updateOrderStatus) {
-      updateOrderStatus(order.id, 'مؤكد');
+      updateOrderStatus(order.id, status);
       toast({
-        title: 'تم تأكيد الطلب',
-        description: `لقد قمت بتأكيد طلب ${order.dish.name}.`,
-      });
-    }
-  };
-
-  const handleReject = () => {
-     if (updateOrderStatus) {
-      updateOrderStatus(order.id, 'مرفوض');
-      toast({
-        title: 'تم رفض الطلب',
-        description: `لقد قمت برفض طلب ${order.dish.name}.`,
-        variant: 'destructive',
+        title: 'تم تحديث حالة الطلب',
+        description: `تم تحديث الطلب #${order.id} إلى "${status}".`,
       });
     }
   };
 
   const getStatusVariant = (status: Order['status']) => {
     switch (status) {
-      case 'مؤكد':
+      case 'قيد التحضير':
         return 'default';
-      case 'قيد الانتظار':
+      case 'جاهز للتوصيل':
+        return 'default';
+      case 'جارٍ المراجعة':
         return 'secondary';
       case 'مرفوض':
         return 'destructive';
@@ -84,8 +76,8 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus }: Orde
               <Phone className="w-4 h-4 text-muted-foreground" />
             </div>
              <div className="flex items-start gap-2 justify-end">
-                <span>{order.deliveryAddress}</span>
-                <Home className="w-4 h-4 text-muted-foreground mt-1" />
+                <span className="text-sm">{order.deliveryAddress}</span>
+                <Home className="w-4 h-4 text-muted-foreground mt-1 flex-shrink-0" />
             </div>
           </>
         ) : (
@@ -103,16 +95,39 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus }: Orde
                 <CreditCard className="w-4 h-4 text-muted-foreground" />
             </div>
         </div>
-
       </CardContent>
-      {isChefView && order.status === 'قيد الانتظار' && (
-        <CardFooter className="flex gap-2">
-          <Button onClick={handleConfirm} className="w-full">
-            <Check className="ml-2 h-4 w-4" /> تأكيد
-          </Button>
-          <Button onClick={handleReject} variant="destructive" className="w-full">
-            <X className="ml-2 h-4 w-4" /> رفض
-          </Button>
+       {isChefView && order.status !== 'تم التوصيل' && order.status !== 'مرفوض' && (
+        <CardFooter>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="w-full">
+                تحديث حالة الطلب
+                <ChevronDown className="mr-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="center" className="w-56 text-right">
+              {order.status === 'جارٍ المراجعة' && (
+                <>
+                  <DropdownMenuItem onClick={() => handleStatusChange('قيد التحضير')}>
+                    قبول الطلب (قيد التحضير)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleStatusChange('مرفوض')} className="text-destructive focus:text-destructive">
+                    رفض الطلب
+                  </DropdownMenuItem>
+                </>
+              )}
+              {order.status === 'قيد التحضير' && (
+                <DropdownMenuItem onClick={() => handleStatusChange('جاهز للتوصيل')}>
+                  جاهز للتوصيل
+                </DropdownMenuItem>
+              )}
+              {order.status === 'جاهز للتوصيل' && (
+                <DropdownMenuItem onClick={() => handleStatusChange('تم التوصيل')}>
+                  تم التوصيل
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </CardFooter>
       )}
     </Card>

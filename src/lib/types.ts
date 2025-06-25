@@ -22,10 +22,10 @@ export interface User {
   email: string;
   role: UserRole;
   phone?: string;
+  imageUrl?: string;
   // Chef-specific properties
   specialty?: string;
   bio?: string;
-  imageUrl?: string;
   rating?: number;
 }
 
@@ -38,5 +38,5 @@ export type Order = {
   dish: Dish;
   chef: Pick<User, 'id' | 'name'>;
   quantity: number;
-  status: 'قيد الانتظار' | 'مؤكد' | 'مرفوض' | 'تم التوصيل';
+  status: 'جارٍ المراجعة' | 'قيد التحضير' | 'جاهز للتوصيل' | 'تم التوصيل' | 'مرفوض';
 };

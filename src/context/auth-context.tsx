@@ -14,6 +14,7 @@ interface AuthContextType {
   login: (email: string, password: string, role: UserRole) => Promise<User>;
   signup: (details: Partial<User> & { password: string, role: UserRole }) => Promise<User>;
   logout: () => void;
+  updateUser: (updatedUserDetails: Partial<User>) => Promise<User>;
   loading: boolean;
 }
 
@@ -98,12 +99,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     persistUser(null);
     router.push('/');
   };
+  
+  const updateUser = async (updatedUserDetails: Partial<User>): Promise<User> => {
+    if (!user) throw new Error("يجب تسجيل الدخول لتحديث الملف الشخصي.");
+
+    let userToUpdate: StoredUser | undefined;
+
+    const updatedUsers = allUsers.map(u => {
+      if (u.id === user.id) {
+        userToUpdate = { ...u, ...updatedUserDetails };
+        return userToUpdate;
+      }
+      return u;
+    });
+
+    if (!userToUpdate) {
+      throw new Error("لم يتم العثور على المستخدم.");
+    }
+    
+    persistAllUsers(updatedUsers);
+    
+    const { password, ...publicUser } = userToUpdate;
+    persistUser(publicUser);
+    
+    return publicUser;
+  };
 
   const publicUsers = allUsers.map(({ password, ...user }) => user);
   const chefs = publicUsers.filter(u => u.role === 'chef');
 
   return (
-    <AuthContext.Provider value={{ user, users: publicUsers, chefs, login, signup, logout, loading }}>
+    <AuthContext.Provider value={{ user, users: publicUsers, chefs, login, signup, logout, updateUser, loading }}>
       {children}
     </AuthContext.Provider>
   );

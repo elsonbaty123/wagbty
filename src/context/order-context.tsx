@@ -66,7 +66,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
     const newOrder: Order = {
       ...orderData,
       id: `ORD${Date.now()}`,
-      status: 'قيد الانتظار',
+      status: 'جارٍ المراجعة',
     };
     persistOrders([newOrder, ...orders]);
   };
