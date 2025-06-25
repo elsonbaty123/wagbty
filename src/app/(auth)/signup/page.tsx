@@ -35,6 +35,10 @@ export default function SignupPage() {
               <Input id="customer-email" type="email" placeholder="m@example.com" required className="text-right"/>
             </div>
             <div className="space-y-2">
+              <Label htmlFor="customer-phone">رقم الهاتف</Label>
+              <Input id="customer-phone" type="tel" placeholder="01XXXXXXXXX" required className="text-right" />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="customer-password">كلمة المرور</Label>
               <PasswordInput
                 id="customer-password"
@@ -76,6 +80,10 @@ export default function SignupPage() {
             <div className="space-y-2">
               <Label htmlFor="chef-email">البريد الإلكتروني</Label>
               <Input id="chef-email" type="email" placeholder="chef@example.com" required className="text-right"/>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="chef-phone">رقم الهاتف</Label>
+              <Input id="chef-phone" type="tel" placeholder="01XXXXXXXXX" required className="text-right" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="chef-password">كلمة المرور</Label>

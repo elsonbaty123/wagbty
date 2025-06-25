@@ -9,6 +9,7 @@ export type Dish = {
 export type Chef = {
   id: string;
   name: string;
+  phone?: string;
   specialty: string;
   bio: string;
   imageUrl: string;
