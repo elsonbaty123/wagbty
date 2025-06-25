@@ -122,7 +122,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
       
       const newDishes = dishes.map(d => {
         if (d.id === orderToUpdate!.dish.id) {
-          return { ...d, ratings: [...d.ratings, newRating] };
+          return { ...d, ratings: [...(d.ratings || []), newRating] };
         }
         return d;
       });
