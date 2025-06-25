@@ -15,10 +15,10 @@ import { Loader2 } from 'lucide-react';
 
 
 export default function LoginPage() {
-  const [customerEmail, setCustomerEmail] = useState('jane.doe@example.com');
-  const [customerPassword, setCustomerPassword] = useState('Password123!');
-  const [chefEmail, setChefEmail] = useState('chef.antoine@example.com');
-  const [chefPassword, setChefPassword] = useState('Password123!');
+  const [customerEmail, setCustomerEmail] = useState('');
+  const [customerPassword, setCustomerPassword] = useState('');
+  const [chefEmail, setChefEmail] = useState('');
+  const [chefPassword, setChefPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const { login } = useAuth();
@@ -67,7 +67,7 @@ export default function LoginPage() {
                 <Input 
                   id="customer-email" 
                   type="email" 
-                  placeholder="m@example.com" 
+                  placeholder="jane.doe@example.com" 
                   required 
                   className="text-right" 
                   value={customerEmail}
@@ -85,7 +85,7 @@ export default function LoginPage() {
                   className="text-right"
                   value={customerPassword}
                   onChange={(e) => setCustomerPassword(e.target.value)}
-                  placeholder="********"
+                  placeholder="Password123!"
                 />
               </div>
               <Button type="submit" disabled={isLoading} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
@@ -115,7 +115,7 @@ export default function LoginPage() {
                 <Input 
                   id="chef-email" 
                   type="email" 
-                  placeholder="chef@example.com" 
+                  placeholder="chef.antoine@example.com" 
                   required 
                   className="text-right" 
                   value={chefEmail}
@@ -133,7 +133,7 @@ export default function LoginPage() {
                   className="text-right"
                   value={chefPassword}
                   onChange={(e) => setChefPassword(e.target.value)}
-                  placeholder="********"
+                  placeholder="Password123!"
                 />
               </div>
               <Button type="submit" disabled={isLoading} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
