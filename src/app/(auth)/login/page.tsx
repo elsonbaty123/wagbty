@@ -60,42 +60,44 @@ export default function LoginPage() {
             <CardTitle className="font-headline text-2xl">تسجيل دخول العميل</CardTitle>
             <CardDescription>مرحبًا بعودتك! يرجى إدخال بياناتك لطلب وجبتك التالية.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="customer-email">البريد الإلكتروني</Label>
-              <Input 
-                id="customer-email" 
-                type="email" 
-                placeholder="m@example.com" 
-                required 
-                className="text-right" 
-                value={customerEmail}
-                onChange={(e) => setCustomerEmail(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                    <Label htmlFor="customer-password">كلمة المرور</Label>
-                    <Link href="/forgot-password" className="text-sm text-accent underline">نسيت كلمة المرور؟</Link>
-                </div>
-              <PasswordInput
-                id="customer-password"
-                required
-                className="text-right"
-                value={customerPassword}
-                onChange={(e) => setCustomerPassword(e.target.value)}
-              />
-            </div>
-            <Button onClick={() => handleLogin('customer')} disabled={isLoading} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-               {isLoading && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-              تسجيل الدخول
-            </Button>
-            <div className="mt-4 text-center text-sm">
-              ليس لديك حساب؟{' '}
-              <Link href="/signup" className="underline text-accent">
-                إنشاء حساب
-              </Link>
-            </div>
+          <CardContent>
+            <form onSubmit={(e) => { e.preventDefault(); handleLogin('customer'); }} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="customer-email">البريد الإلكتروني</Label>
+                <Input 
+                  id="customer-email" 
+                  type="email" 
+                  placeholder="m@example.com" 
+                  required 
+                  className="text-right" 
+                  value={customerEmail}
+                  onChange={(e) => setCustomerEmail(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                      <Label htmlFor="customer-password">كلمة المرور</Label>
+                      <Link href="/forgot-password" className="text-sm text-accent underline">نسيت كلمة المرور؟</Link>
+                  </div>
+                <PasswordInput
+                  id="customer-password"
+                  required
+                  className="text-right"
+                  value={customerPassword}
+                  onChange={(e) => setCustomerPassword(e.target.value)}
+                />
+              </div>
+              <Button type="submit" disabled={isLoading} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
+                 {isLoading && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+                تسجيل الدخول
+              </Button>
+              <div className="mt-4 text-center text-sm">
+                ليس لديك حساب؟{' '}
+                <Link href="/signup" className="underline text-accent">
+                  إنشاء حساب
+                </Link>
+              </div>
+            </form>
           </CardContent>
         </Card>
       </TabsContent>
@@ -105,42 +107,44 @@ export default function LoginPage() {
             <CardTitle className="font-headline text-2xl">تسجيل دخول الطاهي</CardTitle>
             <CardDescription>ادخل إلى لوحة التحكم الخاصة بك لإدارة الطلبات وقائمة طعامك.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="chef-email">البريد الإلكتروني</Label>
-              <Input 
-                id="chef-email" 
-                type="email" 
-                placeholder="chef@example.com" 
-                required 
-                className="text-right" 
-                value={chefEmail}
-                onChange={(e) => setChefEmail(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                    <Label htmlFor="chef-password">كلمة المرور</Label>
-                    <Link href="/forgot-password" className="text-sm text-accent underline">نسيت كلمة المرور؟</Link>
-                </div>
-               <PasswordInput
-                id="chef-password"
-                required
-                className="text-right"
-                value={chefPassword}
-                onChange={(e) => setChefPassword(e.target.value)}
-              />
-            </div>
-            <Button onClick={() => handleLogin('chef')} disabled={isLoading} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-              {isLoading && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-              تسجيل الدخول
-            </Button>
-            <div className="mt-4 text-center text-sm">
-              لست طاهيًا معنا بعد؟{' '}
-              <Link href="/signup" className="underline text-accent">
-                انضم الآن
-              </Link>
-            </div>
+          <CardContent>
+            <form onSubmit={(e) => { e.preventDefault(); handleLogin('chef'); }} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="chef-email">البريد الإلكتروني</Label>
+                <Input 
+                  id="chef-email" 
+                  type="email" 
+                  placeholder="chef@example.com" 
+                  required 
+                  className="text-right" 
+                  value={chefEmail}
+                  onChange={(e) => setChefEmail(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                      <Label htmlFor="chef-password">كلمة المرور</Label>
+                      <Link href="/forgot-password" className="text-sm text-accent underline">نسيت كلمة المرور؟</Link>
+                  </div>
+                 <PasswordInput
+                  id="chef-password"
+                  required
+                  className="text-right"
+                  value={chefPassword}
+                  onChange={(e) => setChefPassword(e.target.value)}
+                />
+              </div>
+              <Button type="submit" disabled={isLoading} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
+                {isLoading && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+                تسجيل الدخول
+              </Button>
+              <div className="mt-4 text-center text-sm">
+                لست طاهيًا معنا بعد؟{' '}
+                <Link href="/signup" className="underline text-accent">
+                  انضم الآن
+                </Link>
+              </div>
+            </form>
           </CardContent>
         </Card>
       </TabsContent>
