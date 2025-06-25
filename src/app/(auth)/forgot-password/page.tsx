@@ -3,47 +3,45 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, ArrowRight } from 'lucide-react';
+import { Loader2, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 
 export default function ForgotPasswordPage() {
     const [email, setEmail] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [isSubmitted, setIsSubmitted] = useState(false);
     const { users } = useAuth();
-    const router = useRouter();
     const { toast } = useToast();
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
 
-        // Simulate checking if email exists
         const userExists = users.some(u => u.email.toLowerCase() === email.toLowerCase());
 
-        if (!userExists) {
-            toast({
-                variant: 'destructive',
-                title: 'البريد الإلكتروني غير موجود',
-                description: 'الرجاء التأكد من البريد الإلكتروني المدخل.',
-            });
-            setIsLoading(false);
-            return;
-        }
-
-        // Simulate sending a reset link
+        // Simulate sending a reset link with a delay
         setTimeout(() => {
+            setIsLoading(false);
+            setIsSubmitted(true);
+            
+            // For demo purposes, we log the "magic link" to the console for the user to test the flow.
+            if (userExists) {
+                console.log(`رابط إعادة تعيين كلمة المرور لـ ${email}: /reset-password?email=${encodeURIComponent(email)}`);
+            } else {
+                 console.log(`البريد الإلكتروني ${email} غير موجود، ولكن يتم عرض رسالة نجاح لأسباب أمنية. لم يتم إنشاء رابط إعادة تعيين.`);
+            }
+
             toast({
-                title: 'تم إرسال رابط إعادة التعيين',
-                description: 'تم إرسال رابط إلى بريدك الإلكتروني. الرجاء التحقق من صندوق الوارد.',
+                title: 'تم إرسال الطلب',
+                description: 'إذا كان البريد الإلكتروني مسجلاً، فستتلقى رابطًا لإعادة التعيين قريبًا.',
             });
-            router.push(`/reset-password?email=${encodeURIComponent(email)}`);
-        }, 1000);
+
+        }, 1500);
     };
 
     return (
@@ -51,35 +49,55 @@ export default function ForgotPasswordPage() {
             <CardHeader>
                 <CardTitle className="font-headline text-2xl">نسيت كلمة المرور؟</CardTitle>
                 <CardDescription>
-                    لا تقلق. أدخل بريدك الإلكتروني أدناه وسنرسل لك رابطًا لإعادة تعيين كلمة المرور الخاصة بك.
+                    {isSubmitted 
+                        ? 'تم إرسال طلب إعادة تعيين كلمة المرور.'
+                        : 'لا تقلق. أدخل بريدك الإلكتروني أدناه وسنرسل لك رابطًا لإعادة تعيين كلمة المرور الخاصة بك.'
+                    }
                 </CardDescription>
             </CardHeader>
-            <form onSubmit={handleSubmit}>
-                <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="email">البريد الإلكتروني</Label>
-                        <Input
-                            id="email"
-                            type="email"
-                            placeholder="m@example.com"
-                            required
-                            className="text-right"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
+            <CardContent>
+                {isSubmitted ? (
+                    <div className="flex flex-col items-center justify-center text-center space-y-4 p-8">
+                        <CheckCircle className="h-16 w-16 text-green-500" />
+                        <h3 className="text-xl font-semibold">تحقق من بريدك الإلكتروني</h3>
+                        <p className="text-muted-foreground">
+                            تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني إذا كان مسجلًا لدينا. الرجاء التحقق من صندوق الوارد أو البريد العشوائي.
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-2">(لأغراض العرض التوضيحي، تم طباعة الرابط في وحدة تحكم المطور.)</p>
+                        <Button asChild variant="outline" className="mt-6">
+                            <Link href="/login">
+                                العودة إلى تسجيل الدخول
+                            </Link>
+                        </Button>
                     </div>
-                    <Button type="submit" disabled={isLoading} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-                        {isLoading && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-                        إرسال رابط إعادة التعيين
-                    </Button>
-                     <div className="mt-4 text-center text-sm">
-                        تذكرت كلمة المرور؟{' '}
-                        <Link href="/login" className="underline text-accent">
-                            تسجيل الدخول
-                        </Link>
-                    </div>
-                </CardContent>
-            </form>
+                ) : (
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="email">البريد الإلكتروني</Label>
+                            <Input
+                                id="email"
+                                type="email"
+                                placeholder="m@example.com"
+                                required
+                                className="text-right"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                            />
+                        </div>
+                        <Button type="submit" disabled={isLoading} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
+                            {isLoading && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+                            إرسال رابط إعادة التعيين
+                        </Button>
+                         <div className="mt-4 text-center text-sm">
+                            تذكرت كلمة المرور؟{' '}
+                            <Link href="/login" className="underline text-accent">
+                                تسجيل الدخول
+                            </Link>
+                        </div>
+                    </form>
+                )}
+            </CardContent>
         </Card>
     );
 }
+
