@@ -14,9 +14,9 @@ import { useOrders } from '@/context/order-context';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Utensils, Upload, Loader2, User as UserIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { PasswordChangeForm } from '@/components/password-change-form';
 
 
 export default function ProfilePage() {
@@ -178,6 +178,7 @@ export default function ProfilePage() {
               </div>
             </CardContent>
           </Card>
+          <PasswordChangeForm />
         </TabsContent>
       </Tabs>
     </div>

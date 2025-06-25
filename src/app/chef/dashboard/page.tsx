@@ -2,8 +2,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
-import type { Order } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { DollarSign, Utensils, ClipboardList, BookOpenCheck, Loader2, Upload, User as UserIcon } from 'lucide-react';
@@ -21,6 +19,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { PasswordChangeForm } from '@/components/password-change-form';
 
 
 export default function ChefDashboardPage() {
@@ -246,6 +245,7 @@ export default function ChefDashboardPage() {
                     </div>
                 </CardContent>
             </Card>
+            <PasswordChangeForm />
         </TabsContent>
 
       </Tabs>

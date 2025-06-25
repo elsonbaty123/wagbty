@@ -15,6 +15,7 @@ interface AuthContextType {
   signup: (details: Partial<User> & { password: string, role: UserRole }) => Promise<User>;
   logout: () => void;
   updateUser: (updatedUserDetails: Partial<User>) => Promise<User>;
+  changePassword: (passwordDetails: { oldPassword; newPassword; confirmPassword; }) => Promise<void>;
   loading: boolean;
 }
 
@@ -86,7 +87,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         phone: details.phone,
         specialty: details.specialty,
         bio: details.role === 'chef' ? `شيف جديد متحمس لمشاركة إبداعاته في المطبخ ${details.specialty}.` : undefined,
-        imageUrl: details.role === 'chef' ? `https://placehold.co/400x400.png` : undefined,
+        imageUrl: details.role === 'chef' ? `https://placehold.co/400x400.png` : `https://placehold.co/100x100.png`,
         rating: details.role === 'chef' ? 4.5 : undefined,
     };
     
@@ -125,11 +126,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return publicUser;
   };
 
+  const changePassword = async ({ oldPassword, newPassword, confirmPassword }: { oldPassword: string; newPassword: string; confirmPassword: string; }) => {
+    if (!user) throw new Error("يجب تسجيل الدخول لتغيير كلمة المرور.");
+    if (newPassword !== confirmPassword) throw new Error("كلمتا المرور الجديدتان غير متطابقتين.");
+  
+    // Password strength validation
+    const hasUppercase = /[A-Z]/.test(newPassword);
+    const hasLowercase = /[a-z]/.test(newPassword);
+    const hasNumber = /[0-9]/.test(newPassword);
+    const hasSymbol = /[^A-Za-z0-9]/.test(newPassword);
+    const isLongEnough = newPassword.length > 7;
+  
+    if (!hasUppercase || !hasLowercase || !hasNumber || !hasSymbol || !isLongEnough) {
+      throw new Error("كلمة المرور الجديدة لا تستوفي شروط الأمان.");
+    }
+    
+    const userInDb = allUsers.find(u => u.id === user.id);
+  
+    if (!userInDb) throw new Error("لم يتم العثور على المستخدم.");
+    if (userInDb.password !== oldPassword) throw new Error("كلمة المرور القديمة غير صحيحة.");
+  
+    const updatedUsers = allUsers.map(u => {
+      if (u.id === user.id) {
+        return { ...u, password: newPassword };
+      }
+      return u;
+    });
+  
+    persistAllUsers(updatedUsers);
+  };
+
   const publicUsers = allUsers.map(({ password, ...user }) => user);
   const chefs = publicUsers.filter(u => u.role === 'chef');
 
   return (
-    <AuthContext.Provider value={{ user, users: publicUsers, chefs, login, signup, logout, updateUser, loading }}>
+    <AuthContext.Provider value={{ user, users: publicUsers, chefs, login, signup, logout, updateUser, changePassword, loading }}>
       {children}
     </AuthContext.Provider>
   );
