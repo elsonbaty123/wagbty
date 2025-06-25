@@ -1,12 +1,13 @@
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import type { Chef } from '@/lib/types';
+import type { User } from '@/lib/types';
 import { Star } from 'lucide-react';
 
 interface ChefCardProps {
-  chef: Chef;
+  chef: User;
 }
 
 export function ChefCard({ chef }: ChefCardProps) {
@@ -17,7 +18,7 @@ export function ChefCard({ chef }: ChefCardProps) {
           alt={chef.name}
           className="aspect-[4/3] w-full object-cover"
           height="300"
-          src={chef.imageUrl}
+          src={chef.imageUrl!}
           data-ai-hint="chef portrait"
           width="400"
         />
@@ -25,7 +26,7 @@ export function ChefCard({ chef }: ChefCardProps) {
       <CardContent className="p-6 text-right">
         <CardTitle className="font-headline text-2xl mb-2">{chef.name}</CardTitle>
         <CardDescription className="text-primary font-semibold mb-2">{chef.specialty}</CardDescription>
-        <p className="mb-4 text-sm text-muted-foreground">{chef.bio}</p>
+        <p className="mb-4 text-sm text-muted-foreground line-clamp-2">{chef.bio}</p>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1">
             <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />

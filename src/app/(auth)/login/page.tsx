@@ -31,8 +31,12 @@ export default function LoginPage() {
     const password = role === 'customer' ? customerPassword : chefPassword;
 
     try {
-      await login(email, password, role);
-      router.push('/');
+      const loggedInUser = await login(email, password, role);
+      if (loggedInUser.role === 'chef') {
+        router.push('/chef/dashboard');
+      } else {
+        router.push('/');
+      }
     } catch (error: any) {
       toast({
         variant: "destructive",

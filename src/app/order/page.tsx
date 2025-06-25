@@ -11,7 +11,6 @@ import { useAuth } from '@/context/auth-context';
 import { useOrders } from '@/context/order-context';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
-import { allDishes, allChefs } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import { useState, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
@@ -22,14 +21,15 @@ export default function OrderPage() {
   const { toast } = useToast();
   const dishId = searchParams.get('dishId');
   
-  const dish = useMemo(() => allDishes.find(d => d.id === dishId), [dishId]);
-
-  const { user, loading } = useAuth();
+  const { dishes, loading: dishesLoading } = useOrders();
+  const { users, user, loading: authLoading } = useAuth();
   const { createOrder } = useOrders();
+
+  const dish = useMemo(() => dishes.find(d => d.id === dishId), [dishId, dishes]);
   
   const [quantity, setQuantity] = useState(1);
 
-  if (loading) {
+  if (authLoading || dishesLoading) {
       return (
         <div className="container mx-auto px-4 py-8 md:px-6 md:py-12 text-right">
             <Skeleton className="h-8 w-48 mb-6" />
@@ -52,7 +52,7 @@ export default function OrderPage() {
     notFound();
   }
 
-  const chef = allChefs.find(c => c.id === dish.chefId);
+  const chef = users.find(u => u.id === dish.chefId);
 
   const subtotal = dish.price * quantity;
   const deliveryFee = 50.0;
@@ -64,7 +64,7 @@ export default function OrderPage() {
     createOrder({
       customerId: user.id,
       customerName: user.name,
-      customerPhone: '01012345678', // Mock phone
+      customerPhone: user.phone || 'N/A',
       deliveryAddress: '456 شارع الجزيرة، الزمالك، القاهرة', // Mock address
       dish: dish,
       chef: { id: chef.id, name: chef.name },
@@ -118,7 +118,7 @@ export default function OrderPage() {
               <CardContent className="space-y-4">
                  <p className="font-semibold">{user.name}</p>
                  <p>456 شارع الجزيرة، الزمالك، القاهرة</p>
-                 <p>01012345678</p>
+                 <p>{user.phone || 'لم يتم تقديم رقم هاتف'}</p>
                  <Button variant="outline">تغيير العنوان</Button>
               </CardContent>
             </Card>

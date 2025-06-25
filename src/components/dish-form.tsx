@@ -4,21 +4,26 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import type { Dish } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { useOrders } from '@/context/order-context';
 import { useAuth } from '@/context/auth-context';
+import { useState } from 'react';
+import Image from 'next/image';
+import { Upload } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const dishFormSchema = z.object({
   name: z.string().min(1, 'الاسم مطلوب'),
   description: z.string().min(1, 'الوصف مطلوب'),
   price: z.coerce.number().positive('السعر يجب أن يكون رقمًا موجبًا'),
-  imageUrl: z.string().url('رابط الصورة غير صالح').or(z.literal('')),
+  imageUrl: z.string().url('يجب رفع صورة صالحة للطبق.'),
   ingredients: z.string().min(1, 'المكونات مطلوبة'),
   prepTime: z.coerce.number().int().positive('وقت التحضير يجب أن يكون رقمًا صحيحًا موجبًا'),
   category: z.string().min(1, 'التصنيف مطلوب'),
@@ -42,12 +47,15 @@ export function DishForm({ dish, onFinished }: DishFormProps) {
       name: dish?.name || '',
       description: dish?.description || '',
       price: dish?.price || 0,
-      imageUrl: dish?.imageUrl || 'https://placehold.co/400x225.png',
+      imageUrl: dish?.imageUrl || '',
       ingredients: dish?.ingredients?.join(', ') || '',
       prepTime: dish?.prepTime || 0,
       category: dish?.category || '',
     },
   });
+
+  const [imagePreview, setImagePreview] = useState<string | null>(dish?.imageUrl || null);
+
 
   const onSubmit = (data: DishFormValues) => {
     if (!user || user.role !== 'chef') {
@@ -166,24 +174,51 @@ export function DishForm({ dish, onFinished }: DishFormProps) {
               </FormItem>
             )}
           />
-          <FormField
+           <FormField
             control={form.control}
             name="imageUrl"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>رابط صورة الطبق</FormLabel>
+               <FormItem>
+                <FormLabel>صورة الطبق</FormLabel>
                 <FormControl>
-                  <Input placeholder="https://placehold.co/400x225.png" {...field} className="text-right" />
+                  <div>
+                    <Input
+                      id="image-upload"
+                      type="file"
+                      accept="image/*"
+                      className="sr-only"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            const dataUrl = reader.result as string;
+                            setImagePreview(dataUrl);
+                            form.setValue('imageUrl', dataUrl, { shouldValidate: true });
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                    />
+                    <Label htmlFor="image-upload" className={cn(buttonVariants({ variant: 'outline' }), 'cursor-pointer')}>
+                      <Upload className="ml-2 h-4 w-4" />
+                       <span>{imagePreview ? "تغيير الصورة" : "رفع صورة"}</span>
+                    </Label>
+                    {imagePreview && (
+                        <Image src={imagePreview} alt="معاينة الصورة" width={200} height={112} className="mt-4 rounded-md object-cover" />
+                    )}
+                  </div>
                 </FormControl>
-                <FormMessage />
+                 <FormMessage />
               </FormItem>
             )}
           />
+
           <DialogFooter className="pt-4">
             <DialogClose asChild>
                 <Button type="button" variant="secondary">إلغاء</Button>
             </DialogClose>
-            <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90">حفظ</Button>
+            <Button type="submit" disabled={form.formState.isSubmitting} className="bg-primary text-primary-foreground hover:bg-primary/90">حفظ</Button>
           </DialogFooter>
         </form>
       </Form>

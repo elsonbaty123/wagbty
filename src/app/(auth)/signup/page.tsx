@@ -12,6 +12,7 @@ import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import type { User } from '@/lib/types';
 
 
 export default function SignupPage() {
@@ -34,13 +35,34 @@ export default function SignupPage() {
 
   const handleSignup = async (role: 'customer' | 'chef') => {
     setIsLoading(true);
-    const name = role === 'customer' ? customerName : chefName;
-    const email = role === 'customer' ? customerEmail : chefEmail;
-    const password = role === 'customer' ? customerPassword : chefPassword;
+    let userDetails: Partial<User> & { password: string, role: 'customer' | 'chef' };
 
+    if (role === 'customer') {
+        userDetails = {
+            name: customerName,
+            email: customerEmail,
+            phone: customerPhone,
+            password: customerPassword,
+            role: 'customer'
+        }
+    } else {
+        userDetails = {
+            name: chefName,
+            email: chefEmail,
+            phone: chefPhone,
+            specialty: chefSpecialty,
+            password: chefPassword,
+            role: 'chef'
+        }
+    }
+    
     try {
-      await signup(name, email, password, role);
-      router.push('/');
+      const signedUpUser = await signup(userDetails);
+      if (signedUpUser.role === 'chef') {
+        router.push('/chef/dashboard');
+      } else {
+        router.push('/');
+      }
     } catch (error: any) {
       toast({
         variant: 'destructive',

@@ -1,15 +1,15 @@
 
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import type { Order, Dish } from '@/lib/types';
-import { initialOrders, allDishes as initialDishes } from '@/lib/data';
 
 type OrderStatus = Order['status'];
 
 interface OrderContextType {
   orders: Order[];
   dishes: Dish[];
+  loading: boolean;
   getOrdersByCustomerId: (customerId: string) => Order[];
   getOrdersByChefId: (chefId: string) => Order[];
   createOrder: (orderData: Omit<Order, 'id' | 'status'>) => void;
@@ -22,8 +22,37 @@ interface OrderContextType {
 const OrderContext = createContext<OrderContextType | undefined>(undefined);
 
 export const OrderProvider = ({ children }: { children: ReactNode }) => {
-  const [orders, setOrders] = useState<Order[]>(initialOrders);
-  const [dishes, setDishes] = useState<Dish[]>(initialDishes);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [dishes, setDishes] = useState<Dish[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    try {
+      const storedOrders = localStorage.getItem('chefconnect_orders');
+      if (storedOrders) {
+        setOrders(JSON.parse(storedOrders));
+      }
+      const storedDishes = localStorage.getItem('chefconnect_dishes');
+      if (storedDishes) {
+        setDishes(JSON.parse(storedDishes));
+      }
+    } catch (error) {
+      console.error("Failed to parse data from localStorage", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const persistOrders = (newOrders: Order[]) => {
+    setOrders(newOrders);
+    localStorage.setItem('chefconnect_orders', JSON.stringify(newOrders));
+  }
+
+  const persistDishes = (newDishes: Dish[]) => {
+    setDishes(newDishes);
+    localStorage.setItem('chefconnect_dishes', JSON.stringify(newDishes));
+  }
+
 
   const getOrdersByCustomerId = (customerId: string) => {
     return orders.filter((order) => order.customerId === customerId);
@@ -39,15 +68,14 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
       id: `ORD${Date.now()}`,
       status: 'قيد الانتظار',
     };
-    setOrders((prevOrders) => [newOrder, ...prevOrders]);
+    persistOrders([newOrder, ...orders]);
   };
 
   const updateOrderStatus = (orderId: string, status: OrderStatus) => {
-    setOrders((prevOrders) =>
-      prevOrders.map((order) =>
+    const newOrders = orders.map((order) =>
         order.id === orderId ? { ...order, status } : order
-      )
-    );
+      );
+    persistOrders(newOrders);
   };
     
   const addDish = (dishData: Omit<Dish, 'id'>) => {
@@ -55,25 +83,26 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
       ...dishData,
       id: `d${Date.now()}`,
     };
-    setDishes((prevDishes) => [newDish, ...prevDishes]);
+    persistDishes([newDish, ...dishes]);
   };
 
   const updateDish = (updatedDish: Dish) => {
-    setDishes((prevDishes) =>
-      prevDishes.map((dish) =>
+    const newDishes = dishes.map((dish) =>
         dish.id === updatedDish.id ? updatedDish : dish
-      )
-    );
+      );
+    persistDishes(newDishes);
   };
 
   const deleteDish = (dishId: string) => {
-    setDishes((prevDishes) => prevDishes.filter((dish) => dish.id !== dishId));
+    const newDishes = dishes.filter((dish) => dish.id !== dishId);
+    persistDishes(newDishes);
   };
 
 
   const value = {
     orders,
     dishes,
+    loading,
     getOrdersByCustomerId,
     getOrdersByChefId,
     createOrder,

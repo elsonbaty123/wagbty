@@ -1,11 +1,14 @@
+
+'use client';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ChefCard } from '@/components/chef-card';
-import { allChefs } from '@/lib/data';
-import { ArrowLeft } from 'lucide-react';
+import { useAuth } from '@/context/auth-context';
+import { ArrowLeft, ChefHat } from 'lucide-react';
 
 export default function Home() {
-  const featuredChefs = allChefs.slice(0, 3);
+  const { chefs, loading } = useAuth();
+  const featuredChefs = chefs.slice(0, 3);
 
   return (
     <div className="flex flex-col">
@@ -50,11 +53,26 @@ export default function Home() {
               </p>
             </div>
           </div>
-          <div className="mx-auto grid grid-cols-1 gap-8 py-12 sm:grid-cols-2 md:grid-cols-3 lg:gap-12">
-            {featuredChefs.map((chef) => (
-              <ChefCard key={chef.id} chef={chef} />
-            ))}
-          </div>
+          {!loading && chefs.length === 0 ? (
+             <div className="text-center py-24 border-2 border-dashed rounded-lg mt-12">
+                <ChefHat className="mx-auto h-16 w-16 text-muted-foreground" />
+                <h3 className="mt-4 text-xl font-medium">لا يوجد طهاة بعد</h3>
+                <p className="mt-2 text-md text-muted-foreground">
+                   كن أول طاهٍ ينضم إلى منصتنا وشارك إبداعاتك!
+                </p>
+                <Button asChild className="mt-6">
+                  <Link href="/signup">
+                    انضم كطاهٍ
+                  </Link>
+                </Button>
+            </div>
+          ) : (
+            <div className="mx-auto grid grid-cols-1 gap-8 py-12 sm:grid-cols-2 md:grid-cols-3 lg:gap-12">
+              {featuredChefs.map((chef) => (
+                <ChefCard key={chef.id} chef={chef} />
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </div>
