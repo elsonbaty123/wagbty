@@ -11,27 +11,27 @@ const mockOrders: Order[] = [
   {
     id: 'ORD123',
     customerName: 'فلانة الفلانية',
-    customerPhone: '(555) 123-4567',
-    deliveryAddress: '456 شارع أوك، سبرينغفيلد، الولايات المتحدة الأمريكية',
-    dish: { id: 'd1', name: 'تالياتيلي مصنوعة يدوياً بصلصة الراجو', description: '', price: 24.0, imageUrl: '' },
+    customerPhone: '01012345678',
+    deliveryAddress: '456 شارع الجزيرة، الزمالك، القاهرة',
+    dish: { id: 'd1', name: 'تالياتيلي مصنوعة يدوياً بصلصة الراجو', description: '', price: 240.0, imageUrl: '' },
     chef: { id: '1', name: 'الشيف إيزابيلا روسي' },
     status: 'تم التوصيل',
   },
   {
     id: 'ORD124',
     customerName: 'فلانة الفلانية',
-    customerPhone: '(555) 123-4567',
-    deliveryAddress: '456 شارع أوك، سبرينغفيلد، الولايات المتحدة الأمريكية',
-    dish: { id: 'd7', name: 'مجموعة سوشي أوماكاسي', description: '', price: 65.0, imageUrl: '' },
+    customerPhone: '01012345678',
+    deliveryAddress: '456 شارع الجزيرة، الزمالك، القاهرة',
+    dish: { id: 'd7', name: 'مجموعة سوشي أوماكاسي', description: '', price: 650.0, imageUrl: '' },
     chef: { id: '3', name: 'الشيف كينجي تاناكا' },
     status: 'مؤكد',
   },
   {
     id: 'ORD125',
     customerName: 'فلانة الفلانية',
-    customerPhone: '(555) 123-4567',
-    deliveryAddress: '456 شارع أوك، سبرينغفيلد، الولايات المتحدة الأمريكية',
-    dish: { id: 'd5', name: 'كريم بروليه', description: '', price: 11.5, imageUrl: '' },
+    customerPhone: '01012345678',
+    deliveryAddress: '456 شارع الجزيرة، الزمالك، القاهرة',
+    dish: { id: 'd5', name: 'كريم بروليه', description: '', price: 115.0, imageUrl: '' },
     chef: { id: '2', name: 'الشيف أنطوان دوبوا' },
     status: 'قيد الانتظار',
   },
@@ -78,11 +78,11 @@ export default function ProfilePage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone">رقم الهاتف</Label>
-                <Input id="phone" type="tel" defaultValue="(555) 123-4567" className="text-right" />
+                <Input id="phone" type="tel" defaultValue="01012345678" className="text-right" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="address">عنوان التوصيل الافتراضي</Label>
-                <Textarea id="address" defaultValue="456 شارع أوك، سبرينغفيلد، الولايات المتحدة الأمريكية" className="text-right" />
+                <Textarea id="address" defaultValue="456 شارع الجزيرة، الزمالك، القاهرة" className="text-right" />
               </div>
               <div className="flex justify-start">
                 <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">حفظ التغييرات</Button>

@@ -19,12 +19,6 @@ export function Header() {
           <Link href="/#featured-chefs" className="transition-colors hover:text-primary">
             الطهاة
           </Link>
-          <Link href="/profile" className="transition-colors hover:text-primary">
-            ملفي الشخصي
-          </Link>
-           <Link href="/chef/dashboard" className="transition-colors hover:text-primary">
-            لوحة تحكم الشيف
-          </Link>
         </nav>
         <div className="hidden items-center gap-4 md:flex">
           <Button variant="ghost" asChild>
@@ -53,12 +47,6 @@ export function Header() {
                  </Link>
                  <Link href="/#featured-chefs" className="transition-colors hover:text-primary">
                     الطهاة
-                 </Link>
-                 <Link href="/profile" className="transition-colors hover:text-primary">
-                    ملفي الشخصي
-                 </Link>
-                 <Link href="/chef/dashboard" className="transition-colors hover:text-primary">
-                    لوحة تحكم الشيف
                  </Link>
               </nav>
               <div className="flex flex-col gap-2">

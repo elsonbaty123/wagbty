@@ -12,9 +12,9 @@ const mockChefs: Record<string, Chef> = {
     imageUrl: 'https://placehold.co/400x400.png',
     rating: 4.9,
     dishes: [
-      { id: 'd1', name: 'تالياتيلي مصنوعة يدوياً بصلصة الراجو', description: 'راجو لحم مطبوخ ببطء فوق باستا البيض الطازجة المصنوعة يدويًا.', price: 24.0, imageUrl: 'https://placehold.co/400x225.png' },
-      { id: 'd2', name: 'ريزوتو بفطر البورشيني', description: 'ريزوتو كريمي مع فطر البورشيني البري، جبنة بارميزان، وزيت الكمأة البيضاء.', price: 26.5, imageUrl: 'https://placehold.co/400x225.png' },
-      { id: 'd3', name: 'تيراميسو كلاسيكو', description: 'الحلوى الإيطالية الكلاسيكية مع أصابع السيدة المنقوعة في الإسبريسو وكريمة الماسكاربوني.', price: 12.0, imageUrl: 'https://placehold.co/400x225.png' },
+      { id: 'd1', name: 'تالياتيلي مصنوعة يدوياً بصلصة الراجو', description: 'راجو لحم مطبوخ ببطء فوق باستا البيض الطازجة المصنوعة يدويًا.', price: 240.0, imageUrl: 'https://placehold.co/400x225.png' },
+      { id: 'd2', name: 'ريزوتو بفطر البورشيني', description: 'ريزوتو كريمي مع فطر البورشيني البري، جبنة بارميزان، وزيت الكمأة البيضاء.', price: 265.0, imageUrl: 'https://placehold.co/400x225.png' },
+      { id: 'd3', name: 'تيراميسو كلاسيكو', description: 'الحلوى الإيطالية الكلاسيكية مع أصابع السيدة المنقوعة في الإسبريسو وكريمة الماسكاربوني.', price: 120.0, imageUrl: 'https://placehold.co/400x225.png' },
     ],
   },
    '2': {
@@ -25,9 +25,9 @@ const mockChefs: Record<string, Chef> = {
     imageUrl: 'https://placehold.co/400x400.png',
     rating: 4.8,
     dishes: [
-      { id: 'd4', name: 'كيكة الشوكولاتة الذائبة', description: 'كيكة شوكولاتة ذائبة غنية مع مركز من كولي التوت.', price: 14.0, imageUrl: 'https://placehold.co/400x225.png' },
-      { id: 'd5', name: 'كريم بروليه', description: 'كاسترد غني بحبوب الفانيليا مع طبقة علوية من السكر المكرمل بشكل مثالي.', price: 11.5, imageUrl: 'https://placehold.co/400x225.png' },
-      { id: 'd6', name: 'تشكيلة ماكارون', description: 'مجموعة مختارة من ستة قطع ماكارون فرنسية رقيقة بنكهات مختلفة.', price: 18.0, imageUrl: 'https://placehold.co/400x225.png' },
+      { id: 'd4', name: 'كيكة الشوكولاتة الذائبة', description: 'كيكة شوكولاتة ذائبة غنية مع مركز من كولي التوت.', price: 140.0, imageUrl: 'https://placehold.co/400x225.png' },
+      { id: 'd5', name: 'كريم بروليه', description: 'كاسترد غني بحبوب الفانيليا مع طبقة علوية من السكر المكرمل بشكل مثالي.', price: 115.0, imageUrl: 'https://placehold.co/400x225.png' },
+      { id: 'd6', name: 'تشكيلة ماكارون', description: 'مجموعة مختارة من ستة قطع ماكارون فرنسية رقيقة بنكهات مختلفة.', price: 180.0, imageUrl: 'https://placehold.co/400x225.png' },
     ],
   },
    '3': {
@@ -38,9 +38,9 @@ const mockChefs: Record<string, Chef> = {
     imageUrl: 'https://placehold.co/400x400.png',
     rating: 4.9,
     dishes: [
-      { id: 'd7', name: 'مجموعة سوشي أوماكاسي', description: 'مجموعة من اختيار الشيف مكونة من 12 قطعة من سوشي نيجيري الفاخر.', price: 65.0, imageUrl: 'https://placehold.co/400x225.png' },
-      { id: 'd8', name: 'أسياخ لحم الواغيو', description: 'أسياخ لحم بقر واغيو A5 مشوية مع صلصة صويا حلوة.', price: 35.0, imageUrl: 'https://placehold.co/400x225.png' },
-      { id: 'd9', name: 'أرز مقرمش بالتونة الحارة', description: 'أرز مقلي مقرمش يعلوه تونة حارة وهالبينو.', price: 19.0, imageUrl: 'https://placehold.co/400x225.png' },
+      { id: 'd7', name: 'مجموعة سوشي أوماكاسي', description: 'مجموعة من اختيار الشيف مكونة من 12 قطعة من سوشي نيجيري الفاخر.', price: 650.0, imageUrl: 'https://placehold.co/400x225.png' },
+      { id: 'd8', name: 'أسياخ لحم الواغيو', description: 'أسياخ لحم بقر واغيو A5 مشوية مع صلصة صويا حلوة.', price: 350.0, imageUrl: 'https://placehold.co/400x225.png' },
+      { id: 'd9', name: 'أرز مقرمش بالتونة الحارة', description: 'أرز مقلي مقرمش يعلوه تونة حارة وهالبينو.', price: 190.0, imageUrl: 'https://placehold.co/400x225.png' },
     ],
   },
 };

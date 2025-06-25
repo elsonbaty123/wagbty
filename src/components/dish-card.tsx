@@ -26,7 +26,7 @@ export function DishCard({ dish }: DishCardProps) {
         <CardDescription className="mt-2 text-sm text-muted-foreground">{dish.description}</CardDescription>
       </CardContent>
       <CardFooter className="p-4 flex justify-between items-center">
-        <p className="text-lg font-bold text-primary">${dish.price.toFixed(2)}</p>
+        <p className="text-lg font-bold text-primary">{dish.price.toFixed(2)} جنيه</p>
         <Button asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
           <Link href={`/order?dishId=${dish.id}`}>اطلب الآن</Link>
         </Button>

@@ -9,22 +9,22 @@ import type { Dish } from '@/lib/types';
 import { ArrowRight } from 'lucide-react';
 
 const mockDishes: Record<string, Dish> = {
-  'd1': { id: 'd1', name: 'تالياتيلي مصنوعة يدوياً بصلصة الراجو', description: 'راجو لحم مطبوخ ببطء فوق باستا البيض الطازجة المصنوعة يدويًا.', price: 24.0, imageUrl: 'https://placehold.co/400x225.png' },
-  'd2': { id: 'd2', name: 'ريزوتو بفطر البورشيني', description: 'ريزوتو كريمي مع فطر البورشيني البري، جبنة بارميزان، وزيت الكمأة البيضاء.', price: 26.5, imageUrl: 'https://placehold.co/400x225.png' },
-  'd3': { id: 'd3', name: 'تيراميسو كلاسيكو', description: 'الحلوى الإيطالية الكلاسيكية مع أصابع السيدة المنقوعة في الإسبريسو وكريمة الماسكاربوني.', price: 12.0, imageUrl: 'https://placehold.co/400x225.png' },
-  'd4': { id: 'd4', name: 'كيكة الشوكولاتة الذائبة', description: 'كيكة شوكولاتة ذائبة غنية مع مركز من كولي التوت.', price: 14.0, imageUrl: 'https://placehold.co/400x225.png' },
-  'd5': { id: 'd5', name: 'كريم بروليه', description: 'كاسترد غني بحبوب الفانيليا مع طبقة علوية من السكر المكرمل بشكل مثالي.', price: 11.5, imageUrl: 'https://placehold.co/400x225.png' },
-  'd6': { id: 'd6', name: 'تشكيلة ماكارون', description: 'مجموعة مختارة من ستة قطع ماكارون فرنسية رقيقة بنكهات مختلفة.', price: 18.0, imageUrl: 'https://placehold.co/400x225.png' },
-  'd7': { id: 'd7', name: 'مجموعة سوشي أوماكاسي', description: 'مجموعة من اختيار الشيف مكونة من 12 قطعة من سوشي نيجيري الفاخر.', price: 65.0, imageUrl: 'https://placehold.co/400x225.png' },
-  'd8': { id: 'd8', name: 'أسياخ لحم الواغيو', description: 'أسياخ لحم بقر واغيو A5 مشوية مع صلصة صويا حلوة.', price: 35.0, imageUrl: 'https://placehold.co/400x225.png' },
-  'd9': { id: 'd9', name: 'أرز مقرمش بالتونة الحارة', description: 'أرز مقلي مقرمش يعلوه تونة حارة وهالبينو.', price: 19.0, imageUrl: 'https://placehold.co/400x225.png' },
+  'd1': { id: 'd1', name: 'تالياتيلي مصنوعة يدوياً بصلصة الراجو', description: 'راجو لحم مطبوخ ببطء فوق باستا البيض الطازجة المصنوعة يدويًا.', price: 240.0, imageUrl: 'https://placehold.co/400x225.png' },
+  'd2': { id: 'd2', name: 'ريزوتو بفطر البورشيني', description: 'ريزوتو كريمي مع فطر البورشيني البري، جبنة بارميزان، وزيت الكمأة البيضاء.', price: 265.0, imageUrl: 'https://placehold.co/400x225.png' },
+  'd3': { id: 'd3', name: 'تيراميسو كلاسيكو', description: 'الحلوى الإيطالية الكلاسيكية مع أصابع السيدة المنقوعة في الإسبريسو وكريمة الماسكاربوني.', price: 120.0, imageUrl: 'https://placehold.co/400x225.png' },
+  'd4': { id: 'd4', name: 'كيكة الشوكولاتة الذائبة', description: 'كيكة شوكولاتة ذائبة غنية مع مركز من كولي التوت.', price: 140.0, imageUrl: 'https://placehold.co/400x225.png' },
+  'd5': { id: 'd5', name: 'كريم بروليه', description: 'كاسترد غني بحبوب الفانيليا مع طبقة علوية من السكر المكرمل بشكل مثالي.', price: 115.0, imageUrl: 'https://placehold.co/400x225.png' },
+  'd6': { id: 'd6', name: 'تشكيلة ماكارون', description: 'مجموعة مختارة من ستة قطع ماكارون فرنسية رقيقة بنكهات مختلفة.', price: 180.0, imageUrl: 'https://placehold.co/400x225.png' },
+  'd7': { id: 'd7', name: 'مجموعة سوشي أوماكاسي', description: 'مجموعة من اختيار الشيف مكونة من 12 قطعة من سوشي نيجيري الفاخر.', price: 650.0, imageUrl: 'https://placehold.co/400x225.png' },
+  'd8': { id: 'd8', name: 'أسياخ لحم الواغيو', description: 'أسياخ لحم بقر واغيو A5 مشوية مع صلصة صويا حلوة.', price: 350.0, imageUrl: 'https://placehold.co/400x225.png' },
+  'd9': { id: 'd9', name: 'أرز مقرمش بالتونة الحارة', description: 'أرز مقلي مقرمش يعلوه تونة حارة وهالبينو.', price: 190.0, imageUrl: 'https://placehold.co/400x225.png' },
 };
 
 export default function OrderPage({ searchParams }: { searchParams: { dishId: string } }) {
   const dish = mockDishes[searchParams.dishId] || Object.values(mockDishes)[0];
 
   const subtotal = dish.price;
-  const deliveryFee = 5.0;
+  const deliveryFee = 50.0;
   const total = subtotal + deliveryFee;
 
   return (
@@ -32,7 +32,7 @@ export default function OrderPage({ searchParams }: { searchParams: { dishId: st
       <div className="mb-6">
         <Button variant="ghost" asChild>
           <Link href={`/`}>
-            العودة إلى الطهاة
+            العودة للرئيسية
             <ArrowRight className="ml-2 h-4 w-4" />
           </Link>
         </Button>
@@ -52,11 +52,11 @@ export default function OrderPage({ searchParams }: { searchParams: { dishId: st
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone">رقم الهاتف</Label>
-                <Input id="phone" type="tel" placeholder="(123) 456-7890" required className="text-right" />
+                <Input id="phone" type="tel" placeholder="01234567890" required className="text-right" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="address">عنوان التوصيل</Label>
-                <Textarea id="address" placeholder="123 شارع رئيسي، أي مدينة، الولايات المتحدة الأمريكية" required className="text-right" />
+                <Textarea id="address" placeholder="123 شارع النيل، القاهرة، مصر" required className="text-right" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="notes">تعليمات خاصة</Label>
@@ -80,7 +80,7 @@ export default function OrderPage({ searchParams }: { searchParams: { dishId: st
                     <div className="grid gap-1 flex-1">
                         <h3 className="font-semibold">{dish.name}</h3>
                         <p className="text-sm text-muted-foreground">{dish.description}</p>
-                        <p className="font-bold text-primary">${dish.price.toFixed(2)}</p>
+                        <p className="font-bold text-primary">{dish.price.toFixed(2)} جنيه</p>
                     </div>
                 </CardContent>
             </Card>
@@ -90,15 +90,15 @@ export default function OrderPage({ searchParams }: { searchParams: { dishId: st
                 </CardHeader>
                  <CardContent className="grid gap-4">
                     <div className="flex items-center justify-between">
-                        <span>${subtotal.toFixed(2)}</span>
+                        <span>{subtotal.toFixed(2)} جنيه</span>
                         <span className="text-muted-foreground">المجموع الفرعي</span>
                     </div>
                     <div className="flex items-center justify-between">
-                        <span>${deliveryFee.toFixed(2)}</span>
+                        <span>{deliveryFee.toFixed(2)} جنيه</span>
                         <span className="text-muted-foreground">رسوم التوصيل</span>
                     </div>
                      <div className="flex items-center justify-between font-bold text-lg">
-                        <span className="text-primary">${total.toFixed(2)}</span>
+                        <span className="text-primary">{total.toFixed(2)} جنيه</span>
                         <span>المجموع الكلي</span>
                     </div>
                 </CardContent>

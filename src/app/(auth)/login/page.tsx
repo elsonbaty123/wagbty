@@ -28,8 +28,8 @@ export default function LoginPage() {
               <Label htmlFor="customer-password">كلمة المرور</Label>
               <Input id="customer-password" type="password" required className="text-right" />
             </div>
-            <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-              تسجيل الدخول
+            <Button asChild className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
+              <Link href="/profile">تسجيل الدخول</Link>
             </Button>
             <div className="mt-4 text-center text-sm">
               ليس لديك حساب؟{' '}
@@ -55,8 +55,8 @@ export default function LoginPage() {
               <Label htmlFor="chef-password">كلمة المرور</Label>
               <Input id="chef-password" type="password" required className="text-right" />
             </div>
-            <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-              تسجيل الدخول
+            <Button asChild className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
+              <Link href="/chef/dashboard">تسجيل الدخول</Link>
             </Button>
             <div className="mt-4 text-center text-sm">
               لست طاهيًا معنا بعد؟{' '}
