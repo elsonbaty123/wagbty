@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Menu, UtensilsCrossed, User, LogOut, ClipboardList, BookOpenCheck } from "lucide-react"
+import { Menu, UtensilsCrossed, User, LogOut, ClipboardList, BookOpenCheck, Settings } from "lucide-react"
 import { useAuth } from "@/context/auth-context"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -32,6 +32,12 @@ export function Header() {
       return (
         <div className="flex items-center gap-2">
             <NotificationsPopover />
+             <Link href={getProfileLink()}>
+                <Button variant="ghost" size="icon" className="h-10 w-10">
+                    <Settings className="h-5 w-5" />
+                    <span className="sr-only">الإعدادات</span>
+                </Button>
+            </Link>
             <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
@@ -106,9 +112,6 @@ export function Header() {
           <Link href="/" className="transition-colors hover:text-primary">
             الرئيسية
           </Link>
-          <Link href="/" className="transition-colors hover:text-primary">
-            الطهاة
-          </Link>
         </nav>
         <div className="hidden items-center gap-4 md:flex">
           {renderAuthControls()}
@@ -129,9 +132,6 @@ export function Header() {
               <nav className="grid gap-2 text-lg font-medium">
                  <Link href="/" className="transition-colors hover:text-primary">
                     الرئيسية
-                 </Link>
-                 <Link href="/" className="transition-colors hover:text-primary">
-                    الطهاة
                  </Link>
               </nav>
               <div className="flex flex-col gap-2">

@@ -75,6 +75,8 @@ export type Coupon = {
   usageLimit: number;
   timesUsed: number;
   isActive: boolean;
+  appliesTo: 'all' | 'specific';
+  applicableDishIds?: string[];
 };
 
 export type Notification = {

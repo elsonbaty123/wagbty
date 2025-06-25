@@ -73,7 +73,7 @@ export default function OrderPage() {
     setAppliedDiscount(0);
 
     setTimeout(() => {
-        const result = validateAndApplyCoupon(couponCode, dish.chefId, subtotal);
+        const result = validateAndApplyCoupon(couponCode, dish.chefId, dish.id, subtotal);
         
         if (result.error) {
             setCouponError(result.error);

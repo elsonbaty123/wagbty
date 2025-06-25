@@ -65,6 +65,12 @@ export function CouponCard({ coupon, onEdit }: CouponCardProps) {
       <CardContent className="flex-grow space-y-3 text-sm text-muted-foreground">
         <div className="flex items-center gap-2 justify-end">
             <p>
+                ينطبق على: {coupon.appliesTo === 'all' ? 'كل الوجبات' : `${coupon.applicableDishIds?.length || 0} وجبات محددة`}
+            </p>
+            <Tag className="h-4 w-4 text-primary" />
+        </div>
+        <div className="flex items-center gap-2 justify-end">
+            <p>
                 {format(new Date(coupon.startDate), 'd MMM yyyy', { locale: ar })} - {format(new Date(coupon.endDate), 'd MMM yyyy', { locale: ar })}
             </p>
             <Calendar className="h-4 w-4 text-primary" />

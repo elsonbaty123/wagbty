@@ -26,7 +26,7 @@ interface OrderContextType {
   getCouponsByChefId: (chefId: string) => Coupon[];
   createCoupon: (couponData: Omit<Coupon, 'id' | 'timesUsed'>) => void;
   updateCoupon: (couponData: Coupon) => void;
-  validateAndApplyCoupon: (code: string, chefId: string, subtotal: number) => { discount: number; error?: string };
+  validateAndApplyCoupon: (code: string, chefId: string, dishId: string, subtotal: number) => { discount: number; error?: string };
 }
 
 const OrderContext = createContext<OrderContextType | undefined>(undefined);
@@ -249,11 +249,11 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
     persistCoupons(newCoupons);
   };
 
-  const validateAndApplyCoupon = (code: string, chefId: string, subtotal: number): { discount: number; error?: string } => {
+  const validateAndApplyCoupon = (code: string, chefId: string, dishId: string, subtotal: number): { discount: number; error?: string } => {
     const coupon = coupons.find(c => c.code.toLowerCase() === code.toLowerCase() && c.chefId === chefId);
 
     if (!coupon) {
-      return { discount: 0, error: 'رمز القسيمة غير صالح أو لا ينطبق على هذا الطبق.' };
+      return { discount: 0, error: 'رمز القسيمة غير صالح.' };
     }
     if (!coupon.isActive) {
       return { discount: 0, error: 'هذه القسيمة غير نشطة حاليًا.' };
@@ -265,6 +265,13 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
     if (coupon.timesUsed >= coupon.usageLimit) {
       return { discount: 0, error: 'تم الوصول للحد الأقصى لاستخدام هذه القسيمة.' };
     }
+    
+    if (coupon.appliesTo === 'specific') {
+      if (!coupon.applicableDishIds || !coupon.applicableDishIds.includes(dishId)) {
+        return { discount: 0, error: 'هذه القسيمة لا تنطبق على هذا الطبق.' };
+      }
+    }
+
 
     let discount = 0;
     if (coupon.discountType === 'fixed') {

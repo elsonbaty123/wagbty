@@ -5,13 +5,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
+import { Checkbox } from '@/components/ui/checkbox';
 import { DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import type { Coupon } from '@/lib/types';
+import type { Coupon, Dish } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { useOrders } from '@/context/order-context';
 import { useAuth } from '@/context/auth-context';
@@ -27,9 +28,19 @@ const couponFormSchema = z.object({
     startDate: z.date({ required_error: 'تاريخ البدء مطلوب' }),
     endDate: z.date({ required_error: 'تاريخ الانتهاء مطلوب' }),
     usageLimit: z.coerce.number().int().min(1, 'حد الاستخدام يجب أن يكون 1 على الأقل'),
+    appliesTo: z.enum(['all', 'specific']),
+    applicableDishIds: z.array(z.string()).optional(),
 }).refine(data => data.endDate > data.startDate, {
     message: 'تاريخ الانتهاء يجب أن يكون بعد تاريخ البدء',
     path: ['endDate'],
+}).refine(data => {
+    if (data.appliesTo === 'specific') {
+        return data.applicableDishIds && data.applicableDishIds.length > 0;
+    }
+    return true;
+}, {
+    message: 'الرجاء اختيار طبق واحد على الأقل عندما يكون الخصم محددًا.',
+    path: ['applicableDishIds'],
 });
 
 type CouponFormValues = z.infer<typeof couponFormSchema>;
@@ -42,7 +53,9 @@ interface CouponFormProps {
 export function CouponForm({ coupon, onFinished }: CouponFormProps) {
   const { toast } = useToast();
   const { user } = useAuth();
-  const { createCoupon, updateCoupon } = useOrders();
+  const { dishes, createCoupon, updateCoupon } = useOrders();
+
+  const chefDishes = dishes.filter(d => d.chefId === user?.id);
 
   const form = useForm<CouponFormValues>({
     resolver: zodResolver(couponFormSchema),
@@ -53,8 +66,12 @@ export function CouponForm({ coupon, onFinished }: CouponFormProps) {
       startDate: coupon ? new Date(coupon.startDate) : new Date(),
       endDate: coupon ? new Date(coupon.endDate) : new Date(new Date().setDate(new Date().getDate() + 7)),
       usageLimit: coupon?.usageLimit || 100,
+      appliesTo: coupon?.appliesTo || 'all',
+      applicableDishIds: coupon?.applicableDishIds || [],
     },
   });
+  
+  const appliesTo = form.watch('appliesTo');
 
   const onSubmit = (data: CouponFormValues) => {
     if (!user || user.role !== 'chef') {
@@ -67,7 +84,8 @@ export function CouponForm({ coupon, onFinished }: CouponFormProps) {
       chefId: user.id,
       startDate: data.startDate.toISOString(),
       endDate: data.endDate.toISOString(),
-      isActive: true,
+      isActive: coupon ? coupon.isActive : true, // Preserve status on update
+      applicableDishIds: data.appliesTo === 'all' ? [] : data.applicableDishIds,
     };
 
     if (coupon) {
@@ -158,6 +176,94 @@ export function CouponForm({ coupon, onFinished }: CouponFormProps) {
                     )}
                 />
             </div>
+
+            <FormField
+                control={form.control}
+                name="appliesTo"
+                render={({ field }) => (
+                <FormItem className="space-y-3">
+                    <FormLabel>ينطبق على</FormLabel>
+                    <FormControl>
+                    <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex gap-4"
+                    >
+                        <FormItem className="flex items-center space-x-2 space-x-reverse">
+                            <FormControl>
+                                <RadioGroupItem value="all" id="all" />
+                            </FormControl>
+                            <FormLabel htmlFor="all" className="font-normal">كل الوجبات</FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-2 space-x-reverse">
+                            <FormControl>
+                                <RadioGroupItem value="specific" id="specific" />
+                            </FormControl>
+                            <FormLabel htmlFor="specific" className="font-normal">وجبات محددة</FormLabel>
+                        </FormItem>
+                    </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                </FormItem>
+                )}
+            />
+
+            {appliesTo === 'specific' && (
+                <FormField
+                    control={form.control}
+                    name="applicableDishIds"
+                    render={() => (
+                        <FormItem>
+                            <div className="mb-4">
+                                <FormLabel>الوجبات المحددة</FormLabel>
+                                <FormDescription>
+                                    اختر الوجبات التي ينطبق عليها هذا الخصم.
+                                </FormDescription>
+                            </div>
+                            <div className="space-y-2 max-h-40 overflow-y-auto border p-2 rounded-md">
+                            {chefDishes.map((dish) => (
+                                <FormField
+                                    key={dish.id}
+                                    control={form.control}
+                                    name="applicableDishIds"
+                                    render={({ field }) => {
+                                        return (
+                                            <FormItem
+                                                key={dish.id}
+                                                className="flex flex-row items-start space-x-3 space-x-reverse"
+                                            >
+                                                <FormControl>
+                                                    <Checkbox
+                                                        checked={field.value?.includes(dish.id)}
+                                                        onCheckedChange={(checked) => {
+                                                            return checked
+                                                            ? field.onChange([...(field.value || []), dish.id])
+                                                            : field.onChange(
+                                                                field.value?.filter(
+                                                                    (value) => value !== dish.id
+                                                                )
+                                                                )
+                                                        }}
+                                                    />
+                                                </FormControl>
+                                                <FormLabel className="font-normal">
+                                                    {dish.name}
+                                                </FormLabel>
+                                            </FormItem>
+                                        )
+                                    }}
+                                />
+                            ))}
+                            {chefDishes.length === 0 && (
+                                <p className="text-sm text-muted-foreground text-center">لا يوجد لديك وجبات لإضافتها.</p>
+                            )}
+                            </div>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+            )}
+
              <div className="grid grid-cols-2 gap-4">
                  <FormField
                     control={form.control}
