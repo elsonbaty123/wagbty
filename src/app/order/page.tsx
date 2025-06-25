@@ -26,6 +26,7 @@ export default function OrderPage() {
   const { users, user, loading: authLoading } = useAuth();
 
   const dish = useMemo(() => dishes.find(d => d.id === dishId), [dishId, dishes]);
+  const chef = useMemo(() => dish ? users.find(u => u.id === dish.chefId) : null, [dish, users]);
   
   const [quantity, setQuantity] = useState(1);
   const [couponCode, setCouponCode] = useState('');
@@ -53,11 +54,9 @@ export default function OrderPage() {
       );
   }
   
-  if (!dish) {
+  if (!dish || !chef) {
     notFound();
   }
-
-  const chef = users.find(u => u.id === dish.chefId);
 
   const subtotal = dish.price * quantity;
   const deliveryFee = 50.0;
@@ -99,7 +98,7 @@ export default function OrderPage() {
       customerPhone: user.phone || 'N/A',
       deliveryAddress: user.address,
       dish: dish,
-      chef: { id: chef.id, name: chef.name },
+      chef: chef,
       quantity: quantity,
       subtotal: subtotal,
       discount: appliedDiscount,
@@ -109,12 +108,20 @@ export default function OrderPage() {
     });
 
     toast({
-      title: 'تم تأكيد الطلب بنجاح!',
-      description: `طلبك لـ ${quantity}x ${dish.name} قيد المراجعة.`,
+      title: 'تم إرسال طلبك بنجاح!',
+      description: chef.availabilityStatus === 'busy' 
+        ? `الشيف مشغول، تم وضع طلبك في قائمة الانتظار.`
+        : `طلبك لـ ${quantity}x ${dish.name} قيد المراجعة.`,
     });
 
     router.push('/profile');
   };
+  
+  const getButtonText = () => {
+      if (chef.availabilityStatus === 'closed') return 'الطاهي مغلق حاليًا';
+      if (chef.availabilityStatus === 'busy') return 'تأكيد الطلب (انتظار)';
+      return 'تأكيد الطلب';
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 md:px-6 md:py-12 text-right">
@@ -244,8 +251,8 @@ export default function OrderPage() {
                     </div>
                 </CardContent>
                 <CardFooter>
-                  <Button onClick={handleConfirmOrder} size="lg" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" disabled={!user}>
-                    تأكيد الطلب
+                  <Button onClick={handleConfirmOrder} size="lg" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" disabled={!user || chef.availabilityStatus === 'closed'}>
+                    {getButtonText()}
                   </Button>
                 </CardFooter>
             </Card>

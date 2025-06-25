@@ -60,6 +60,17 @@ export default function DishDetailsPage() {
     ? sortedRatings.reduce((sum, r) => sum + r.rating, 0) / ratingsCount
     : 0;
 
+  const isChefClosed = chef.availabilityStatus === 'closed';
+  const isDishAvailable = dish.status === 'متوفرة';
+  const canOrder = isDishAvailable && !isChefClosed;
+
+  const getButtonText = () => {
+    if (!isDishAvailable) return 'الوجبة غير متوفرة';
+    if (isChefClosed) return 'الطاهي مغلق حاليًا';
+    if (chef.availabilityStatus === 'busy') return 'اطلب الآن (الطاهي مشغول)';
+    return 'اطلب الآن';
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 md:px-6 md:py-12 text-right">
       <div className="grid md:grid-cols-5 gap-8 lg:gap-12">
@@ -101,8 +112,8 @@ export default function DishDetailsPage() {
 
             <div className="flex items-center justify-between bg-muted/50 p-4 rounded-lg">
                 <p className="text-3xl font-bold text-accent">{dish.price.toFixed(2)} جنيه</p>
-                <Button size="lg" asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
-                    <Link href={`/order?dishId=${dish.id}`}>اطلب الآن</Link>
+                <Button size="lg" asChild className={cn("bg-primary text-primary-foreground hover:bg-primary/90", !canOrder && "bg-muted text-muted-foreground hover:bg-muted")} disabled={!canOrder}>
+                    <Link href={`/order?dishId=${dish.id}`}>{getButtonText()}</Link>
                 </Button>
             </div>
           </div>

@@ -8,6 +8,8 @@ import { useAuth } from '@/context/auth-context';
 import { useOrders } from '@/context/order-context';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useMemo } from 'react';
+import { Badge } from '@/components/ui/badge';
+import type { User } from '@/lib/types';
 
 export default function ChefProfilePage() {
   const params = useParams<{ id: string }>();
@@ -60,6 +62,12 @@ export default function ChefProfilePage() {
   if (!chef) {
     notFound();
   }
+  
+  const statusMap: { [key: string]: { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' } } = {
+    available: { label: 'متاح', variant: 'default' },
+    busy: { label: 'مشغول', variant: 'secondary' },
+    closed: { label: 'مغلق', variant: 'destructive' },
+  };
 
   return (
     <div className="container mx-auto px-4 py-8 md:px-6 md:py-12">
@@ -75,6 +83,11 @@ export default function ChefProfilePage() {
               width="400"
             />
             <h1 className="font-headline text-3xl font-bold mt-4">{chef.name}</h1>
+            {chef.availabilityStatus && (
+                <Badge variant={statusMap[chef.availabilityStatus].variant} className="mt-2">
+                    {statusMap[chef.availabilityStatus].label}
+                </Badge>
+            )}
             <p className="text-lg text-primary font-semibold mt-1">{chef.specialty}</p>
             <div className="flex items-center justify-end gap-2 mt-2">
               <span className="text-sm text-muted-foreground">({totalRatingsCount} تقييم)</span>
@@ -90,7 +103,7 @@ export default function ChefProfilePage() {
           <div className="grid gap-6 md:grid-cols-2">
             {chefDishes.length > 0 ? (
                 chefDishes.map((dish) => (
-                    <DishCard key={dish.id} dish={dish} chefName={chef.name} />
+                    <DishCard key={dish.id} dish={dish} chefName={chef.name} chefStatus={chef.availabilityStatus} />
                 ))
             ) : (
                 <div className="text-center py-16 border-2 border-dashed rounded-lg col-span-full">

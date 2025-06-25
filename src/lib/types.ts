@@ -37,9 +37,10 @@ export interface User {
   specialty?: string;
   bio?: string;
   rating?: number;
+  availabilityStatus?: 'available' | 'busy' | 'closed';
 }
 
-export type OrderStatus = 'جارٍ المراجعة' | 'قيد التحضير' | 'جاهز للتوصيل' | 'تم التوصيل' | 'مرفوض';
+export type OrderStatus = 'جارٍ المراجعة' | 'قيد التحضير' | 'جاهز للتوصيل' | 'تم التوصيل' | 'مرفوض' | 'بانتظار توفر الطاهي';
 
 export type Order = {
   id: string;

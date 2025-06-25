@@ -11,7 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Order, OrderStatus } from '@/lib/types';
-import { Home, Phone, User, CreditCard, ChevronDown, Star, Tag } from 'lucide-react';
+import { Home, Phone, User, CreditCard, ChevronDown, Star, Tag, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useState } from 'react';
@@ -57,6 +57,8 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
         return 'default';
       case 'جارٍ المراجعة':
         return 'secondary';
+      case 'بانتظار توفر الطاهي':
+        return 'secondary';
       case 'مرفوض':
         return 'destructive';
       case 'تم التوصيل':
@@ -65,6 +67,13 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
         return 'default';
     }
   };
+  
+  const getStatusIcon = (status: OrderStatus) => {
+      if (status === 'بانتظار توفر الطاهي') {
+          return <Clock className="h-4 w-4 ml-2" />;
+      }
+      return null;
+  }
 
   const isCustomerView = !isChefView;
 
@@ -76,7 +85,10 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
             <CardTitle className="font-headline text-xl">{order.dish.name}</CardTitle>
             <CardDescription>طلب #{order.id.slice(-6)}</CardDescription>
           </div>
-          <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
+          <Badge variant={getStatusVariant(order.status)} className="flex items-center">
+            {getStatusIcon(order.status)}
+            {order.status}
+          </Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-3 flex-grow">
@@ -175,7 +187,7 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="center" className="w-56 text-right">
-              {order.status === 'جارٍ المراجعة' && (
+              {(order.status === 'جارٍ المراجعة' || order.status === 'بانتظار توفر الطاهي') && (
                 <>
                   <DropdownMenuItem onClick={() => handleStatusChange('قيد التحضير')}>
                     قبول الطلب (قيد التحضير)

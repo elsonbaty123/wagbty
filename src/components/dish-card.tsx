@@ -2,19 +2,29 @@
 import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import type { Dish } from '@/lib/types';
+import type { Dish, User } from '@/lib/types';
 import Link from 'next/link';
 import { Clock, ChefHat, Star } from 'lucide-react';
 import { Badge } from './ui/badge';
+import { cn } from '@/lib/utils';
 
 interface DishCardProps {
   dish: Dish;
   chefName: string;
+  chefStatus?: User['availabilityStatus'];
 }
 
-export function DishCard({ dish, chefName }: DishCardProps) {
-  const isAvailable = dish.status === 'متوفرة';
+export function DishCard({ dish, chefName, chefStatus = 'available' }: DishCardProps) {
+  const isDishAvailable = dish.status === 'متوفرة';
+  const canOrder = isDishAvailable && chefStatus !== 'closed';
 
+  const getButtonText = () => {
+    if (!isDishAvailable) return 'غير متوفر حالياً';
+    if (chefStatus === 'closed') return 'الطاهي مغلق';
+    if (chefStatus === 'busy') return 'اطلب (الطاهي مشغول)';
+    return 'اطلب الآن';
+  };
+  
   const ratingsCount = dish.ratings?.length || 0;
   const averageRating = ratingsCount > 0
     ? dish.ratings.reduce((sum, r) => sum + r.rating, 0) / ratingsCount
@@ -63,8 +73,8 @@ export function DishCard({ dish, chefName }: DishCardProps) {
       </CardContent>
       <CardFooter className="p-4 flex justify-between items-center bg-muted/50 mt-auto">
         <p className="text-lg font-bold text-primary">{dish.price.toFixed(2)} جنيه</p>
-        <Button asChild className="bg-accent hover:bg-accent/90 text-accent-foreground disabled:bg-muted disabled:text-muted-foreground" disabled={!isAvailable}>
-          <Link href={`/order?dishId=${dish.id}`}>{isAvailable ? 'اطلب الآن' : 'غير متوفر حالياً'}</Link>
+        <Button asChild className={cn("bg-accent hover:bg-accent/90 text-accent-foreground", !canOrder && "bg-muted text-muted-foreground hover:bg-muted")} disabled={!canOrder}>
+          <Link href={`/order?dishId=${dish.id}`}>{getButtonText()}</Link>
         </Button>
       </CardFooter>
     </Card>

@@ -2,10 +2,13 @@
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import type { Order, Dish, DishRating, Coupon } from '@/lib/types';
+import type { Order, Dish, DishRating, Coupon, User } from '@/lib/types';
 import { useNotifications } from './notification-context';
 
 type OrderStatus = Order['status'];
+type CreateOrderPayload = Omit<Order, 'id' | 'status' | 'createdAt' | 'chef'> & {
+  chef: User;
+};
 
 interface OrderContextType {
   orders: Order[];
@@ -14,7 +17,7 @@ interface OrderContextType {
   loading: boolean;
   getOrdersByCustomerId: (customerId: string) => Order[];
   getOrdersByChefId: (chefId: string) => Order[];
-  createOrder: (orderData: Omit<Order, 'id' | 'status' | 'createdAt'>) => void;
+  createOrder: (orderData: CreateOrderPayload) => void;
   updateOrderStatus: (orderId: string, status: OrderStatus) => void;
   addDish: (dishData: Omit<Dish, 'id' | 'ratings'>) => void;
   updateDish: (dishData: Dish) => void;
@@ -76,12 +79,15 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
     return orders.filter((order) => order.chef.id === chefId);
   };
 
-  const createOrder = (orderData: Omit<Order, 'id' | 'status' | 'createdAt'>) => {
+  const createOrder = (orderData: CreateOrderPayload) => {
+    const isChefBusy = orderData.chef.availabilityStatus === 'busy';
+
     const newOrder: Order = {
       ...orderData,
       id: `ORD${Date.now()}`,
-      status: 'جارٍ المراجعة',
+      status: isChefBusy ? 'بانتظار توفر الطاهي' : 'جارٍ المراجعة',
       createdAt: new Date().toISOString(),
+      chef: { id: orderData.chef.id, name: orderData.chef.name },
     };
     
     if (orderData.appliedCouponCode) {
@@ -98,13 +104,21 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
     
     persistOrders([newOrder, ...orders]);
     
-    // Notify the chef
-    createNotification({
-      recipientId: orderData.chef.id,
-      title: 'طلب جديد!',
-      message: `لديك طلب جديد لـ'${orderData.dish.name}' من ${orderData.customerName}.`,
-      link: '/chef/dashboard',
-    });
+    if (isChefBusy) {
+        createNotification({
+            recipientId: orderData.customerId,
+            title: 'طلبك في قائمة الانتظار',
+            message: `الشيف مشغول حاليًا. تم وضع طلبك لـ'${orderData.dish.name}' في قائمة الانتظار.`,
+            link: '/profile',
+        });
+    } else {
+        createNotification({
+          recipientId: orderData.chef.id,
+          title: 'طلب جديد!',
+          message: `لديك طلب جديد لـ'${orderData.dish.name}' من ${orderData.customerName}.`,
+          link: '/chef/dashboard',
+        });
+    }
   };
 
   const updateOrderStatus = (orderId: string, status: OrderStatus) => {

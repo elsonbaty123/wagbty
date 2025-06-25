@@ -3,7 +3,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { DollarSign, Utensils, Star, BookOpenCheck, Loader2, Upload, User as UserIcon, ArrowUp, ArrowDown, Tag } from 'lucide-react';
+import { DollarSign, Utensils, Star, BookOpenCheck, Loader2, Upload, User as UserIcon, ArrowUp, ArrowDown, Tag, Circle } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { useAuth } from '@/context/auth-context';
 import { useOrders } from '@/context/order-context';
@@ -23,10 +23,15 @@ import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recha
 import { format, isWithinInterval, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { CouponManagementTab } from '@/components/coupon-management-tab';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useNotifications } from '@/context/notification-context';
+import type { User } from '@/lib/types';
+
 
 export default function ChefDashboardPage() {
   const { user, loading, updateUser } = useAuth();
   const { dishes, getOrdersByChefId, updateOrderStatus } = useOrders();
+  const { createNotification } = useNotifications();
   const router = useRouter();
   const { toast } = useToast();
 
@@ -62,7 +67,7 @@ export default function ChefDashboardPage() {
     revenuePercentageChange,
     allReviews,
   } = useMemo(() => {
-    const pending = chefOrders.filter(o => o.status === 'جارٍ المراجعة');
+    const pending = chefOrders.filter(o => o.status === 'جارٍ المراجعة' || o.status === 'بانتظار توفر الطاهي');
     const ongoing = chefOrders.filter(o => ['قيد التحضير', 'جاهز للتوصيل'].includes(o.status));
     const completed = chefOrders.filter(o => o.status === 'تم التوصيل');
     
@@ -170,6 +175,30 @@ export default function ChefDashboardPage() {
     } finally {
         setIsSaving(false);
     }
+  };
+  
+  const handleStatusChange = async (newStatus: User['availabilityStatus']) => {
+    if (!user) return;
+    await updateUser({ availabilityStatus: newStatus });
+    toast({ title: "تم تحديث حالة التوفر بنجاح." });
+
+    if (user.availabilityStatus === 'busy' && newStatus === 'available') {
+      const queuedOrders = getOrdersByChefId(user.id).filter(o => o.status === 'بانتظار توفر الطاهي');
+      if (queuedOrders.length > 0) {
+        createNotification({
+          recipientId: user.id,
+          title: `لديك ${queuedOrders.length} طلبات معلقة`,
+          message: 'أصبحت متاحًا الآن. يرجى مراجعة الطلبات التي كانت في قائمة الانتظار.',
+          link: '/chef/dashboard',
+        });
+      }
+    }
+  };
+
+  const statusMap = {
+    available: { label: 'متاح', color: 'bg-green-500' },
+    busy: { label: 'مشغول', color: 'bg-yellow-500' },
+    closed: { label: 'مغلق', color: 'bg-red-500' },
   };
 
   return (
@@ -330,9 +359,34 @@ export default function ChefDashboardPage() {
              <Card className="mt-4">
                 <CardHeader>
                 <CardTitle>إعدادات الحساب</CardTitle>
-                <CardDescription>تحديث معلوماتك الشخصية، سيرتك الذاتية، وصورة ملفك الشخصي.</CardDescription>
+                <CardDescription>تحديث معلوماتك الشخصية، حالتك، وصورة ملفك الشخصي.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6 max-w-2xl">
+                    <div className="space-y-2">
+                        <Label>حالة التوفر</Label>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline" className="w-full justify-end text-right">
+                                    <span>{statusMap[user.availabilityStatus || 'available'].label}</span>
+                                    <Circle className={`mr-2 h-3 w-3 flex-shrink-0 fill-current ${statusMap[user.availabilityStatus || 'available'].color}`} />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-56 text-right">
+                                <DropdownMenuItem onClick={() => handleStatusChange('available')}>
+                                    <Circle className="ml-2 h-3 w-3 fill-current bg-green-500" />
+                                    <span>متاح</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleStatusChange('busy')}>
+                                    <Circle className="ml-2 h-3 w-3 fill-current bg-yellow-500" />
+                                    <span>مشغول</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleStatusChange('closed')}>
+                                    <Circle className="ml-2 h-3 w-3 fill-current bg-red-500" />
+                                    <span>مغلق</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
                     <div className="space-y-2">
                         <Label>الصورة الشخصية</Label>
                         <div className="flex items-center gap-4">
