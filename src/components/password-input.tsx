@@ -2,7 +2,7 @@
 'use client';
 
 import * as React from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, CheckCircle2, XCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
@@ -11,26 +11,51 @@ interface PasswordInputProps extends React.InputHTMLAttributes<HTMLInputElement>
   showStrength?: boolean;
 }
 
+const PasswordRequirement = ({ label, met }: { label: string; met: boolean }) => (
+    <div className={cn("flex items-center gap-2 justify-end", met ? "text-primary" : "text-muted-foreground")}>
+      <span>{label}</span>
+      {met ? <CheckCircle2 className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
+    </div>
+  );
+
 const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
   ({ className, showStrength = false, value, ...props }, ref) => {
     const [showPassword, setShowPassword] = React.useState(false);
     const [strength, setStrength] = React.useState(0);
     const [strengthLabel, setStrengthLabel] = React.useState('');
+    const [checks, setChecks] = React.useState({
+        length: false,
+        uppercase: false,
+        lowercase: false,
+        number: false,
+        symbol: false,
+    });
 
     React.useEffect(() => {
         const password = String(value || '');
         if (!password) {
             setStrength(0);
             setStrengthLabel('');
+            setChecks({
+                length: false,
+                uppercase: false,
+                lowercase: false,
+                number: false,
+                symbol: false,
+            });
             return;
         }
 
-        let score = 0;
-        if (password.length > 7) score++; // length
-        if (/[A-Z]/.test(password)) score++; // uppercase
-        if (/[a-z]/.test(password)) score++; // lowercase
-        if (/[0-9]/.test(password)) score++; // number
-        if (/[^A-Za-z0-9]/.test(password)) score++; // symbol
+        const newChecks = {
+          length: password.length > 7,
+          uppercase: /[A-Z]/.test(password),
+          lowercase: /[a-z]/.test(password),
+          number: /[0-9]/.test(password),
+          symbol: /[^A-Za-z0-9]/.test(password),
+        };
+        setChecks(newChecks);
+        
+        const score = Object.values(newChecks).filter(Boolean).length;
         
         setStrength((score / 5) * 100);
 
@@ -65,9 +90,18 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
           </button>
         </div>
         {showStrength && String(value || '').length > 0 && (
-          <div className="flex items-center gap-2" dir="ltr">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2" dir="ltr">
              <Progress value={strength} className="h-2 w-full" />
              <span className="text-xs text-muted-foreground min-w-[50px] text-right">{strengthLabel}</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-xs text-right">
+                <PasswordRequirement label="٨ أحرف على الأقل" met={checks.length} />
+                <PasswordRequirement label="حرف كبير" met={checks.uppercase} />
+                <PasswordRequirement label="حرف صغير" met={checks.lowercase} />
+                <PasswordRequirement label="رقم" met={checks.number} />
+                <PasswordRequirement label="رمز" met={checks.symbol} />
+            </div>
           </div>
         )}
       </div>
