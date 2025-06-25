@@ -17,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PasswordChangeForm } from '@/components/password-change-form';
+import { Textarea } from '@/components/ui/textarea';
 
 
 export default function ProfilePage() {
@@ -29,6 +30,7 @@ export default function ProfilePage() {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
+    const [address, setAddress] = useState('');
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
 
@@ -39,6 +41,7 @@ export default function ProfilePage() {
             setName(user.name);
             setEmail(user.email);
             setPhone(user.phone || '');
+            setAddress(user.address || '');
             setImagePreview(user.imageUrl || null);
         }
     }, [user, loading, router]);
@@ -80,6 +83,7 @@ export default function ProfilePage() {
                 name,
                 email,
                 phone,
+                address,
                 imageUrl: imagePreview,
             });
             toast({
@@ -165,7 +169,7 @@ export default function ProfilePage() {
           <Card>
             <CardHeader>
               <CardTitle>إعدادات الحساب</CardTitle>
-              <CardDescription>تحديث معلوماتك الشخصية وصورة ملفك الشخصي.</CardDescription>
+              <CardDescription>تحديث معلوماتك الشخصية وعنوان التوصيل.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 max-w-2xl">
               <div className="space-y-2">
@@ -197,6 +201,11 @@ export default function ProfilePage() {
                 <Label htmlFor="phone">رقم الهاتف</Label>
                 <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="text-right" />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="address">عنوان التوصيل</Label>
+                <Textarea id="address" value={address} onChange={(e) => setAddress(e.target.value)} className="text-right" placeholder="أدخل عنوانك الكامل هنا..." />
+              </div>
+
 
               <div className="flex justify-start gap-2 pt-4 border-t">
                 <Button onClick={handleSaveChanges} disabled={isSaving} className="bg-accent hover:bg-accent/90 text-accent-foreground">

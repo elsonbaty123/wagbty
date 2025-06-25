@@ -74,7 +74,10 @@ export default function LoginPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="customer-password">كلمة المرور</Label>
+                <div className="flex items-center justify-between">
+                    <Label htmlFor="customer-password">كلمة المرور</Label>
+                    <Link href="/forgot-password" className="text-sm text-accent underline">نسيت كلمة المرور؟</Link>
+                </div>
               <PasswordInput
                 id="customer-password"
                 required
@@ -116,7 +119,10 @@ export default function LoginPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="chef-password">كلمة المرور</Label>
+                <div className="flex items-center justify-between">
+                    <Label htmlFor="chef-password">كلمة المرور</Label>
+                    <Link href="/forgot-password" className="text-sm text-accent underline">نسيت كلمة المرور؟</Link>
+                </div>
                <PasswordInput
                 id="chef-password"
                 required

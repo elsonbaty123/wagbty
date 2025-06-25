@@ -19,6 +19,7 @@ export default function SignupPage() {
   const [customerName, setCustomerName] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
+  const [customerAddress, setCustomerAddress] = useState('');
   const [customerPassword, setCustomerPassword] = useState('');
 
   const [chefName, setChefName] = useState('');
@@ -42,6 +43,7 @@ export default function SignupPage() {
             name: customerName,
             email: customerEmail,
             phone: customerPhone,
+            address: customerAddress,
             password: customerPassword,
             role: 'customer'
         }
@@ -98,6 +100,10 @@ export default function SignupPage() {
             <div className="space-y-2">
               <Label htmlFor="customer-phone">رقم الهاتف</Label>
               <Input id="customer-phone" type="tel" placeholder="01XXXXXXXXX" required className="text-right" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)}/>
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="customer-address">العنوان</Label>
+                <Input id="customer-address" placeholder="456 شارع الجزيرة، الزمالك" required className="text-right" value={customerAddress} onChange={(e) => setCustomerAddress(e.target.value)} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="customer-password">كلمة المرور</Label>

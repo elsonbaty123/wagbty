@@ -59,13 +59,20 @@ export default function OrderPage() {
   const total = subtotal + deliveryFee;
 
   const handleConfirmOrder = () => {
-    if (!user || !chef) return;
+    if (!user || !chef || !user.address) {
+      toast({
+        variant: 'destructive',
+        title: 'خطأ في الطلب',
+        description: 'الرجاء التأكد من تسجيل الدخول وتحديد عنوان التوصيل.',
+      });
+      return;
+    }
 
     createOrder({
       customerId: user.id,
       customerName: user.name,
       customerPhone: user.phone || 'N/A',
-      deliveryAddress: '456 شارع الجزيرة، الزمالك، القاهرة', // Mock address
+      deliveryAddress: user.address,
       dish: dish,
       chef: { id: chef.id, name: chef.name },
       quantity: quantity,
@@ -83,8 +90,8 @@ export default function OrderPage() {
     <div className="container mx-auto px-4 py-8 md:px-6 md:py-12 text-right">
       <div className="mb-6">
         <Button variant="ghost" asChild>
-          <Link href={`/chefs/${dish.chefId}`}>
-            العودة لصفحة الشيف
+          <Link href={`/dishes/${dish.id}`}>
+            العودة لصفحة الطبق
             <ArrowRight className="mr-2 h-4 w-4" />
           </Link>
         </Button>
@@ -113,13 +120,15 @@ export default function OrderPage() {
             <Card>
               <CardHeader>
                 <CardTitle>معلومات التوصيل</CardTitle>
-                <CardDescription>هذا هو عنوان التوصيل المسجل في حسابك.</CardDescription>
+                <CardDescription>سيتم توصيل الطلب إلى العنوان المسجل في حسابك.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                  <p className="font-semibold">{user.name}</p>
-                 <p>456 شارع الجزيرة، الزمالك، القاهرة</p>
+                 <p>{user.address || 'لم يتم تحديد عنوان بعد.'}</p>
                  <p>{user.phone || 'لم يتم تقديم رقم هاتف'}</p>
-                 <Button variant="outline">تغيير العنوان</Button>
+                 <Button variant="outline" asChild>
+                    <Link href="/profile">تغيير العنوان من الإعدادات</Link>
+                </Button>
               </CardContent>
             </Card>
           )}

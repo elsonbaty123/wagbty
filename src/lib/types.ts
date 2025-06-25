@@ -30,6 +30,7 @@ export interface User {
   email: string;
   role: UserRole;
   phone?: string;
+  address?: string;
   imageUrl?: string;
   // Chef-specific properties
   specialty?: string;

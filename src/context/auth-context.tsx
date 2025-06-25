@@ -16,6 +16,7 @@ interface AuthContextType {
   logout: () => void;
   updateUser: (updatedUserDetails: Partial<User>) => Promise<User>;
   changePassword: (passwordDetails: { oldPassword; newPassword; confirmPassword; }) => Promise<void>;
+  resetPassword: (email: string, newPassword: string) => Promise<void>;
   loading: boolean;
 }
 
@@ -59,6 +60,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setAllUsers(usersToPersist);
     localStorage.setItem('chefconnect_users', JSON.stringify(usersToPersist));
   }
+  
+  const validatePassword = (password: string) => {
+    const hasUppercase = /[A-Z]/.test(password);
+    const hasLowercase = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSymbol = /[^A-Za-z0-9]/.test(password);
+    const isLongEnough = password.length > 7;
+    if (!hasUppercase || !hasLowercase || !hasNumber || !hasSymbol || !isLongEnough) {
+      throw new Error("كلمة المرور يجب أن تحتوي على ٨ أحرف على الأقل، حرف كبير، حرف صغير، رقم، ورمز.");
+    }
+  }
 
   const login = async (email: string, password: string, role: UserRole): Promise<User> => {
     const potentialUser = allUsers.find(
@@ -79,12 +91,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       throw new Error('هذا البريد الإلكتروني مستخدم بالفعل.');
     }
     
+    validatePassword(details.password);
+
     const newUser: User = {
         id: `${details.role}-${Date.now()}`,
         name: details.name!,
         email: details.email!,
         role: details.role,
         phone: details.phone,
+        address: details.role === 'customer' ? details.address : undefined,
         specialty: details.specialty,
         bio: details.role === 'chef' ? `شيف جديد متحمس لمشاركة إبداعاته في المطبخ ${details.specialty}.` : undefined,
         imageUrl: details.role === 'chef' ? `https://placehold.co/400x400.png` : `https://placehold.co/100x100.png`,
@@ -130,16 +145,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user) throw new Error("يجب تسجيل الدخول لتغيير كلمة المرور.");
     if (newPassword !== confirmPassword) throw new Error("كلمتا المرور الجديدتان غير متطابقتين.");
   
-    // Password strength validation
-    const hasUppercase = /[A-Z]/.test(newPassword);
-    const hasLowercase = /[a-z]/.test(newPassword);
-    const hasNumber = /[0-9]/.test(newPassword);
-    const hasSymbol = /[^A-Za-z0-9]/.test(newPassword);
-    const isLongEnough = newPassword.length > 7;
-  
-    if (!hasUppercase || !hasLowercase || !hasNumber || !hasSymbol || !isLongEnough) {
-      throw new Error("كلمة المرور الجديدة لا تستوفي شروط الأمان.");
-    }
+    validatePassword(newPassword);
     
     const userInDb = allUsers.find(u => u.id === user.id);
   
@@ -155,12 +161,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   
     persistAllUsers(updatedUsers);
   };
+  
+  const resetPassword = async (email: string, newPassword: string) => {
+    validatePassword(newPassword);
+    
+    const userIndex = allUsers.findIndex(u => u.email.toLowerCase() === email.toLowerCase());
+
+    if (userIndex === -1) {
+        throw new Error("البريد الإلكتروني غير موجود.");
+    }
+    
+    const updatedUsers = [...allUsers];
+    updatedUsers[userIndex] = { ...updatedUsers[userIndex], password: newPassword };
+    
+    persistAllUsers(updatedUsers);
+  };
 
   const publicUsers = allUsers.map(({ password, ...user }) => user);
   const chefs = publicUsers.filter(u => u.role === 'chef');
 
   return (
-    <AuthContext.Provider value={{ user, users: publicUsers, chefs, login, signup, logout, updateUser, changePassword, loading }}>
+    <AuthContext.Provider value={{ user, users: publicUsers, chefs, login, signup, logout, updateUser, changePassword, resetPassword, loading }}>
       {children}
     </AuthContext.Provider>
   );
