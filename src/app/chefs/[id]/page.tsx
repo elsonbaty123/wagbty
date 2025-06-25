@@ -7,6 +7,7 @@ import { notFound, useParams } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import { useOrders } from '@/context/order-context';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useMemo } from 'react';
 
 export default function ChefProfilePage() {
   const params = useParams<{ id: string }>();
@@ -15,10 +16,29 @@ export default function ChefProfilePage() {
   
   const chef = users.find(u => u.id === params.id && u.role === 'chef');
   
-  if (authLoading || ordersLoading) {
+  const loading = authLoading || ordersLoading;
+
+  const { chefDishes, chefAverageRating, totalRatingsCount } = useMemo(() => {
+    if (!chef) {
+      return { chefDishes: [], chefAverageRating: 0, totalRatingsCount: 0 };
+    }
+    const filteredDishes = dishes.filter(dish => dish.chefId === chef.id && dish.status !== 'مخفية');
+    const allRatings = filteredDishes.flatMap(d => d.ratings?.map(r => r.rating) || []);
+    const averageRating = allRatings.length > 0
+      ? allRatings.reduce((a, b) => a + b, 0) / allRatings.length
+      : chef.rating || 0;
+    
+    return {
+      chefDishes: filteredDishes,
+      chefAverageRating: averageRating,
+      totalRatingsCount: allRatings.length,
+    };
+  }, [chef, dishes]);
+  
+  if (loading) {
     return (
         <div className="container mx-auto px-4 py-8 md:px-6 md:py-12">
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
                 <div className="md:col-span-1">
                     <Skeleton className="aspect-square w-full rounded-xl" />
                     <Skeleton className="h-8 w-3/4 mt-4" />
@@ -27,9 +47,9 @@ export default function ChefProfilePage() {
                 </div>
                 <div className="md:col-span-2">
                     <Skeleton className="h-10 w-48 mb-6" />
-                    <div className="grid gap-6">
-                        <Skeleton className="h-48 w-full" />
-                        <Skeleton className="h-48 w-full" />
+                    <div className="grid gap-6 md:grid-cols-2">
+                        <Skeleton className="h-[420px] w-full" />
+                        <Skeleton className="h-[420px] w-full" />
                     </div>
                 </div>
             </div>
@@ -41,17 +61,9 @@ export default function ChefProfilePage() {
     notFound();
   }
 
-  const chefDishes = dishes.filter(dish => dish.chefId === chef.id && dish.status !== 'مخفية');
-  
-  const allRatings = chefDishes.flatMap(d => d.ratings?.map(r => r.rating) || []);
-  const chefAverageRating = allRatings.length > 0
-    ? allRatings.reduce((a, b) => a + b, 0) / allRatings.length
-    : chef.rating || 0;
-  const totalRatingsCount = allRatings.length;
-
   return (
     <div className="container mx-auto px-4 py-8 md:px-6 md:py-12">
-      <div className="grid md:grid-cols-3 gap-8">
+      <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
         <div className="md:col-span-1">
           <div className="sticky top-24 text-right">
             <Image
@@ -75,13 +87,13 @@ export default function ChefProfilePage() {
 
         <div className="md:col-span-2">
           <h2 className="font-headline text-3xl font-bold text-primary mb-6 text-right">قائمة الطعام</h2>
-          <div className="grid gap-6">
+          <div className="grid gap-6 md:grid-cols-2">
             {chefDishes.length > 0 ? (
                 chefDishes.map((dish) => (
                     <DishCard key={dish.id} dish={dish} chefName={chef.name} />
                 ))
             ) : (
-                <div className="text-center py-16 border-2 border-dashed rounded-lg">
+                <div className="text-center py-16 border-2 border-dashed rounded-lg col-span-full">
                     <p className="text-muted-foreground">هذا الطاهي لم يضف أي أطباق بعد.</p>
                 </div>
             )}

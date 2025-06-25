@@ -102,8 +102,8 @@ export function Header() {
           <Link href="/" className="transition-colors hover:text-primary">
             الرئيسية
           </Link>
-          <Link href="/#dishes" className="transition-colors hover:text-primary">
-            الوجبات
+          <Link href="/" className="transition-colors hover:text-primary">
+            الطهاة
           </Link>
         </nav>
         <div className="hidden items-center gap-4 md:flex">
@@ -126,8 +126,8 @@ export function Header() {
                  <Link href="/" className="transition-colors hover:text-primary">
                     الرئيسية
                  </Link>
-                 <Link href="/#dishes" className="transition-colors hover:text-primary">
-                    الوجبات
+                 <Link href="/" className="transition-colors hover:text-primary">
+                    الطهاة
                  </Link>
               </nav>
               <div className="flex flex-col gap-2">
