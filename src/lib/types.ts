@@ -51,6 +51,26 @@ export type Order = {
   quantity: number;
   status: OrderStatus;
   createdAt: string; // ISO date string
-  rating?: number; // Customer's rating for this specific order/dish
-  review?: string; // Customer's review for this specific order/dish
+  rating?: number;
+  review?: string;
+  subtotal: number;
+  deliveryFee: number;
+  discount: number;
+  total: number;
+  appliedCouponCode?: string;
+};
+
+export type DiscountType = 'percentage' | 'fixed';
+
+export type Coupon = {
+  id: string;
+  chefId: string;
+  code: string;
+  discountType: DiscountType;
+  discountValue: number;
+  startDate: string; // ISO String
+  endDate: string; // ISO String
+  usageLimit: number;
+  timesUsed: number;
+  isActive: boolean;
 };

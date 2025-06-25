@@ -2,13 +2,14 @@
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import type { Order, Dish, DishRating } from '@/lib/types';
+import type { Order, Dish, DishRating, Coupon } from '@/lib/types';
 
 type OrderStatus = Order['status'];
 
 interface OrderContextType {
   orders: Order[];
   dishes: Dish[];
+  coupons: Coupon[];
   loading: boolean;
   getOrdersByCustomerId: (customerId: string) => Order[];
   getOrdersByChefId: (chefId: string) => Order[];
@@ -18,6 +19,10 @@ interface OrderContextType {
   updateDish: (dishData: Dish) => void;
   deleteDish: (dishId: string) => void;
   addReviewToOrder: (orderId: string, rating: number, review: string) => void;
+  getCouponsByChefId: (chefId: string) => Coupon[];
+  createCoupon: (couponData: Omit<Coupon, 'id' | 'timesUsed'>) => void;
+  updateCoupon: (couponData: Coupon) => void;
+  validateAndApplyCoupon: (code: string, chefId: string, subtotal: number) => { discount: number; error?: string };
 }
 
 const OrderContext = createContext<OrderContextType | undefined>(undefined);
@@ -25,18 +30,20 @@ const OrderContext = createContext<OrderContextType | undefined>(undefined);
 export const OrderProvider = ({ children }: { children: ReactNode }) => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [dishes, setDishes] = useState<Dish[]>([]);
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     try {
       const storedOrders = localStorage.getItem('chefconnect_orders');
-      if (storedOrders) {
-        setOrders(JSON.parse(storedOrders));
-      }
+      if (storedOrders) setOrders(JSON.parse(storedOrders));
+      
       const storedDishes = localStorage.getItem('chefconnect_dishes');
-      if (storedDishes) {
-        setDishes(JSON.parse(storedDishes));
-      }
+      if (storedDishes) setDishes(JSON.parse(storedDishes));
+
+      const storedCoupons = localStorage.getItem('chefconnect_coupons');
+      if (storedCoupons) setCoupons(JSON.parse(storedCoupons));
+
     } catch (error) {
       console.error("Failed to parse data from localStorage", error);
     } finally {
@@ -53,7 +60,11 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
     setDishes(newDishes);
     localStorage.setItem('chefconnect_dishes', JSON.stringify(newDishes));
   }
-
+  
+  const persistCoupons = (newCoupons: Coupon[]) => {
+    setCoupons(newCoupons);
+    localStorage.setItem('chefconnect_coupons', JSON.stringify(newCoupons));
+  }
 
   const getOrdersByCustomerId = (customerId: string) => {
     return orders.filter((order) => order.customerId === customerId);
@@ -70,6 +81,19 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
       status: 'جارٍ المراجعة',
       createdAt: new Date().toISOString(),
     };
+    
+    if (orderData.appliedCouponCode) {
+        const couponIndex = coupons.findIndex(c => c.code.toLowerCase() === orderData.appliedCouponCode!.toLowerCase());
+        if (couponIndex !== -1) {
+            const newCoupons = [...coupons];
+            newCoupons[couponIndex] = {
+                ...newCoupons[couponIndex],
+                timesUsed: newCoupons[couponIndex].timesUsed + 1
+            };
+            persistCoupons(newCoupons);
+        }
+    }
+    
     persistOrders([newOrder, ...orders]);
   };
 
@@ -132,10 +156,57 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const getCouponsByChefId = (chefId: string) => {
+    return coupons.filter(c => c.chefId === chefId).sort((a,b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
+  };
+
+  const createCoupon = (couponData: Omit<Coupon, 'id' | 'timesUsed'>) => {
+    const newCoupon: Coupon = {
+      ...couponData,
+      id: `COUP${Date.now()}`,
+      timesUsed: 0,
+    };
+    persistCoupons([newCoupon, ...coupons]);
+  };
+
+  const updateCoupon = (updatedCoupon: Coupon) => {
+    const newCoupons = coupons.map(c => c.id === updatedCoupon.id ? updatedCoupon : c);
+    persistCoupons(newCoupons);
+  };
+
+  const validateAndApplyCoupon = (code: string, chefId: string, subtotal: number): { discount: number; error?: string } => {
+    const coupon = coupons.find(c => c.code.toLowerCase() === code.toLowerCase() && c.chefId === chefId);
+
+    if (!coupon) {
+      return { discount: 0, error: 'رمز القسيمة غير صالح أو لا ينطبق على هذا الطبق.' };
+    }
+    if (!coupon.isActive) {
+      return { discount: 0, error: 'هذه القسيمة غير نشطة حاليًا.' };
+    }
+    const now = new Date();
+    if (now < new Date(coupon.startDate) || now > new Date(coupon.endDate)) {
+      return { discount: 0, error: 'هذه القسيمة منتهية الصلاحية أو لم تبدأ بعد.' };
+    }
+    if (coupon.timesUsed >= coupon.usageLimit) {
+      return { discount: 0, error: 'تم الوصول للحد الأقصى لاستخدام هذه القسيمة.' };
+    }
+
+    let discount = 0;
+    if (coupon.discountType === 'fixed') {
+      discount = coupon.discountValue;
+    } else { // percentage
+      discount = subtotal * (coupon.discountValue / 100);
+    }
+    
+    discount = Math.min(discount, subtotal);
+
+    return { discount };
+  };
 
   const value = {
     orders,
     dishes,
+    coupons,
     loading,
     getOrdersByCustomerId,
     getOrdersByChefId,
@@ -145,6 +216,10 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
     updateDish,
     deleteDish,
     addReviewToOrder,
+    getCouponsByChefId,
+    createCoupon,
+    updateCoupon,
+    validateAndApplyCoupon,
   };
 
   return (

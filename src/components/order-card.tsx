@@ -11,12 +11,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Order, OrderStatus } from '@/lib/types';
-import { Home, Phone, User, CreditCard, ChevronDown, Star } from 'lucide-react';
+import { Home, Phone, User, CreditCard, ChevronDown, Star, Tag } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Textarea } from './ui/textarea';
+import { Separator } from './ui/separator';
 
 interface OrderCardProps {
   order: Order;
@@ -65,7 +66,6 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
     }
   };
 
-  const total = order.dish.price * order.quantity;
   const isCustomerView = !isChefView;
 
   return (
@@ -101,13 +101,29 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
                 <User className="w-4 h-4 text-muted-foreground" />
             </div>
         )}
-        <div className="border-t pt-3 mt-3 space-y-2">
-            <div className="flex items-center gap-2 justify-end">
-                <span>الكمية: {order.quantity}</span>
+        <Separator />
+        <div className="pt-3 space-y-2 text-sm">
+            <div className="flex items-center justify-between">
+                <span>الكمية:</span>
+                <span>{order.quantity}</span>
             </div>
-             <div className="flex items-center gap-2 justify-end">
-                <span>الإجمالي: {total.toFixed(2)} جنيه</span>
-                <CreditCard className="w-4 h-4 text-muted-foreground" />
+             <div className="flex items-center justify-between">
+                <span>المجموع الفرعي:</span>
+                <span>{order.subtotal.toFixed(2)} جنيه</span>
+            </div>
+            {order.discount > 0 && (
+                 <div className="flex items-center justify-between text-green-600">
+                    <span className="flex items-center gap-1"><Tag className="h-4 w-4" />الخصم:</span>
+                    <span>- {order.discount.toFixed(2)} جنيه</span>
+                </div>
+            )}
+             <div className="flex items-center justify-between">
+                <span>رسوم التوصيل:</span>
+                <span>{order.deliveryFee.toFixed(2)} جنيه</span>
+            </div>
+             <div className="flex items-center justify-between font-bold text-base border-t pt-2 mt-2">
+                <span className="text-primary">الإجمالي:</span>
+                <span className="text-primary">{order.total.toFixed(2)} جنيه</span>
             </div>
         </div>
       </CardContent>

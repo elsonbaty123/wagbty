@@ -3,8 +3,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { DollarSign, Utensils, Star, BookOpenCheck, Loader2, Upload, User as UserIcon, ArrowUp, ArrowDown } from 'lucide-react';
+import { DollarSign, Utensils, Star, BookOpenCheck, Loader2, Upload, User as UserIcon, ArrowUp, ArrowDown, Tag } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { useAuth } from '@/context/auth-context';
 import { useOrders } from '@/context/order-context';
@@ -23,6 +22,7 @@ import { PasswordChangeForm } from '@/components/password-change-form';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
 import { format, isWithinInterval, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { ar } from 'date-fns/locale';
+import { CouponManagementTab } from '@/components/coupon-management-tab';
 
 export default function ChefDashboardPage() {
   const { user, loading, updateUser } = useAuth();
@@ -77,14 +77,14 @@ export default function ChefDashboardPage() {
             if (!o.createdAt || isNaN(new Date(o.createdAt).getTime())) return false;
             return isWithinInterval(new Date(o.createdAt), { start: startOfCurrentMonth, end: endOfCurrentMonth });
         })
-        .reduce((acc, order) => acc + order.dish.price * order.quantity, 0);
+        .reduce((acc, order) => acc + order.total, 0);
 
     const revenueLastMonth = completed
         .filter(o => {
             if (!o.createdAt || isNaN(new Date(o.createdAt).getTime())) return false;
             return isWithinInterval(new Date(o.createdAt), { start: startOfLastMonth, end: endOfLastMonth });
         })
-        .reduce((acc, order) => acc + order.dish.price * order.quantity, 0);
+        .reduce((acc, order) => acc + order.total, 0);
 
     let percentageChange = 0;
     if (revenueLastMonth > 0) {
@@ -111,7 +111,6 @@ export default function ChefDashboardPage() {
      const monthlyData: { [key: string]: number } = {};
      const now = new Date();
      
-     // Initialize months of the current year up to the current month
      for (let i = 0; i <= now.getMonth(); i++) {
          const monthName = format(new Date(now.getFullYear(), i, 1), 'MMM', { locale: ar });
          monthlyData[monthName] = 0;
@@ -123,7 +122,7 @@ export default function ChefDashboardPage() {
           if (orderDate.getFullYear() === now.getFullYear()) {
              const month = format(orderDate, 'MMM', { locale: ar });
              if (monthlyData.hasOwnProperty(month)) {
-                 monthlyData[month] += (order.dish.price * order.quantity);
+                 monthlyData[month] += order.total;
              }
           }
         }
@@ -181,10 +180,11 @@ export default function ChefDashboardPage() {
       </div>
 
       <Tabs defaultValue="dashboard" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 max-w-xl">
+        <TabsList className="grid w-full grid-cols-5 max-w-2xl">
             <TabsTrigger value="dashboard">نظرة عامة</TabsTrigger>
             <TabsTrigger value="orders">الطلبات</TabsTrigger>
             <TabsTrigger value="menu">قائمة الطعام</TabsTrigger>
+            <TabsTrigger value="coupons">القسائم</TabsTrigger>
             <TabsTrigger value="settings">الإعدادات</TabsTrigger>
         </TabsList>
         
@@ -321,6 +321,10 @@ export default function ChefDashboardPage() {
                 </CardFooter>
             </Card>
         </TabsContent>
+        
+        <TabsContent value="coupons">
+            <CouponManagementTab />
+        </TabsContent>
 
         <TabsContent value="settings">
              <Card className="mt-4">
@@ -383,5 +387,3 @@ export default function ChefDashboardPage() {
     </div>
   );
 }
-
-    

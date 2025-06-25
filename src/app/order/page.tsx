@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { ArrowRight, Plus, Minus } from 'lucide-react';
+import { ArrowRight, Plus, Minus, Loader2, Tag } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { useOrders } from '@/context/order-context';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -14,6 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { notFound } from 'next/navigation';
 import { useState, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { Separator } from '@/components/ui/separator';
 
 export default function OrderPage() {
   const searchParams = useSearchParams();
@@ -21,13 +22,17 @@ export default function OrderPage() {
   const { toast } = useToast();
   const dishId = searchParams.get('dishId');
   
-  const { dishes, loading: dishesLoading } = useOrders();
+  const { dishes, loading: dishesLoading, validateAndApplyCoupon, createOrder } = useOrders();
   const { users, user, loading: authLoading } = useAuth();
-  const { createOrder } = useOrders();
 
   const dish = useMemo(() => dishes.find(d => d.id === dishId), [dishId, dishes]);
   
   const [quantity, setQuantity] = useState(1);
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedDiscount, setAppliedDiscount] = useState(0);
+  const [appliedCouponCode, setAppliedCouponCode] = useState('');
+  const [couponError, setCouponError] = useState('');
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
 
   if (authLoading || dishesLoading) {
       return (
@@ -56,8 +61,28 @@ export default function OrderPage() {
 
   const subtotal = dish.price * quantity;
   const deliveryFee = 50.0;
-  const total = subtotal + deliveryFee;
+  const total = subtotal - appliedDiscount + deliveryFee;
 
+  const handleApplyCoupon = () => {
+    if (!couponCode.trim()) return;
+    setIsApplyingCoupon(true);
+    setCouponError('');
+    setAppliedDiscount(0);
+
+    setTimeout(() => {
+        const result = validateAndApplyCoupon(couponCode, dish.chefId, subtotal);
+        
+        if (result.error) {
+            setCouponError(result.error);
+        } else {
+            setAppliedDiscount(result.discount);
+            setAppliedCouponCode(couponCode);
+            toast({ title: "تم تطبيق القسيمة بنجاح!" });
+        }
+        setIsApplyingCoupon(false);
+    }, 500);
+  };
+  
   const handleConfirmOrder = () => {
     if (!user || !chef || !user.address) {
       toast({
@@ -76,6 +101,11 @@ export default function OrderPage() {
       dish: dish,
       chef: { id: chef.id, name: chef.name },
       quantity: quantity,
+      subtotal: subtotal,
+      discount: appliedDiscount,
+      deliveryFee: deliveryFee,
+      total: total,
+      appliedCouponCode: appliedDiscount > 0 ? appliedCouponCode : undefined,
     });
 
     toast({
@@ -165,6 +195,27 @@ export default function OrderPage() {
                 </CardFooter>
             </Card>
             <Card>
+                 <CardHeader>
+                    <CardTitle>قسيمة الخصم</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex gap-2">
+                        <Input
+                            placeholder="أدخل رمز القسيمة"
+                            className="text-right"
+                            value={couponCode}
+                            onChange={(e) => setCouponCode(e.target.value)}
+                            disabled={!user}
+                        />
+                        <Button onClick={handleApplyCoupon} disabled={!user || isApplyingCoupon}>
+                            {isApplyingCoupon && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+                            تطبيق
+                        </Button>
+                    </div>
+                    {couponError && <p className="text-sm text-destructive mt-2">{couponError}</p>}
+                </CardContent>
+            </Card>
+            <Card>
                 <CardHeader>
                     <CardTitle>تفاصيل الدفع</CardTitle>
                 </CardHeader>
@@ -173,10 +224,20 @@ export default function OrderPage() {
                         <span className="text-muted-foreground">المجموع الفرعي</span>
                         <span>{subtotal.toFixed(2)} جنيه</span>
                     </div>
+                    {appliedDiscount > 0 && (
+                        <div className="flex items-center justify-between text-green-600">
+                            <span className="flex items-center gap-1">
+                                <Tag className="h-4 w-4" />
+                                خصم ({appliedCouponCode})
+                            </span>
+                            <span>- {appliedDiscount.toFixed(2)} جنيه</span>
+                        </div>
+                    )}
                     <div className="flex items-center justify-between">
                         <span className="text-muted-foreground">رسوم التوصيل</span>
                         <span>{deliveryFee.toFixed(2)} جنيه</span>
                     </div>
+                     <Separator />
                      <div className="flex items-center justify-between font-bold text-lg">
                         <span className="text-primary">المجموع الكلي</span>
                         <span>{total.toFixed(2)} جنيه</span>
