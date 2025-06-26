@@ -23,11 +23,17 @@ export default function ForgotPasswordPage() {
 
     const validateEmail = (email: string): string => {
         if (!email.trim()) return "البريد الإلكتروني مطلوب.";
-        const emailRegex = /^[a-zA-Z][a-zA-Z0-9]*(?:[._][a-zA-Z0-9]+)*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-        if (!emailRegex.test(email)) {
-          return "البريد الإلكتروني غير صحيح. يجب أن يبدأ بحرف ويتبع الصيغة مثل: example@gmail.com";
+        if (!/^[a-zA-Z]/.test(email)) {
+          return 'البريد الإلكتروني يجب أن يبدأ بحرف.';
         }
-        return "";
+        if (/[^a-zA-Z0-9@._-]/.test(email)) {
+          return 'البريد الإلكتروني يحتوي على رموز غير مسموح بها.';
+        }
+        const emailRegex = /^[a-zA-Z][a-zA-Z0-9._-]*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!emailRegex.test(email)) {
+          return 'البريد الإلكتروني غير صحيح. يرجى اتباع الصيغة مثل: example@gmail.com';
+        }
+        return '';
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -36,6 +42,11 @@ export default function ForgotPasswordPage() {
         const error = validateEmail(email);
         setEmailError(error);
         if (error) {
+            toast({
+                variant: 'destructive',
+                title: 'خطأ في البريد الإلكتروني',
+                description: error,
+            });
             return;
         }
 
@@ -114,7 +125,6 @@ export default function ForgotPasswordPage() {
                                     if (emailError) setEmailError("");
                                 }}
                             />
-                             {emailError && <p className="text-sm text-destructive">{emailError}</p>}
                         </div>
                         <Button type="submit" disabled={isLoading} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
                             {isLoading && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}

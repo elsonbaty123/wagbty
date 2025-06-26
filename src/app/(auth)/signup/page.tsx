@@ -39,26 +39,29 @@ export default function SignupPage() {
 
   const validateEmail = (email: string): string => {
     if (!email.trim()) return "البريد الإلكتروني مطلوب.";
-    const emailRegex = /^[a-zA-Z][a-zA-Z0-9]*(?:[._][a-zA-Z0-9]+)*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (!emailRegex.test(email)) {
-      return "البريد الإلكتروني غير صحيح. يجب أن يبدأ بحرف ويتبع الصيغة مثل: example@gmail.com";
+    if (!/^[a-zA-Z]/.test(email)) {
+      return 'البريد الإلكتروني يجب أن يبدأ بحرف.';
     }
-    return "";
+    if (/[^a-zA-Z0-9@._-]/.test(email)) {
+      return 'البريد الإلكتروني يحتوي على رموز غير مسموح بها.';
+    }
+    const emailRegex = /^[a-zA-Z][a-zA-Z0-9._-]*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(email)) {
+      return 'البريد الإلكتروني غير صحيح. يرجى اتباع الصيغة مثل: example@gmail.com';
+    }
+    return '';
   };
 
   const handleSignup = async (role: 'customer' | 'chef') => {
     setIsLoading(true);
     let userDetails: Partial<User> & { password: string, role: 'customer' | 'chef' };
     let email: string;
+    let emailError: string;
 
     if (role === 'customer') {
         email = customerEmail;
-        const emailError = validateEmail(email);
+        emailError = validateEmail(email);
         setCustomerEmailError(emailError);
-        if (emailError) {
-            setIsLoading(false);
-            return;
-        }
         userDetails = {
             name: customerName,
             email: customerEmail,
@@ -69,12 +72,8 @@ export default function SignupPage() {
         }
     } else {
         email = chefEmail;
-        const emailError = validateEmail(email);
+        emailError = validateEmail(email);
         setChefEmailError(emailError);
-        if (emailError) {
-            setIsLoading(false);
-            return;
-        }
         userDetails = {
             name: chefName,
             email: chefEmail,
@@ -83,6 +82,16 @@ export default function SignupPage() {
             password: chefPassword,
             role: 'chef'
         }
+    }
+
+    if (emailError) {
+        toast({
+            variant: 'destructive',
+            title: 'خطأ في البريد الإلكتروني',
+            description: emailError,
+        });
+        setIsLoading(false);
+        return;
     }
     
     try {
@@ -135,7 +144,6 @@ export default function SignupPage() {
                         if(customerEmailError) setCustomerEmailError("");
                     }} 
                 />
-                {customerEmailError && <p className="text-sm text-destructive">{customerEmailError}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="customer-phone">رقم الهاتف</Label>
@@ -201,7 +209,6 @@ export default function SignupPage() {
                         if(chefEmailError) setChefEmailError("");
                     }} 
                 />
-                {chefEmailError && <p className="text-sm text-destructive">{chefEmailError}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="chef-phone">رقم الهاتف</Label>
