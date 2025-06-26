@@ -12,36 +12,41 @@ import { useAuth } from '@/context/auth-context';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 
 export default function LoginPage() {
   const [customerEmail, setCustomerEmail] = useState('');
   const [customerPassword, setCustomerPassword] = useState('');
-  const [customerEmailError, setCustomerEmailError] = useState('');
   const [chefEmail, setChefEmail] = useState('');
   const [chefPassword, setChefPassword] = useState('');
-  const [chefEmailError, setChefEmailError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const { login } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
 
-  const validateEmail = (email: string): string => {
-    if (!email.trim()) return "البريد الإلكتروني مطلوب.";
-    if (!/^[a-zA-Z]/.test(email)) {
-      return 'البريد الإلكتروني يجب أن يبدأ بحرف.';
-    }
-    if (/[^a-zA-Z0-9@._-]/.test(email)) {
-      return 'البريد الإلكتروني يحتوي على رموز غير مسموح بها.';
-    }
-    const emailRegex = /^[a-zA-Z][a-zA-Z0-9._-]*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (!emailRegex.test(email)) {
-      return 'البريد الإلكتروني غير صحيح. يرجى اتباع الصيغة مثل: example@gmail.com';
-    }
-    return '';
-  };
+    const validateEmail = (email: string): string => {
+        if (!email.trim()) return "البريد الإلكتروني مطلوب.";
+    
+        if (!/^[a-zA-Z]/.test(email)) {
+          return 'يجب أن يبدأ البريد الإلكتروني بحرف.';
+        }
+    
+        if (!email.includes('@')) {
+            return 'البريد الإلكتروني يجب أن يحتوي على علامة "@".';
+        }
+    
+        if (/[^a-zA-Z0-9@._-]/.test(email)) {
+          return 'البريد الإلكتروني يحتوي على رموز غير مسموح بها.';
+        }
+        
+        const emailRegex = /^[a-zA-Z][a-zA-Z0-9._-]*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!emailRegex.test(email)) {
+          return 'صيغة البريد الإلكتروني غير صحيحة. مثال: user@example.com';
+        }
+        
+        return '';
+    };
 
   const handleLogin = async (role: 'customer' | 'chef') => {
     setIsLoading(true);
@@ -49,12 +54,6 @@ export default function LoginPage() {
     const password = role === 'customer' ? customerPassword : chefPassword;
 
     const emailError = validateEmail(email);
-    if (role === 'customer') {
-        setCustomerEmailError(emailError);
-    } else {
-        setChefEmailError(emailError);
-    }
-
     if (emailError) {
         toast({
             variant: "destructive",
@@ -104,12 +103,9 @@ export default function LoginPage() {
                   type="email" 
                   placeholder="jane.doe@example.com" 
                   required 
-                  className={cn("text-right", customerEmailError && "border-destructive")}
+                  className="text-right"
                   value={customerEmail}
-                  onChange={(e) => {
-                      setCustomerEmail(e.target.value);
-                      if (customerEmailError) setCustomerEmailError('');
-                  }}
+                  onChange={(e) => setCustomerEmail(e.target.value)}
                 />
               </div>
               <div className="space-y-2">
@@ -155,12 +151,9 @@ export default function LoginPage() {
                   type="email" 
                   placeholder="chef.antoine@example.com" 
                   required 
-                  className={cn("text-right", chefEmailError && "border-destructive")}
+                  className="text-right"
                   value={chefEmail}
-                  onChange={(e) => {
-                    setChefEmail(e.target.value);
-                    if (chefEmailError) setChefEmailError('');
-                  }}
+                  onChange={(e) => setChefEmail(e.target.value)}
                 />
               </div>
               <div className="space-y-2">

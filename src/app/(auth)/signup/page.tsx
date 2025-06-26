@@ -13,7 +13,6 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import type { User } from '@/lib/types';
-import { cn } from '@/lib/utils';
 
 
 export default function SignupPage() {
@@ -22,14 +21,12 @@ export default function SignupPage() {
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerAddress, setCustomerAddress] = useState('');
   const [customerPassword, setCustomerPassword] = useState('');
-  const [customerEmailError, setCustomerEmailError] = useState('');
 
   const [chefName, setChefName] = useState('');
   const [chefEmail, setChefEmail] = useState('');
   const [chefSpecialty, setChefSpecialty] = useState('');
   const [chefPhone, setChefPhone] = useState('');
   const [chefPassword, setChefPassword] = useState('');
-  const [chefEmailError, setChefEmailError] = useState('');
   
   const [isLoading, setIsLoading] = useState(false);
 
@@ -37,31 +34,36 @@ export default function SignupPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const validateEmail = (email: string): string => {
-    if (!email.trim()) return "البريد الإلكتروني مطلوب.";
-    if (!/^[a-zA-Z]/.test(email)) {
-      return 'البريد الإلكتروني يجب أن يبدأ بحرف.';
-    }
-    if (/[^a-zA-Z0-9@._-]/.test(email)) {
-      return 'البريد الإلكتروني يحتوي على رموز غير مسموح بها.';
-    }
-    const emailRegex = /^[a-zA-Z][a-zA-Z0-9._-]*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (!emailRegex.test(email)) {
-      return 'البريد الإلكتروني غير صحيح. يرجى اتباع الصيغة مثل: example@gmail.com';
-    }
-    return '';
-  };
+    const validateEmail = (email: string): string => {
+        if (!email.trim()) return "البريد الإلكتروني مطلوب.";
+    
+        if (!/^[a-zA-Z]/.test(email)) {
+          return 'يجب أن يبدأ البريد الإلكتروني بحرف.';
+        }
+    
+        if (!email.includes('@')) {
+            return 'البريد الإلكتروني يجب أن يحتوي على علامة "@".';
+        }
+    
+        if (/[^a-zA-Z0-9@._-]/.test(email)) {
+          return 'البريد الإلكتروني يحتوي على رموز غير مسموح بها.';
+        }
+        
+        const emailRegex = /^[a-zA-Z][a-zA-Z0-9._-]*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!emailRegex.test(email)) {
+          return 'صيغة البريد الإلكتروني غير صحيحة. مثال: user@example.com';
+        }
+        
+        return '';
+    };
 
   const handleSignup = async (role: 'customer' | 'chef') => {
     setIsLoading(true);
     let userDetails: Partial<User> & { password: string, role: 'customer' | 'chef' };
     let email: string;
-    let emailError: string;
-
+    
     if (role === 'customer') {
         email = customerEmail;
-        emailError = validateEmail(email);
-        setCustomerEmailError(emailError);
         userDetails = {
             name: customerName,
             email: customerEmail,
@@ -72,8 +74,6 @@ export default function SignupPage() {
         }
     } else {
         email = chefEmail;
-        emailError = validateEmail(email);
-        setChefEmailError(emailError);
         userDetails = {
             name: chefName,
             email: chefEmail,
@@ -83,7 +83,8 @@ export default function SignupPage() {
             role: 'chef'
         }
     }
-
+    
+    const emailError = validateEmail(email);
     if (emailError) {
         toast({
             variant: 'destructive',
@@ -137,12 +138,9 @@ export default function SignupPage() {
                     type="email" 
                     placeholder="m@example.com" 
                     required 
-                    className={cn("text-right", customerEmailError && "border-destructive")} 
+                    className="text-right" 
                     value={customerEmail} 
-                    onChange={(e) => {
-                        setCustomerEmail(e.target.value);
-                        if(customerEmailError) setCustomerEmailError("");
-                    }} 
+                    onChange={(e) => setCustomerEmail(e.target.value)} 
                 />
               </div>
               <div className="space-y-2">
@@ -202,12 +200,9 @@ export default function SignupPage() {
                     type="email" 
                     placeholder="chef@example.com" 
                     required 
-                    className={cn("text-right", chefEmailError && "border-destructive")} 
+                    className="text-right" 
                     value={chefEmail} 
-                    onChange={(e) => {
-                        setChefEmail(e.target.value);
-                        if(chefEmailError) setChefEmailError("");
-                    }} 
+                    onChange={(e) => setChefEmail(e.target.value)} 
                 />
               </div>
               <div className="space-y-2">

@@ -30,7 +30,6 @@ export default function SettingsPage() {
     // Common state
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
-    const [emailError, setEmailError] = useState('');
     const [phone, setPhone] = useState('');
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
@@ -71,16 +70,24 @@ export default function SettingsPage() {
     
     const validateEmail = (email: string): string => {
         if (!email.trim()) return "البريد الإلكتروني مطلوب.";
+    
         if (!/^[a-zA-Z]/.test(email)) {
-          return 'البريد الإلكتروني يجب أن يبدأ بحرف.';
+          return 'يجب أن يبدأ البريد الإلكتروني بحرف.';
         }
+    
+        if (!email.includes('@')) {
+            return 'البريد الإلكتروني يجب أن يحتوي على علامة "@".';
+        }
+    
         if (/[^a-zA-Z0-9@._-]/.test(email)) {
           return 'البريد الإلكتروني يحتوي على رموز غير مسموح بها.';
         }
+        
         const emailRegex = /^[a-zA-Z][a-zA-Z0-9._-]*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         if (!emailRegex.test(email)) {
-          return 'البريد الإلكتروني غير صحيح. يرجى اتباع الصيغة مثل: example@gmail.com';
+          return 'صيغة البريد الإلكتروني غير صحيحة. مثال: user@example.com';
         }
+        
         return '';
     };
 
@@ -97,7 +104,6 @@ export default function SettingsPage() {
 
     const handleSaveChanges = async () => {
         const error = validateEmail(email);
-        setEmailError(error);
         if (error) {
             toast({
                 variant: 'destructive',
@@ -222,11 +228,8 @@ export default function SettingsPage() {
                                     id="email" 
                                     type="email" 
                                     value={email} 
-                                    onChange={(e) => {
-                                        setEmail(e.target.value)
-                                        if(emailError) setEmailError('');
-                                    }} 
-                                    className={cn("text-right", emailError && "border-destructive")} 
+                                    onChange={(e) => setEmail(e.target.value)} 
+                                    className="text-right" 
                                     placeholder="example@email.com" 
                                 />
                             </div>

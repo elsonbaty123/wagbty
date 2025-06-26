@@ -11,11 +11,9 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { isWhitelistedEmail } from '@/lib/whitelisted-emails';
-import { cn } from '@/lib/utils';
 
 export default function ForgotPasswordPage() {
     const [email, setEmail] = useState('');
-    const [emailError, setEmailError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
     const { users } = useAuth();
@@ -23,16 +21,24 @@ export default function ForgotPasswordPage() {
 
     const validateEmail = (email: string): string => {
         if (!email.trim()) return "البريد الإلكتروني مطلوب.";
+    
         if (!/^[a-zA-Z]/.test(email)) {
-          return 'البريد الإلكتروني يجب أن يبدأ بحرف.';
+          return 'يجب أن يبدأ البريد الإلكتروني بحرف.';
         }
+    
+        if (!email.includes('@')) {
+            return 'البريد الإلكتروني يجب أن يحتوي على علامة "@".';
+        }
+    
         if (/[^a-zA-Z0-9@._-]/.test(email)) {
           return 'البريد الإلكتروني يحتوي على رموز غير مسموح بها.';
         }
+        
         const emailRegex = /^[a-zA-Z][a-zA-Z0-9._-]*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         if (!emailRegex.test(email)) {
-          return 'البريد الإلكتروني غير صحيح. يرجى اتباع الصيغة مثل: example@gmail.com';
+          return 'صيغة البريد الإلكتروني غير صحيحة. مثال: user@example.com';
         }
+        
         return '';
     };
 
@@ -40,7 +46,6 @@ export default function ForgotPasswordPage() {
         e.preventDefault();
         
         const error = validateEmail(email);
-        setEmailError(error);
         if (error) {
             toast({
                 variant: 'destructive',
@@ -118,12 +123,9 @@ export default function ForgotPasswordPage() {
                                 type="email"
                                 placeholder="m@example.com"
                                 required
-                                className={cn("text-right", emailError && "border-destructive")}
+                                className="text-right"
                                 value={email}
-                                onChange={(e) => {
-                                    setEmail(e.target.value);
-                                    if (emailError) setEmailError("");
-                                }}
+                                onChange={(e) => setEmail(e.target.value)}
                             />
                         </div>
                         <Button type="submit" disabled={isLoading} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
