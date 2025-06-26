@@ -39,9 +39,9 @@ export default function SignupPage() {
 
   const validateEmail = (email: string): string => {
     if (!email.trim()) return "البريد الإلكتروني مطلوب.";
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[a-zA-Z][^\s@]*@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      return "البريد الإلكتروني غير صالح. يرجى إدخال بريد إلكتروني بصيغة صحيحة مثل: example@email.com";
+      return "البريد الإلكتروني غير صحيح. يجب أن يبدأ بحرف ويتبع الصيغة مثل: example@gmail.com";
     }
     return "";
   };
