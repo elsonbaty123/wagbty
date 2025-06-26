@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createContext, useState, useEffect, useContext, type ReactNode } from 'react';
 import type { User, UserRole } from '@/lib/types';
 import { isWhitelistedEmail } from '@/lib/whitelisted-emails';
-import i18n from '@/i18n';
+import { useTranslation } from 'react-i18next';
 
 type StoredUser = User & { password: string };
 
@@ -29,7 +29,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [allUsers, setAllUsers] = useState<StoredUser[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const t = i18n.t;
+  const { t } = useTranslation();
 
   useEffect(() => {
     try {
@@ -112,7 +112,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         phone: details.phone,
         address: details.role === 'customer' ? details.address : undefined,
         specialty: details.specialty,
-        bio: details.role === 'chef' ? `New chef excited to share their creations in ${details.specialty} cuisine.` : undefined,
+        bio: t('new_chef_bio', { specialty: details.specialty }),
         imageUrl: details.role === 'chef' ? `https://placehold.co/400x400.png` : `https://placehold.co/100x100.png`,
         rating: details.role === 'chef' ? 4.5 : undefined,
         availabilityStatus: details.role === 'chef' ? 'available' : undefined,

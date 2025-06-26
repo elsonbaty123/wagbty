@@ -4,7 +4,7 @@
 import { createContext, useState, useEffect, useContext, type ReactNode } from 'react';
 import type { Order, Dish, DishRating, Coupon, User } from '@/lib/types';
 import { useNotifications } from './notification-context';
-import i18n from '@/i18n';
+import { useTranslation } from 'react-i18next';
 
 type OrderStatus = Order['status'];
 type CreateOrderPayload = Omit<Order, 'id' | 'status' | 'createdAt' | 'chef'> & {
@@ -38,7 +38,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(true);
   const { createNotification } = useNotifications();
-  const t = i18n.t;
+  const { t } = useTranslation();
 
   useEffect(() => {
     try {
