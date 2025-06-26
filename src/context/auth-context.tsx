@@ -4,7 +4,7 @@
 import { useRouter } from 'next/navigation';
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import type { User, UserRole } from '@/lib/types';
-import { isDisposableEmail } from '@/lib/disposable-emails';
+import { isWhitelistedEmail } from '@/lib/whitelisted-emails';
 
 type StoredUser = User & { password: string };
 
@@ -74,8 +74,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }
 
   const login = async (email: string, password: string, role: UserRole): Promise<User> => {
-    if (isDisposableEmail(email)) {
-      throw new Error('يرجى استخدام بريد إلكتروني رسمي وموثوق. لا يُسمح باستخدام الإيميلات المؤقتة.');
+    if (!isWhitelistedEmail(email)) {
+      throw new Error('هذا البريد غير مسموح به. الرجاء استخدام بريد إلكتروني رسمي مثل Gmail أو Outlook.');
     }
 
     const potentialUser = allUsers.find(
@@ -92,11 +92,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signup = async (details: Partial<User> & { password: string, role: UserRole }): Promise<User> => {
-    if (isDisposableEmail(details.email!)) {
-      throw new Error('يرجى استخدام بريد إلكتروني رسمي وموثوق. لا يُسمح باستخدام الإيميلات المؤقتة.');
+    if (!isWhitelistedEmail(details.email!)) {
+      throw new Error('هذا البريد غير مسموح به. الرجاء استخدام بريد إلكتروني رسمي مثل Gmail أو Outlook.');
     }
 
-    if (allUsers.some(u => u.email.toLowerCase() === details.email.toLowerCase())) {
+    if (allUsers.some(u => u.email.toLowerCase() === details.email!.toLowerCase())) {
       throw new Error('هذا البريد الإلكتروني مستخدم بالفعل.');
     }
     
@@ -128,6 +128,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   
   const updateUser = async (updatedUserDetails: Partial<User>): Promise<User> => {
     if (!user) throw new Error("يجب تسجيل الدخول لتحديث الملف الشخصي.");
+
+    if (updatedUserDetails.email && !isWhitelistedEmail(updatedUserDetails.email)) {
+        throw new Error('هذا البريد غير مسموح به. الرجاء استخدام بريد إلكتروني رسمي مثل Gmail أو Outlook.');
+    }
 
     let userToUpdate: StoredUser | undefined;
 
@@ -173,6 +177,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
   
   const resetPassword = async (email: string, newPassword: string) => {
+    if (!isWhitelistedEmail(email)) {
+      throw new Error("هذا البريد غير مسموح به. الرجاء استخدام بريد إلكتروني رسمي مثل Gmail أو Outlook.");
+    }
+
     validatePassword(newPassword);
     
     const userIndex = allUsers.findIndex(u => u.email.toLowerCase() === email.toLowerCase());
