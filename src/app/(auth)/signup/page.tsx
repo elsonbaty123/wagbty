@@ -46,7 +46,7 @@ export default function SignupPage() {
         }
     
         if (/[^a-zA-Z0-9@._-]/.test(email)) {
-          return 'البريد الإلكتروني يحتوي على رموز غير مسموح بها.';
+          return 'البريد الإلكتروني يحتوي على رموز غير مسموح بها. الرجاء إزالة أي رموز خاصة أو مسافات.';
         }
         
         const emailRegex = /^[a-zA-Z][a-zA-Z0-9._-]*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
