@@ -12,6 +12,7 @@ import { DishForm } from '@/components/dish-form';
 import type { Dish } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useTranslation } from 'react-i18next';
+import { DishManagementCard } from '@/components/dish-management-card';
 
 export default function ChefMenuPage() {
     const { t } = useTranslation();
