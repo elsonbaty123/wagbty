@@ -1,4 +1,4 @@
-
+'use client';
 import Link from "next/link"
 import { UtensilsCrossed } from "lucide-react"
 import { useTranslation } from "react-i18next";
