@@ -11,17 +11,34 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { isWhitelistedEmail } from '@/lib/whitelisted-emails';
+import { cn } from '@/lib/utils';
 
 export default function ForgotPasswordPage() {
     const [email, setEmail] = useState('');
+    const [emailError, setEmailError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
     const { users } = useAuth();
     const { toast } = useToast();
 
+    const validateEmail = (email: string): string => {
+        if (!email.trim()) return "البريد الإلكتروني مطلوب.";
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          return "البريد الإلكتروني غير صالح. يرجى إدخال بريد إلكتروني بصيغة صحيحة مثل: example@email.com";
+        }
+        return "";
+    };
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         
+        const error = validateEmail(email);
+        setEmailError(error);
+        if (error) {
+            return;
+        }
+
         if (!isWhitelistedEmail(email)) {
             toast({
                 variant: 'destructive',
@@ -90,10 +107,14 @@ export default function ForgotPasswordPage() {
                                 type="email"
                                 placeholder="m@example.com"
                                 required
-                                className="text-right"
+                                className={cn("text-right", emailError && "border-destructive")}
                                 value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                onChange={(e) => {
+                                    setEmail(e.target.value);
+                                    if (emailError) setEmailError("");
+                                }}
                             />
+                             {emailError && <p className="text-sm text-destructive">{emailError}</p>}
                         </div>
                         <Button type="submit" disabled={isLoading} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
                             {isLoading && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}

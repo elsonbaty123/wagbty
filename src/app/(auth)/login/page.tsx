@@ -12,23 +12,47 @@ import { useAuth } from '@/context/auth-context';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 
 export default function LoginPage() {
   const [customerEmail, setCustomerEmail] = useState('');
   const [customerPassword, setCustomerPassword] = useState('');
+  const [customerEmailError, setCustomerEmailError] = useState('');
   const [chefEmail, setChefEmail] = useState('');
   const [chefPassword, setChefPassword] = useState('');
+  const [chefEmailError, setChefEmailError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const { login } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
 
+  const validateEmail = (email: string): string => {
+    if (!email.trim()) return "البريد الإلكتروني مطلوب.";
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return "البريد الإلكتروني غير صالح. يرجى إدخال بريد إلكتروني بصيغة صحيحة مثل: example@email.com";
+    }
+    return "";
+  };
+
   const handleLogin = async (role: 'customer' | 'chef') => {
     setIsLoading(true);
     const email = role === 'customer' ? customerEmail : chefEmail;
     const password = role === 'customer' ? customerPassword : chefPassword;
+
+    const emailError = validateEmail(email);
+    if (role === 'customer') {
+        setCustomerEmailError(emailError);
+    } else {
+        setChefEmailError(emailError);
+    }
+
+    if (emailError) {
+        setIsLoading(false);
+        return;
+    }
 
     try {
       const loggedInUser = await login(email, password, role);
@@ -69,10 +93,14 @@ export default function LoginPage() {
                   type="email" 
                   placeholder="jane.doe@example.com" 
                   required 
-                  className="text-right" 
+                  className={cn("text-right", customerEmailError && "border-destructive")}
                   value={customerEmail}
-                  onChange={(e) => setCustomerEmail(e.target.value)}
+                  onChange={(e) => {
+                      setCustomerEmail(e.target.value);
+                      if (customerEmailError) setCustomerEmailError('');
+                  }}
                 />
+                {customerEmailError && <p className="text-sm text-destructive">{customerEmailError}</p>}
               </div>
               <div className="space-y-2">
                   <div className="flex items-center justify-between">
@@ -117,10 +145,14 @@ export default function LoginPage() {
                   type="email" 
                   placeholder="chef.antoine@example.com" 
                   required 
-                  className="text-right" 
+                  className={cn("text-right", chefEmailError && "border-destructive")}
                   value={chefEmail}
-                  onChange={(e) => setChefEmail(e.target.value)}
+                  onChange={(e) => {
+                    setChefEmail(e.target.value);
+                    if (chefEmailError) setChefEmailError('');
+                  }}
                 />
+                {chefEmailError && <p className="text-sm text-destructive">{chefEmailError}</p>}
               </div>
               <div className="space-y-2">
                   <div className="flex items-center justify-between">

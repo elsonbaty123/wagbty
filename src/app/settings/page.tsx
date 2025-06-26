@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -29,6 +30,7 @@ export default function SettingsPage() {
     // Common state
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
+    const [emailError, setEmailError] = useState('');
     const [phone, setPhone] = useState('');
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
@@ -67,6 +69,15 @@ export default function SettingsPage() {
         );
     }
     
+    const validateEmail = (email: string): string => {
+        if (!email.trim()) return "البريد الإلكتروني مطلوب.";
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          return "البريد الإلكتروني غير صالح. يرجى إدخال بريد إلكتروني بصيغة صحيحة مثل: example@email.com";
+        }
+        return "";
+    };
+
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
@@ -79,6 +90,12 @@ export default function SettingsPage() {
     };
 
     const handleSaveChanges = async () => {
+        const error = validateEmail(email);
+        setEmailError(error);
+        if (error) {
+            return;
+        }
+
         setIsSaving(true);
         try {
             const userDetails: Partial<User> = { name, email, phone, imageUrl: imagePreview };
@@ -190,7 +207,18 @@ export default function SettingsPage() {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="email">البريد الإلكتروني</Label>
-                                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="text-right" placeholder="example@email.com" />
+                                <Input 
+                                    id="email" 
+                                    type="email" 
+                                    value={email} 
+                                    onChange={(e) => {
+                                        setEmail(e.target.value)
+                                        if(emailError) setEmailError('');
+                                    }} 
+                                    className={cn("text-right", emailError && "border-destructive")} 
+                                    placeholder="example@email.com" 
+                                />
+                                {emailError && <p className="text-sm text-destructive">{emailError}</p>}
                             </div>
                         </div>
                         <div className="space-y-2">
