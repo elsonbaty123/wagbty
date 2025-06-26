@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { cn } from '@/lib/utils';
@@ -11,8 +12,11 @@ import { ThemeProvider } from '@/components/theme-provider';
 import I18nProvider from './i18n-provider';
 
 export const metadata: Metadata = {
-  title: 'اكل بيتي',
-  description: 'اكتشف أفضل الأكل البيتي المعد خصيصًا لك.',
+  title: {
+    default: "ChefConnect",
+    template: `%s | ChefConnect`,
+  },
+  description: "Discover the best homemade food prepared just for you.",
 };
 
 export default function RootLayout({
@@ -21,11 +25,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ar" dir="rtl" suppressHydrationWarning>
+    <html lang="en" dir="ltr" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Alegreya:wght@400;700&family=Belleza&display=swap" rel="stylesheet" />
       </head>
       <body
         className={cn(

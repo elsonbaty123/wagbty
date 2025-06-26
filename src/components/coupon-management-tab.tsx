@@ -11,8 +11,10 @@ import { PlusCircle, Tag } from 'lucide-react';
 import type { Coupon } from '@/lib/types';
 import { CouponCard } from './coupon-card';
 import { CouponForm } from './coupon-form';
+import { useTranslation } from 'react-i18next';
 
 export function CouponManagementTab() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { getCouponsByChefId } = useOrders();
   const [isCouponDialogOpen, setCouponDialogOpen] = useState(false);
@@ -33,14 +35,14 @@ export function CouponManagementTab() {
         <CardHeader>
           <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
             <div>
-              <CardTitle>إدارة قسائم الخصم</CardTitle>
+              <CardTitle>{t('coupon_management')}</CardTitle>
               <CardDescription>
-                أنشئ قسائم ترويجية لجذب المزيد من العملاء لوجباتك.
+                {t('coupon_management_desc')}
               </CardDescription>
             </div>
             <Button onClick={() => handleOpenDialog(null)}>
-              <PlusCircle className="ml-2 h-4 w-4" />
-              إنشاء قسيمة جديدة
+              <PlusCircle className="me-2 h-4 w-4" />
+              {t('create_new_coupon')}
             </Button>
           </div>
         </CardHeader>
@@ -58,13 +60,13 @@ export function CouponManagementTab() {
           ) : (
             <div className="text-center py-24 border-2 border-dashed rounded-lg">
                 <Tag className="mx-auto h-16 w-16 text-muted-foreground" />
-                <h3 className="mt-4 text-xl font-medium">لا توجد قسائم</h3>
+                <h3 className="mt-4 text-xl font-medium">{t('no_coupons')}</h3>
                 <p className="mt-2 text-md text-muted-foreground">
-                    ابدأ بإنشاء قسيمتك الأولى لتقديم خصومات لعملائك!
+                    {t('no_coupons_desc')}
                 </p>
                 <Button onClick={() => handleOpenDialog(null)} className="mt-6">
-                    <PlusCircle className="ml-2 h-4 w-4" />
-                    إنشاء القسيمة الأولى
+                    <PlusCircle className="me-2 h-4 w-4" />
+                    {t('create_first_coupon')}
                 </Button>
             </div>
           )}

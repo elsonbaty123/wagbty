@@ -11,8 +11,10 @@ import { useAuth } from '@/context/auth-context';
 import { useOrders } from '@/context/order-context';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Utensils } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function ProfilePage() {
+    const { t } = useTranslation();
     const { user, loading } = useAuth();
     const { getOrdersByCustomerId, addReviewToOrder } = useOrders();
     const router = useRouter();
@@ -43,18 +45,18 @@ export default function ProfilePage() {
     const completedOrders = myOrders.filter(o => o.status === 'تم التوصيل' || o.status === 'مرفوض');
 
   return (
-    <div className="container mx-auto px-4 py-8 md:px-6 md:py-12 text-right">
-      <h1 className="font-headline text-3xl md:text-4xl font-bold text-primary mb-8">طلباتي</h1>
+    <div className="container mx-auto px-4 py-8 md:px-6 md:py-12">
+      <h1 className="font-headline text-3xl md:text-4xl font-bold text-primary mb-8">{t('my_orders')}</h1>
         <Tabs defaultValue="ongoing" className="w-full mt-4">
                 <TabsList className="grid w-full grid-cols-2 max-w-md">
-                <TabsTrigger value="ongoing">طلبات جارية</TabsTrigger>
-                <TabsTrigger value="completed">طلبات مكتملة</TabsTrigger>
+                <TabsTrigger value="ongoing">{t('ongoing_orders')}</TabsTrigger>
+                <TabsTrigger value="completed">{t('completed_orders')}</TabsTrigger>
             </TabsList>
             <TabsContent value="ongoing">
                 <Card>
                     <CardHeader>
-                        <CardTitle>الطلبات الجارية</CardTitle>
-                        <CardDescription>تتبع طلباتك الحالية.</CardDescription>
+                        <CardTitle>{t('ongoing_orders')}</CardTitle>
+                        <CardDescription>{t('track_your_current_orders')}</CardDescription>
                     </CardHeader>
                     <CardContent>
                             {ongoingOrders.length > 0 ? (
@@ -64,7 +66,7 @@ export default function ProfilePage() {
                             ))}
                             </div>
                         ) : (
-                            <p className="text-muted-foreground py-8 text-center">لا توجد طلبات جارية حاليًا.</p>
+                            <p className="text-muted-foreground py-8 text-center">{t('no_ongoing_orders')}</p>
                         )}
                     </CardContent>
                 </Card>
@@ -72,8 +74,8 @@ export default function ProfilePage() {
             <TabsContent value="completed">
                 <Card>
                     <CardHeader>
-                        <CardTitle>الطلبات المكتملة</CardTitle>
-                        <CardDescription>عرض سجل طلباتك السابقة وتقييمها.</CardDescription>
+                        <CardTitle>{t('completed_orders')}</CardTitle>
+                        <CardDescription>{t('view_past_orders')}</CardDescription>
                     </CardHeader>
                     <CardContent>
                         {completedOrders.length > 0 ? (
@@ -85,12 +87,12 @@ export default function ProfilePage() {
                         ) : (
                             <div className="text-center py-16">
                                 <Utensils className="mx-auto h-12 w-12 text-muted-foreground" />
-                                <h3 className="mt-4 text-lg font-medium">لا توجد طلبات بعد</h3>
+                                <h3 className="mt-4 text-lg font-medium">{t('no_orders_yet')}</h3>
                                 <p className="mt-2 text-sm text-muted-foreground">
-                                    يبدو أنك لم تقم بأي طلب بعد. تصفح الأطباق وابدأ الطلب!
+                                    {t('no_orders_yet_desc')}
                                 </p>
                                 <Button asChild className="mt-6">
-                                    <a href="/">تصفح الأطباق</a>
+                                    <a href="/">{t('browse_dishes')}</a>
                                 </Button>
                             </div>
                         )}

@@ -118,8 +118,8 @@ export default function SignupPage() {
   return (
     <Tabs defaultValue="customer" className="w-full max-w-md">
       <TabsList className="grid w-full grid-cols-2">
-        <TabsTrigger value="customer">{t('i_am_a_customer', 'أنا عميل')}</TabsTrigger>
-        <TabsTrigger value="chef">{t('i_am_a_chef', 'أنا طاهٍ')}</TabsTrigger>
+        <TabsTrigger value="customer">{t('i_am_a_customer')}</TabsTrigger>
+        <TabsTrigger value="chef">{t('i_am_a_chef')}</TabsTrigger>
       </TabsList>
       <TabsContent value="customer">
         <Card>
@@ -131,7 +131,7 @@ export default function SignupPage() {
             <form onSubmit={(e) => {e.preventDefault(); handleSignup('customer')}} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="customer-name">{t('full_name')}</Label>
-                <Input id="customer-name" required value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder={t('full_name_placeholder', 'مثال: أحمد محمد')} />
+                <Input id="customer-name" required value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder={t('full_name_placeholder')} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="customer-email">{t('email')}</Label>
@@ -150,7 +150,7 @@ export default function SignupPage() {
               </div>
               <div className="space-y-2">
                   <Label htmlFor="customer-address">{t('address')}</Label>
-                  <Input id="customer-address" placeholder={t('address_placeholder_customer', '456 شارع الجزيرة، الزمالك')} required value={customerAddress} onChange={(e) => setCustomerAddress(e.target.value)} />
+                  <Input id="customer-address" placeholder={t('address_placeholder_customer')} required value={customerAddress} onChange={(e) => setCustomerAddress(e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="customer-password">{t('password')}</Label>
@@ -187,11 +187,11 @@ export default function SignupPage() {
             <form onSubmit={(e) => {e.preventDefault(); handleSignup('chef')}} className="space-y-4">
                <div className="space-y-2">
                 <Label htmlFor="chef-name">{t('full_name')}</Label>
-                <Input id="chef-name" required value={chefName} onChange={(e) => setChefName(e.target.value)} placeholder={t('full_name_placeholder_chef', 'مثال: الشيف أنطوان')}/>
+                <Input id="chef-name" required value={chefName} onChange={(e) => setChefName(e.target.value)} placeholder={t('full_name_placeholder_chef')}/>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="chef-specialty">{t('kitchen_specialty')}</Label>
-                <Input id="chef-specialty" placeholder={t('kitchen_specialty_placeholder', 'مثال: فرنسي، إيطالي، نباتي')} required value={chefSpecialty} onChange={(e) => setChefSpecialty(e.target.value)} />
+                <Input id="chef-specialty" placeholder={t('kitchen_specialty_placeholder')} required value={chefSpecialty} onChange={(e) => setChefSpecialty(e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="chef-email">{t('email')}</Label>

@@ -32,6 +32,7 @@ import type { Dish, DishStatus } from '@/lib/types';
 import { useOrders } from '@/context/order-context';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface DishManagementCardProps {
   dish: Dish;
@@ -39,36 +40,35 @@ interface DishManagementCardProps {
 }
 
 export function DishManagementCard({ dish, onEdit }: DishManagementCardProps) {
+    const { t } = useTranslation();
     const { updateDish, deleteDish } = useOrders();
     const { toast } = useToast();
 
     const handleStatusChange = (newStatus: DishStatus) => {
         updateDish({ ...dish, status: newStatus });
-        toast({ title: 'تم تحديث حالة الطبق' });
+        toast({ title: t('dish_status_updated') });
     };
 
     const handleDelete = () => {
         deleteDish(dish.id);
-        toast({ title: 'تم حذف الطبق بنجاح', variant: 'destructive' });
+        toast({ title: t('dish_deleted_toast'), variant: 'destructive' });
     };
-    
-    const getStatusBadgeVariant = (status: DishStatus) => {
-        switch (status) {
-            case 'متوفرة': return 'default';
-            case 'غير متوفرة': return 'secondary';
-            case 'مخفية': return 'outline';
-            default: return 'default';
-        }
+
+    const statusMap: Record<DishStatus, { labelKey: string, variant: "default" | "secondary" | "outline" | "destructive" | null | undefined }> = {
+      'متوفرة': { labelKey: 'dish_status_available', variant: 'default' },
+      'غير متوفرة': { labelKey: 'dish_status_unavailable', variant: 'secondary' },
+      'مخفية': { labelKey: 'dish_status_hidden', variant: 'outline' },
     };
     
     const isHidden = dish.status === 'مخفية';
+    const currentStatus = statusMap[dish.status];
 
     return (
         <AlertDialog>
             <Card className={cn("flex flex-col transition-opacity", isHidden && 'opacity-60')}>
                 <CardHeader className="p-0 relative">
                     <Image src={dish.imageUrl} alt={dish.name} width={400} height={225} className="aspect-video w-full rounded-t-lg object-cover" data-ai-hint="plated food" />
-                    <div className="absolute top-2 left-2">
+                    <div className="absolute top-2 start-2">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full bg-black/50 hover:bg-black/75 text-white">
@@ -77,61 +77,61 @@ export function DishManagementCard({ dish, onEdit }: DishManagementCardProps) {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                                 <DropdownMenuItem onClick={onEdit}>
-                                    <Edit className="ml-2 h-4 w-4" />
-                                    <span>تعديل</span>
+                                    <span>{t('edit')}</span>
+                                    <Edit className="me-2 h-4 w-4" />
                                 </DropdownMenuItem>
                                 <AlertDialogTrigger asChild>
                                     <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
-                                        <Trash2 className="ml-2 h-4 w-4" />
-                                        <span>حذف</span>
+                                        <span>{t('delete')}</span>
+                                        <Trash2 className="me-2 h-4 w-4" />
                                     </DropdownMenuItem>
                                 </AlertDialogTrigger>
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
-                    <Badge variant={getStatusBadgeVariant(dish.status)} className="absolute top-2 right-2">{dish.status}</Badge>
+                    <Badge variant={currentStatus.variant} className="absolute top-2 end-2">{t(currentStatus.labelKey)}</Badge>
                 </CardHeader>
                 <CardContent className="p-4 flex-grow">
                     <CardTitle>{dish.name}</CardTitle>
-                    <p className="text-lg font-bold text-primary mt-1">{dish.price.toFixed(2)} جنيه</p>
+                    <p className="text-lg font-bold text-primary mt-1">{dish.price.toFixed(2)} {t('currency_egp')}</p>
                     <div className="text-sm text-muted-foreground mt-2 space-y-1">
-                        <p><strong>التصنيف:</strong> {dish.category}</p>
-                        <p><strong>وقت التحضير:</strong> {dish.prepTime} دقيقة</p>
+                        <p><strong>{t('category')}:</strong> {dish.category}</p>
+                        <p><strong>{t('prep_time_minutes')}:</strong> {dish.prepTime}</p>
                     </div>
                 </CardContent>
                 <CardFooter className="p-4">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="outline" className="w-full">تغيير الحالة</Button>
+                            <Button variant="outline" className="w-full">{t('change_status')}</Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="center" className="w-56 text-right">
+                        <DropdownMenuContent align="center" className="w-56">
                             <DropdownMenuItem onClick={() => handleStatusChange('متوفرة')}>
-                                <CheckCircle className="ml-2 h-4 w-4 text-green-500" />
-                                <span>متوفرة</span>
+                                <span>{t('dish_status_available')}</span>
+                                <CheckCircle className="me-2 h-4 w-4 text-green-500" />
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleStatusChange('غير متوفرة')}>
-                                <Eye className="ml-2 h-4 w-4 text-orange-500" />
-                                <span>غير متوفرة مؤقتاً</span>
+                                <span>{t('status_temporarily_unavailable')}</span>
+                                <Eye className="me-2 h-4 w-4 text-orange-500" />
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleStatusChange('مخفية')}>
-                                <EyeOff className="ml-2 h-4 w-4 text-gray-500" />
-                                <span>مخفية (إيقاف)</span>
+                                <span>{t('status_hidden_disabled')}</span>
+                                <EyeOff className="me-2 h-4 w-4 text-gray-500" />
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </CardFooter>
             </Card>
 
-            <AlertDialogContent className="text-right">
+            <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>هل أنت متأكد تماماً؟</AlertDialogTitle>
+                    <AlertDialogTitle>{t('are_you_sure')}</AlertDialogTitle>
                     <AlertDialogDescription>
-                        هذا الإجراء لا يمكن التراجع عنه. سيؤدي هذا إلى حذف طبق "{dish.name}" نهائياً.
+                        {t('delete_dish_warning', { name: dish.name })}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">حذف</AlertDialogAction>
-                    <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                    <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">{t('delete')}</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>

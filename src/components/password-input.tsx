@@ -6,20 +6,22 @@ import { Eye, EyeOff, CheckCircle2, XCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface PasswordInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   showStrength?: boolean;
 }
 
 const PasswordRequirement = ({ label, met }: { label: string; met: boolean }) => (
-    <div className={cn("flex items-center gap-2 justify-end", met ? "text-primary" : "text-muted-foreground")}>
-      <span>{label}</span>
+    <div className={cn("flex items-center gap-2 justify-start", met ? "text-primary" : "text-muted-foreground")}>
       {met ? <CheckCircle2 className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
+      <span>{label}</span>
     </div>
   );
 
 const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
   ({ className, showStrength = false, value, ...props }, ref) => {
+    const { t } = useTranslation();
     const [showPassword, setShowPassword] = React.useState(false);
     const [strength, setStrength] = React.useState(0);
     const [strengthLabel, setStrengthLabel] = React.useState('');
@@ -60,14 +62,14 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
         setStrength((score / 5) * 100);
 
         if (score <= 2) {
-            setStrengthLabel('ضعيفة');
+            setStrengthLabel(t('password_strength_weak'));
         } else if (score <= 4) {
-            setStrengthLabel('متوسطة');
+            setStrengthLabel(t('password_strength_medium'));
         } else {
-            setStrengthLabel('قوية');
+            setStrengthLabel(t('password_strength_strong'));
         }
 
-    }, [value]);
+    }, [value, t]);
 
 
     return (
@@ -75,7 +77,7 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
         <div className="relative">
           <Input
             type={showPassword ? 'text' : 'password'}
-            className={cn('pl-10', className)}
+            className={cn('pe-10', className)}
             value={value}
             ref={ref}
             {...props}
@@ -83,8 +85,8 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
           <button
             type="button"
             onClick={() => setShowPassword((prev) => !prev)}
-            className="absolute inset-y-0 left-0 flex items-center px-3 text-muted-foreground"
-            aria-label={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+            className="absolute inset-y-0 end-0 flex items-center px-3 text-muted-foreground"
+            aria-label={showPassword ? t('hide_password') : t('show_password')}
           >
             {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
           </button>
@@ -92,15 +94,15 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
         {showStrength && String(value || '').length > 0 && (
           <div className="space-y-2">
             <div className="flex items-center gap-2" dir="ltr">
+             <span className="text-xs text-muted-foreground min-w-[50px] text-start">{strengthLabel}</span>
              <Progress value={strength} className="h-2 w-full" />
-             <span className="text-xs text-muted-foreground min-w-[50px] text-right">{strengthLabel}</span>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-xs text-right">
-                <PasswordRequirement label="٨ أحرف على الأقل" met={checks.length} />
-                <PasswordRequirement label="حرف كبير" met={checks.uppercase} />
-                <PasswordRequirement label="حرف صغير" met={checks.lowercase} />
-                <PasswordRequirement label="رقم" met={checks.number} />
-                <PasswordRequirement label="رمز" met={checks.symbol} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                <PasswordRequirement label={t('password_req_length')} met={checks.length} />
+                <PasswordRequirement label={t('password_req_uppercase')} met={checks.uppercase} />
+                <PasswordRequirement label={t('password_req_lowercase')} met={checks.lowercase} />
+                <PasswordRequirement label={t('password_req_number')} met={checks.number} />
+                <PasswordRequirement label={t('password_req_symbol')} met={checks.symbol} />
             </div>
           </div>
         )}

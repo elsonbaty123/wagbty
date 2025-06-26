@@ -18,6 +18,7 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Textarea } from './ui/textarea';
 import { Separator } from './ui/separator';
+import { useTranslation } from 'react-i18next';
 
 interface OrderCardProps {
   order: Order;
@@ -27,17 +28,28 @@ interface OrderCardProps {
 }
 
 export function OrderCard({ order, isChefView = false, updateOrderStatus, addReview }: OrderCardProps) {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [rating, setRating] = useState(order.rating || 0);
   const [hoverRating, setHoverRating] = useState(0);
   const [reviewText, setReviewText] = useState(order.review || '');
 
+  const statusMap: Record<OrderStatus, { labelKey: string, variant: "default" | "secondary" | "outline" | "destructive" | null | undefined, icon?: React.ReactNode }> = {
+    'جارٍ المراجعة': { labelKey: 'order_status_pending_review', variant: 'secondary' },
+    'قيد التحضير': { labelKey: 'order_status_preparing', variant: 'default' },
+    'جاهز للتوصيل': { labelKey: 'order_status_ready_for_delivery', variant: 'default' },
+    'تم التوصيل': { labelKey: 'order_status_delivered', variant: 'outline' },
+    'مرفوض': { labelKey: 'order_status_rejected', variant: 'destructive' },
+    'بانتظار توفر الطاهي': { labelKey: 'order_status_waiting_for_chef', variant: 'secondary', icon: <Clock className="me-2 h-4 w-4" /> },
+  };
+
   const handleStatusChange = (status: OrderStatus) => {
     if (updateOrderStatus) {
+      const translatedStatus = t(statusMap[status].labelKey);
       updateOrderStatus(order.id, status);
       toast({
-        title: 'تم تحديث حالة الطلب',
-        description: `تم تحديث الطلب #${order.id.slice(-4)} إلى "${status}".`,
+        title: t('order_status_updated_toast'),
+        description: t('order_status_updated_toast_desc', { id: order.id.slice(-4), status: translatedStatus }),
       });
     }
   };
@@ -45,50 +57,25 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
   const handleSubmitReview = () => {
     if (rating > 0 && addReview) {
       addReview(order.id, rating, reviewText);
-      toast({ title: 'شكرًا لتقييمك!', description: 'تم إرسال تقييمك بنجاح.' });
+      toast({ title: t('review_submitted_toast'), description: t('review_submitted_toast_desc') });
     }
   };
 
-  const getStatusVariant = (status: OrderStatus) => {
-    switch (status) {
-      case 'قيد التحضير':
-        return 'default';
-      case 'جاهز للتوصيل':
-        return 'default';
-      case 'جارٍ المراجعة':
-        return 'secondary';
-      case 'بانتظار توفر الطاهي':
-        return 'secondary';
-      case 'مرفوض':
-        return 'destructive';
-      case 'تم التوصيل':
-        return 'outline';
-      default:
-        return 'default';
-    }
-  };
-  
-  const getStatusIcon = (status: OrderStatus) => {
-      if (status === 'بانتظار توفر الطاهي') {
-          return <Clock className="h-4 w-4 ml-2" />;
-      }
-      return null;
-  }
-
+  const currentStatus = statusMap[order.status];
   const isCustomerView = !isChefView;
 
   return (
-    <Card className="text-right flex flex-col">
+    <Card className="flex flex-col">
       <CardHeader>
         <div className="flex justify-between items-start">
+          <Badge variant={currentStatus.variant} className="flex items-center">
+            {currentStatus.icon}
+            {t(currentStatus.labelKey)}
+          </Badge>
           <div>
             <CardTitle className="font-headline text-xl">{order.dish.name}</CardTitle>
-            <CardDescription>طلب #{order.id.slice(-6)}</CardDescription>
+            <CardDescription>{t('order_#', { id: order.id.slice(-6) })}</CardDescription>
           </div>
-          <Badge variant={getStatusVariant(order.status)} className="flex items-center">
-            {getStatusIcon(order.status)}
-            {order.status}
-          </Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-3 flex-grow">
@@ -108,40 +95,40 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
             </div>
           </>
         ) : (
-            <div className="flex items-center gap-2 justify-end">
-                <span className="font-medium">الشيف: {order.chef.name}</span>
+            <div className="flex items-center gap-2 justify-start">
                 <User className="w-4 h-4 text-muted-foreground" />
+                <span className="font-medium">{t('chef:')} {order.chef.name}</span>
             </div>
         )}
         <Separator />
         <div className="pt-3 space-y-2 text-sm">
             <div className="flex items-center justify-between">
-                <span>الكمية:</span>
                 <span>{order.quantity}</span>
+                <span>{t('quantity:')}</span>
             </div>
              <div className="flex items-center justify-between">
-                <span>المجموع الفرعي:</span>
-                <span>{order.subtotal.toFixed(2)} جنيه</span>
+                <span>{order.subtotal.toFixed(2)} {t('currency_egp')}</span>
+                <span>{t('subtotal:')}</span>
             </div>
             {order.discount > 0 && (
                  <div className="flex items-center justify-between text-green-600">
-                    <span className="flex items-center gap-1"><Tag className="h-4 w-4" />الخصم:</span>
-                    <span>- {order.discount.toFixed(2)} جنيه</span>
+                    <span>- {order.discount.toFixed(2)} {t('currency_egp')}</span>
+                    <span className="flex items-center gap-1">{t('discount:')}<Tag className="h-4 w-4" /></span>
                 </div>
             )}
              <div className="flex items-center justify-between">
-                <span>رسوم التوصيل:</span>
-                <span>{order.deliveryFee.toFixed(2)} جنيه</span>
+                <span>{order.deliveryFee.toFixed(2)} {t('currency_egp')}</span>
+                <span>{t('delivery_fee:')}</span>
             </div>
              <div className="flex items-center justify-between font-bold text-base border-t pt-2 mt-2">
-                <span className="text-primary">الإجمالي:</span>
-                <span className="text-primary">{order.total.toFixed(2)} جنيه</span>
+                <span className="text-primary">{order.total.toFixed(2)} {t('currency_egp')}</span>
+                <span className="text-primary">{t('total:')}</span>
             </div>
         </div>
       </CardContent>
       {isCustomerView && order.status === 'تم التوصيل' && !order.rating && addReview && (
         <CardFooter className="flex-col items-start gap-2 border-t pt-4">
-            <h4 className="font-medium">تقييم الطلب</h4>
+            <h4 className="font-medium">{t('rate_order')}</h4>
             <div className="flex items-center gap-1" dir="ltr">
                 {[1, 2, 3, 4, 5].map((star) => (
                     <Star
@@ -157,23 +144,22 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
                 ))}
             </div>
             <Textarea
-                placeholder="أخبرنا عن رأيك في الوجبة..."
+                placeholder={t('rate_order_placeholder')}
                 value={reviewText}
                 onChange={(e) => setReviewText(e.target.value)}
-                className="text-right"
             />
-            <Button onClick={handleSubmitReview} disabled={rating === 0} size="sm">إرسال التقييم</Button>
+            <Button onClick={handleSubmitReview} disabled={rating === 0} size="sm">{t('submit_review')}</Button>
         </CardFooter>
       )}
        {isCustomerView && order.rating && (
         <CardFooter className="border-t pt-4">
             <div className="flex items-center gap-2">
-                 <span className="text-sm text-muted-foreground">تقييمك:</span>
                  <div className="flex items-center gap-0.5" dir="ltr">
                     {[...Array(5)].map((_, i) => (
                         <Star key={i} className={cn("h-4 w-4", i < order.rating! ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground")} />
                     ))}
                  </div>
+                 <span className="text-sm text-muted-foreground">{t('your_rating:')}</span>
             </div>
         </CardFooter>
       )}
@@ -182,29 +168,29 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="w-full">
-                تحديث حالة الطلب
-                <ChevronDown className="mr-2 h-4 w-4" />
+                <ChevronDown className="me-2 h-4 w-4" />
+                {t('update_order_status')}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="center" className="w-56 text-right">
+            <DropdownMenuContent align="center" className="w-56">
               {(order.status === 'جارٍ المراجعة' || order.status === 'بانتظار توفر الطاهي') && (
                 <>
                   <DropdownMenuItem onClick={() => handleStatusChange('قيد التحضير')}>
-                    قبول الطلب (قيد التحضير)
+                    {t('accept_order_preparing')}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => handleStatusChange('مرفوض')} className="text-destructive focus:text-destructive">
-                    رفض الطلب
+                    {t('reject_order')}
                   </DropdownMenuItem>
                 </>
               )}
               {order.status === 'قيد التحضير' && (
                 <DropdownMenuItem onClick={() => handleStatusChange('جاهز للتوصيل')}>
-                  جاهز للتوصيل
+                  {t('ready_for_delivery')}
                 </DropdownMenuItem>
               )}
               {order.status === 'جاهز للتوصيل' && (
                 <DropdownMenuItem onClick={() => handleStatusChange('تم التوصيل')}>
-                  تم التوصيل
+                  {t('delivered')}
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
@@ -15,12 +16,14 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
 import { format, isWithinInterval, startOfMonth, endOfMonth, subMonths } from 'date-fns';
-import { ar } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
+import { dateLocales } from '@/components/language-manager';
 import { CouponManagementTab } from '@/components/coupon-management-tab';
 import { useNotifications } from '@/context/notification-context';
 
 
 export default function ChefDashboardPage() {
+  const { t, i18n } = useTranslation();
   const { user, loading } = useAuth();
   const { dishes, getOrdersByChefId, updateOrderStatus } = useOrders();
   const { createNotification } = useNotifications();
@@ -93,7 +96,7 @@ export default function ChefDashboardPage() {
      const now = new Date();
      
      for (let i = 0; i <= now.getMonth(); i++) {
-         const monthName = format(new Date(now.getFullYear(), i, 1), 'MMM', { locale: ar });
+         const monthName = format(new Date(now.getFullYear(), i, 1), 'MMM', { locale: dateLocales[i18n.language] });
          monthlyData[monthName] = 0;
      }
  
@@ -101,7 +104,7 @@ export default function ChefDashboardPage() {
         if (order.createdAt && !isNaN(new Date(order.createdAt).getTime())) {
           const orderDate = new Date(order.createdAt);
           if (orderDate.getFullYear() === now.getFullYear()) {
-             const month = format(orderDate, 'MMM', { locale: ar });
+             const month = format(orderDate, 'MMM', { locale: dateLocales[i18n.language] });
              if (monthlyData.hasOwnProperty(month)) {
                  monthlyData[month] += order.total;
              }
@@ -110,7 +113,7 @@ export default function ChefDashboardPage() {
      });
  
      return Object.entries(monthlyData).map(([name, total]) => ({ name, total }));
-  }, [completedOrders]);
+  }, [completedOrders, i18n.language]);
 
 
   if (loading || !user) {
@@ -124,70 +127,70 @@ export default function ChefDashboardPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 md:px-6 md:py-12 text-right">
+    <div className="container mx-auto px-4 py-8 md:px-6 md:py-12">
       <div className="flex flex-col md:flex-row justify-between md:items-center mb-8 gap-4">
-        <h1 className="font-headline text-3xl md:text-4xl font-bold text-primary">لوحة تحكم الشيف</h1>
-        <p className="font-semibold text-lg">مرحبًا بعودتك، {user.name}!</p>
+        <h1 className="font-headline text-3xl md:text-4xl font-bold text-primary">{t('chef_dashboard_title')}</h1>
+        <p className="font-semibold text-lg">{t('welcome_back', {name: user.name})}</p>
       </div>
 
       <Tabs defaultValue="dashboard" className="w-full">
         <TabsList className="grid w-full grid-cols-4 max-w-lg">
-            <TabsTrigger value="dashboard">نظرة عامة</TabsTrigger>
-            <TabsTrigger value="orders">الطلبات</TabsTrigger>
-            <TabsTrigger value="menu">قائمة الطعام</TabsTrigger>
-            <TabsTrigger value="coupons">القسائم</TabsTrigger>
+            <TabsTrigger value="dashboard">{t('overview')}</TabsTrigger>
+            <TabsTrigger value="orders">{t('orders')}</TabsTrigger>
+            <TabsTrigger value="menu">{t('menu')}</TabsTrigger>
+            <TabsTrigger value="coupons">{t('coupons')}</TabsTrigger>
         </TabsList>
         
         <TabsContent value="dashboard">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 my-8">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">إيرادات هذا الشهر</CardTitle>
+                        <CardTitle className="text-sm font-medium">{t('revenue_this_month')}</CardTitle>
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{currentMonthRevenue.toFixed(2)} جنيه</div>
+                        <div className="text-2xl font-bold">{currentMonthRevenue.toFixed(2)} {t('currency_egp')}</div>
                         <p className={cn(
-                            "text-xs text-muted-foreground flex items-center",
-                            revenuePercentageChange > 0 && "text-green-600",
+                            "text-xs text-muted-foreground flex items-center gap-1",
+                            revenuePercentageChange >= 0 && "text-green-600",
                             revenuePercentageChange < 0 && "text-red-600"
                         )}>
                              {revenuePercentageChange > 0 ? <ArrowUp className="h-4 w-4" /> : revenuePercentageChange < 0 ? <ArrowDown className="h-4 w-4" /> : null}
-                            {revenuePercentageChange.toFixed(1)}% عن الشهر الماضي
+                             <span>{t('revenue_change_from_last_month', { percentage: revenuePercentageChange.toFixed(1) })}</span>
                         </p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">الطلبات النشطة</CardTitle>
+                        <CardTitle className="text-sm font-medium">{t('active_orders')}</CardTitle>
                         <Utensils className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">+{ongoingOrders.length}</div>
-                        <p className="text-xs text-muted-foreground">قيد التنفيذ حاليًا</p>
+                        <p className="text-xs text-muted-foreground">{t('currently_in_progress')}</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">تقييمات جديدة</CardTitle>
+                        <CardTitle className="text-sm font-medium">{t('new_ratings')}</CardTitle>
                         <Star className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">+{allReviews.length}</div>
-                        <p className="text-xs text-muted-foreground">إجمالي التقييمات على وجباتك</p>
+                        <p className="text-xs text-muted-foreground">{t('total_ratings_on_your_dishes')}</p>
                     </CardContent>
                 </Card>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
                 <Card>
                     <CardHeader>
-                        <CardTitle>نظرة على الإيرادات الشهرية</CardTitle>
+                        <CardTitle>{t('monthly_revenue_overview')}</CardTitle>
                     </CardHeader>
-                    <CardContent className="pl-2">
+                    <CardContent className="ps-2">
                          <ResponsiveContainer width="100%" height={300}>
                             <BarChart data={chartData}>
                                 <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value} ج`} />
+                                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value} ${t('currency_egp')}`} />
                                 <Tooltip cursor={{ fill: 'hsl(var(--muted))' }} contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}/>
                                 <Bar dataKey="total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                             </BarChart>
@@ -196,8 +199,8 @@ export default function ChefDashboardPage() {
                 </Card>
                 <Card>
                     <CardHeader>
-                        <CardTitle>أحدث التقييمات</CardTitle>
-                        <CardDescription>آخر 5 تقييمات من عملائك.</CardDescription>
+                        <CardTitle>{t('latest_reviews')}</CardTitle>
+                        <CardDescription>{t('last_5_reviews')}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         {allReviews.length > 0 ? (
@@ -211,11 +214,11 @@ export default function ChefDashboardPage() {
                                             ))}
                                         </div>
                                     </div>
-                                    <p className="text-sm text-muted-foreground italic">"{review.review || 'لم يترك تعليقًا'}" - <span className="font-medium not-italic">{review.customerName}</span></p>
+                                    <p className="text-sm text-muted-foreground italic">"{review.review || t('no_comment_left')}" - <span className="font-medium not-italic">{review.customerName}</span></p>
                                 </div>
                             ))
                         ) : (
-                           <p className="text-muted-foreground text-center py-8">لا توجد تقييمات بعد.</p>
+                           <p className="text-muted-foreground text-center py-8">{t('no_reviews_yet')}</p>
                         )}
                     </CardContent>
                 </Card>
@@ -225,30 +228,30 @@ export default function ChefDashboardPage() {
         <TabsContent value="orders">
             <Tabs defaultValue="new" className="w-full mt-4">
                  <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="new">طلبات جديدة ({pendingOrders.length})</TabsTrigger>
-                    <TabsTrigger value="ongoing">طلبات جارية ({ongoingOrders.length})</TabsTrigger>
-                    <TabsTrigger value="completed">طلبات مكتملة ({completedOrders.length})</TabsTrigger>
+                    <TabsTrigger value="new">{t('new_orders')} ({pendingOrders.length})</TabsTrigger>
+                    <TabsTrigger value="ongoing">{t('ongoing_orders')} ({ongoingOrders.length})</TabsTrigger>
+                    <TabsTrigger value="completed">{t('completed_orders')} ({completedOrders.length})</TabsTrigger>
                 </TabsList>
                 <TabsContent value="new" className="mt-4">
                      {pendingOrders.length > 0 ? (
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                             {pendingOrders.map((order) => <OrderCard key={order.id} order={order} isChefView updateOrderStatus={updateOrderStatus}/>)}
                         </div>
-                     ) : ( <p className="text-muted-foreground text-center py-8">لا توجد طلبات جديدة.</p> )}
+                     ) : ( <p className="text-muted-foreground text-center py-8">{t('no_new_orders')}</p> )}
                 </TabsContent>
                 <TabsContent value="ongoing" className="mt-4">
                      {ongoingOrders.length > 0 ? (
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                             {ongoingOrders.map((order) => <OrderCard key={order.id} order={order} isChefView updateOrderStatus={updateOrderStatus}/>)}
                         </div>
-                     ) : ( <p className="text-muted-foreground text-center py-8">لا توجد طلبات جارية.</p> )}
+                     ) : ( <p className="text-muted-foreground text-center py-8">{t('no_ongoing_orders')}</p> )}
                 </TabsContent>
                 <TabsContent value="completed" className="mt-4">
                      {completedOrders.length > 0 ? (
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                             {completedOrders.map((order) => <OrderCard key={order.id} order={order} isChefView />)}
                         </div>
-                     ) : ( <p className="text-muted-foreground text-center py-8">لا توجد طلبات مكتملة.</p> )}
+                     ) : ( <p className="text-muted-foreground text-center py-8">{t('no_completed_orders')}</p> )}
                 </TabsContent>
             </Tabs>
         </TabsContent>
@@ -256,16 +259,16 @@ export default function ChefDashboardPage() {
         <TabsContent value="menu">
             <Card className="mt-4">
                 <CardHeader>
-                    <CardTitle>إدارة قائمة الطعام</CardTitle>
+                    <CardTitle>{t('menu_management')}</CardTitle>
                     <CardDescription>
-                    أضف أطباقًا جديدة، عدّل الأسعار، وحدّث حالة التوفر من صفحة إدارة القائمة المخصصة.
+                    {t('menu_management_desc')}
                     </CardDescription>
                 </CardHeader>
                 <CardFooter>
                     <Button asChild className="bg-accent text-accent-foreground hover:bg-accent/90">
                     <Link href="/chef/menu">
-                        <BookOpenCheck className="ml-2 h-4 w-4" />
-                        الانتقال إلى إدارة القائمة
+                        <BookOpenCheck className="ms-2 h-4 w-4" />
+                        {t('go_to_menu_management')}
                     </Link>
                     </Button>
                 </CardFooter>

@@ -16,8 +16,10 @@ import { useState, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useTranslation } from 'react-i18next';
 
 export default function OrderPage() {
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const router = useRouter();
   const { toast } = useToast();
@@ -38,7 +40,7 @@ export default function OrderPage() {
 
   if (authLoading || dishesLoading) {
       return (
-        <div className="container mx-auto px-4 py-8 md:px-6 md:py-12 text-right">
+        <div className="container mx-auto px-4 py-8 md:px-6 md:py-12">
             <Skeleton className="h-8 w-48 mb-6" />
             <div className="grid gap-12 md:grid-cols-2">
                 <div>
@@ -80,7 +82,7 @@ export default function OrderPage() {
         } else {
             setAppliedDiscount(result.discount);
             setAppliedCouponCode(couponCode);
-            toast({ title: "تم تطبيق القسيمة بنجاح!" });
+            toast({ title: t('coupon_applied_toast') });
         }
         setIsApplyingCoupon(false);
     }, 500);
@@ -90,8 +92,8 @@ export default function OrderPage() {
     if (!user || !chef || !user.address) {
       toast({
         variant: 'destructive',
-        title: 'خطأ في الطلب',
-        description: 'الرجاء التأكد من تسجيل الدخول وتحديد عنوان التوصيل.',
+        title: t('order_error'),
+        description: t('order_error_desc'),
       });
       return;
     }
@@ -112,71 +114,71 @@ export default function OrderPage() {
     });
 
     toast({
-      title: 'تم إرسال طلبك بنجاح!',
+      title: t('order_sent_toast'),
       description: isChefBusy
-        ? `الشيف مشغول، تم وضع طلبك في قائمة الانتظار.`
-        : `طلبك لـ ${quantity}x ${dish.name} قيد المراجعة.`,
+        ? t('order_sent_toast_waitlisted_desc')
+        : t('order_sent_toast_review_desc', { quantity, dishName: dish.name }),
     });
 
     router.push('/profile');
   };
   
   const getButtonText = () => {
-      if (isChefClosed) return 'الطاهي مغلق حاليًا';
-      if (isChefBusy) return 'تأكيد الطلب (انتظار)';
-      return 'تأكيد الطلب';
+      if (isChefClosed) return t('chef_is_currently_closed');
+      if (isChefBusy) return t('confirm_order_waitlisted');
+      return t('confirm_order');
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 md:px-6 md:py-12 text-right">
+    <div className="container mx-auto px-4 py-8 md:px-6 md:py-12">
       <div className="mb-6">
         <Button variant="ghost" asChild>
           <Link href={`/dishes/${dish.id}`}>
-            العودة لصفحة الطبق
-            <ArrowRight className="mr-2 h-4 w-4" />
+            <ArrowRight className="me-2 h-4 w-4" />
+            {t('back_to_dish_page')}
           </Link>
         </Button>
       </div>
       <div className="grid gap-12 md:grid-cols-2">
         <div>
-          <h1 className="font-headline text-3xl font-bold text-primary mb-6">أكمل طلبك</h1>
+          <h1 className="font-headline text-3xl font-bold text-primary mb-6">{t('complete_your_order')}</h1>
            {isChefClosed && (
               <Alert variant="destructive" className="mb-6">
-                  <AlertTitle>الطاهي مغلق حاليًا</AlertTitle>
+                  <AlertTitle>{t('chef_is_currently_closed')}</AlertTitle>
                   <AlertDescription>
-                      لا يمكن إكمال هذا الطلب لأن الطاهي غير متاح لاستقبال الطلبات في الوقت الحالي.
+                    {t('chef_is_currently_closed_desc')}
                   </AlertDescription>
               </Alert>
           )}
           {!user ? (
              <Card>
               <CardHeader>
-                <CardTitle>مطلوب تسجيل الدخول</CardTitle>
+                <CardTitle>{t('login_required')}</CardTitle>
                 <CardDescription>
-                  يجب عليك تسجيل الدخول أو إنشاء حساب جديد لتتمكن من إكمال طلبك.
+                  {t('login_required_desc')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col gap-4">
                 <Button asChild className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-                  <Link href={`/login?redirect=/order?dishId=${dishId}`}>تسجيل الدخول</Link>
+                  <Link href={`/login?redirect=/order?dishId=${dishId}`}>{t('login')}</Link>
                 </Button>
                 <Button asChild variant="outline" className="w-full">
-                  <Link href={`/signup?redirect=/order?dishId=${dishId}`}>إنشاء حساب جديد</Link>
+                  <Link href={`/signup?redirect=/order?dishId=${dishId}`}>{t('create_new_account')}</Link>
                 </Button>
               </CardContent>
             </Card>
           ) : (
             <Card>
               <CardHeader>
-                <CardTitle>معلومات التوصيل</CardTitle>
-                <CardDescription>سيتم توصيل الطلب إلى العنوان المسجل في حسابك.</CardDescription>
+                <CardTitle>{t('delivery_information')}</CardTitle>
+                <CardDescription>{t('delivery_information_desc')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                  <p className="font-semibold">{user.name}</p>
-                 <p>{user.address || 'لم يتم تحديد عنوان بعد.'}</p>
-                 <p>{user.phone || 'لم يتم تقديم رقم هاتف'}</p>
+                 <p>{user.address || t('no_address_yet')}</p>
+                 <p>{user.phone || t('no_phone_provided')}</p>
                  <Button variant="outline" asChild>
-                    <Link href="/profile">تغيير العنوان من الإعدادات</Link>
+                    <Link href="/settings">{t('change_address_from_settings')}</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -186,16 +188,21 @@ export default function OrderPage() {
            {isChefBusy && (
               <Alert>
                 <Clock className="h-4 w-4" />
-                <AlertTitle>الشيف مشغول</AlertTitle>
+                <AlertTitle>{t('chef_is_busy')}</AlertTitle>
                 <AlertDescription>
-                  سيتم وضع طلبك في قائمة الانتظار وسيتم إعلامك عند تأكيده.
+                  {t('chef_is_busy_desc')}
                 </AlertDescription>
               </Alert>
             )}
-           <h2 className="font-headline text-2xl font-bold">ملخص الطلب</h2>
+           <h2 className="font-headline text-2xl font-bold">{t('order_summary')}</h2>
             <Card>
                 <CardContent className="p-6 flex items-center gap-4">
-                    <Image
+                    <div className="grid gap-1 flex-1">
+                        <h3 className="font-semibold">{dish.name}</h3>
+                        <p className="text-sm text-muted-foreground">{dish.description}</p>
+                        <p className="font-bold text-primary">{dish.price.toFixed(2)} {t('currency_egp')}</p>
+                    </div>
+                     <Image
                       alt={dish.name}
                       className="rounded-md object-cover"
                       height="80"
@@ -203,41 +210,35 @@ export default function OrderPage() {
                       data-ai-hint="food item"
                       width="80"
                     />
-                    <div className="grid gap-1 flex-1">
-                        <h3 className="font-semibold">{dish.name}</h3>
-                        <p className="text-sm text-muted-foreground">{dish.description}</p>
-                        <p className="font-bold text-primary">{dish.price.toFixed(2)} جنيه</p>
-                    </div>
                 </CardContent>
                 <CardFooter className="flex justify-between items-center">
-                    <span className="font-medium">الكمية:</span>
                     <div className="flex items-center gap-2">
-                        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setQuantity(q => Math.max(1, q-1))}>
-                            <Minus className="h-4 w-4" />
-                        </Button>
-                        <Input type="number" value={quantity} readOnly className="w-16 h-8 text-center" />
                         <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setQuantity(q => q+1)}>
                             <Plus className="h-4 w-4" />
                         </Button>
+                        <Input type="number" value={quantity} readOnly className="w-16 h-8 text-center" />
+                        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setQuantity(q => Math.max(1, q-1))}>
+                            <Minus className="h-4 w-4" />
+                        </Button>
                     </div>
+                    <span className="font-medium">{t('quantity:')}</span>
                 </CardFooter>
             </Card>
             <Card>
                  <CardHeader>
-                    <CardTitle>قسيمة الخصم</CardTitle>
+                    <CardTitle>{t('discount_coupon')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="flex gap-2">
                         <Input
-                            placeholder="أدخل رمز القسيمة"
-                            className="text-right"
+                            placeholder={t('enter_coupon_code')}
                             value={couponCode}
                             onChange={(e) => setCouponCode(e.target.value)}
                             disabled={!user || isChefClosed}
                         />
                         <Button onClick={handleApplyCoupon} disabled={!user || isApplyingCoupon || isChefClosed}>
-                            {isApplyingCoupon && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-                            تطبيق
+                            {isApplyingCoupon && <Loader2 className="ms-2 h-4 w-4 animate-spin" />}
+                            {t('apply')}
                         </Button>
                     </div>
                     {couponError && <p className="text-sm text-destructive mt-2">{couponError}</p>}
@@ -245,30 +246,30 @@ export default function OrderPage() {
             </Card>
             <Card>
                 <CardHeader>
-                    <CardTitle>تفاصيل الدفع</CardTitle>
+                    <CardTitle>{t('payment_details')}</CardTitle>
                 </CardHeader>
                  <CardContent className="grid gap-4">
                     <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">المجموع الفرعي</span>
-                        <span>{subtotal.toFixed(2)} جنيه</span>
+                        <span>{subtotal.toFixed(2)} {t('currency_egp')}</span>
+                        <span className="text-muted-foreground">{t('subtotal')}</span>
                     </div>
                     {appliedDiscount > 0 && (
                         <div className="flex items-center justify-between text-green-600">
+                            <span>- {appliedDiscount.toFixed(2)} {t('currency_egp')}</span>
                             <span className="flex items-center gap-1">
+                                {t('discount:')} ({appliedCouponCode})
                                 <Tag className="h-4 w-4" />
-                                خصم ({appliedCouponCode})
                             </span>
-                            <span>- {appliedDiscount.toFixed(2)} جنيه</span>
                         </div>
                     )}
                     <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">رسوم التوصيل</span>
-                        <span>{deliveryFee.toFixed(2)} جنيه</span>
+                        <span>{deliveryFee.toFixed(2)} {t('currency_egp')}</span>
+                        <span className="text-muted-foreground">{t('delivery_fee')}</span>
                     </div>
                      <Separator />
                      <div className="flex items-center justify-between font-bold text-lg">
-                        <span className="text-primary">المجموع الكلي</span>
-                        <span>{total.toFixed(2)} جنيه</span>
+                        <span>{total.toFixed(2)} {t('currency_egp')}</span>
+                        <span className="text-primary">{t('total')}</span>
                     </div>
                 </CardContent>
                 <CardFooter>

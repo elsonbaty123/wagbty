@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -11,8 +12,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useTranslation } from 'react-i18next';
 
 export function ThemeToggleButton() {
+  const { t } = useTranslation();
   const { setTheme } = useTheme();
 
   return (
@@ -26,13 +29,13 @@ export function ThemeToggleButton() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => setTheme('light')}>
-          فاتح
+          {t('theme_light')}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme('dark')}>
-          داكن
+          {t('theme_dark')}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme('system')}>
-          النظام
+          {t('theme_system')}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

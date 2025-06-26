@@ -18,18 +18,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-const dishFormSchema = z.object({
-  name: z.string().min(1, 'الاسم مطلوب'),
-  description: z.string().min(1, 'الوصف مطلوب'),
-  price: z.coerce.number().positive('السعر يجب أن يكون رقمًا موجبًا'),
-  imageUrl: z.string().url('يجب رفع صورة صالحة للطبق.'),
-  ingredients: z.string().min(1, 'المكونات مطلوبة'),
-  prepTime: z.coerce.number().int().positive('وقت التحضير يجب أن يكون رقمًا صحيحًا موجبًا'),
-  category: z.string().min(1, 'التصنيف مطلوب'),
-});
-
-type DishFormValues = z.infer<typeof dishFormSchema>;
+import { useTranslation } from 'react-i18next';
 
 interface DishFormProps {
   dish?: Dish | null;
@@ -37,9 +26,23 @@ interface DishFormProps {
 }
 
 export function DishForm({ dish, onFinished }: DishFormProps) {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const { user } = useAuth();
   const { addDish, updateDish } = useOrders();
+
+  const dishFormSchema = z.object({
+    name: z.string().min(1, t('dish_name_required')),
+    description: z.string().min(1, t('dish_description_required')),
+    price: z.coerce.number().positive(t('price_positive')),
+    imageUrl: z.string().url(t('dish_image_required')),
+    ingredients: z.string().min(1, t('dish_ingredients_required')),
+    prepTime: z.coerce.number().int().positive(t('prep_time_positive')),
+    category: z.string().min(1, t('category_required')),
+  });
+
+  type DishFormValues = z.infer<typeof dishFormSchema>;
+
 
   const form = useForm<DishFormValues>({
     resolver: zodResolver(dishFormSchema),
@@ -59,7 +62,7 @@ export function DishForm({ dish, onFinished }: DishFormProps) {
 
   const onSubmit = (data: DishFormValues) => {
     if (!user || user.role !== 'chef') {
-      toast({ variant: 'destructive', title: 'خطأ', description: 'يجب أن تكون طاهياً لتنفيذ هذا الإجراء.' });
+      toast({ variant: 'destructive', title: t('error'), description: t('must_be_chef') });
       return;
     }
     
@@ -71,34 +74,34 @@ export function DishForm({ dish, onFinished }: DishFormProps) {
     if (dish) {
       updateDish({ ...dish, ...dishPayload });
       toast({
-        title: 'تم تحديث الطبق',
-        description: `تم حفظ طبق "${data.name}" بنجاح.`,
+        title: t('dish_updated_toast'),
+        description: t('dish_updated_toast_desc', { name: data.name }),
       });
     } else {
       addDish({ ...dishPayload, chefId: user.id, status: 'متوفرة' });
        toast({
-        title: 'تم إضافة الطبق',
-        description: `تم إضافة طبق "${data.name}" بنجاح.`,
+        title: t('dish_added_toast'),
+        description: t('dish_added_toast_desc', { name: data.name }),
       });
     }
     onFinished?.();
   };
 
   return (
-    <DialogContent className="sm:max-w-md text-right">
+    <DialogContent className="sm:max-w-md">
       <DialogHeader>
-        <DialogTitle>{dish ? 'تعديل الطبق' : 'إضافة طبق جديد'}</DialogTitle>
+        <DialogTitle>{dish ? t('edit_dish') : t('add_new_dish_title')}</DialogTitle>
       </DialogHeader>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pr-2">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pe-2">
           <FormField
             control={form.control}
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>اسم الطبق</FormLabel>
+                <FormLabel>{t('dish_name')}</FormLabel>
                 <FormControl>
-                  <Input placeholder="مثال: كيكة الشوكولاتة" {...field} className="text-right" />
+                  <Input placeholder={t('dish_name_placeholder')} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -109,9 +112,9 @@ export function DishForm({ dish, onFinished }: DishFormProps) {
             name="description"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>وصف الطبق</FormLabel>
+                <FormLabel>{t('dish_description')}</FormLabel>
                 <FormControl>
-                  <Textarea placeholder="وصف قصير للطبق" {...field} className="text-right" />
+                  <Textarea placeholder={t('dish_description_placeholder')} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -122,12 +125,12 @@ export function DishForm({ dish, onFinished }: DishFormProps) {
             name="ingredients"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>المكونات</FormLabel>
+                <FormLabel>{t('ingredients')}</FormLabel>
                 <FormControl>
-                  <Textarea placeholder="شوكولاتة، حليب، سكر..." {...field} className="text-right" />
+                  <Textarea placeholder={t('dish_ingredients_placeholder')} {...field} />
                 </FormControl>
                 <FormDescription>
-                  افصل بين كل مكون بفاصلة (,).
+                  {t('dish_ingredients_separator')}
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -139,9 +142,9 @@ export function DishForm({ dish, onFinished }: DishFormProps) {
                 name="price"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>السعر (جنيه)</FormLabel>
+                    <FormLabel>{t('price_egp')}</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="150" {...field} className="text-right" />
+                      <Input type="number" placeholder="150" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -152,9 +155,9 @@ export function DishForm({ dish, onFinished }: DishFormProps) {
                 name="prepTime"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>وقت التحضير (دقائق)</FormLabel>
+                    <FormLabel>{t('prep_time_minutes')}</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="30" {...field} className="text-right" />
+                      <Input type="number" placeholder="30" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -166,9 +169,9 @@ export function DishForm({ dish, onFinished }: DishFormProps) {
             name="category"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>التصنيف</FormLabel>
+                <FormLabel>{t('category')}</FormLabel>
                 <FormControl>
-                  <Input placeholder="حلويات، مشويات، ..." {...field} className="text-right" />
+                  <Input placeholder={t('category_placeholder')} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -179,7 +182,7 @@ export function DishForm({ dish, onFinished }: DishFormProps) {
             name="imageUrl"
             render={({ field }) => (
                <FormItem>
-                <FormLabel>صورة الطبق</FormLabel>
+                <FormLabel>{t('dish_image')}</FormLabel>
                 <FormControl>
                   <div>
                     <Input
@@ -201,11 +204,11 @@ export function DishForm({ dish, onFinished }: DishFormProps) {
                       }}
                     />
                     <Label htmlFor="image-upload" className={cn(buttonVariants({ variant: 'outline' }), 'cursor-pointer')}>
-                      <Upload className="ml-2 h-4 w-4" />
-                       <span>{imagePreview ? "تغيير الصورة" : "رفع صورة"}</span>
+                      <Upload className="me-2 h-4 w-4" />
+                       <span>{imagePreview ? t("change_image") : t("upload_image")}</span>
                     </Label>
                     {imagePreview && (
-                        <Image src={imagePreview} alt="معاينة الصورة" width={200} height={112} className="mt-4 rounded-md object-cover" />
+                        <Image src={imagePreview} alt={t('image_preview')} width={200} height={112} className="mt-4 rounded-md object-cover" />
                     )}
                   </div>
                 </FormControl>
@@ -215,10 +218,10 @@ export function DishForm({ dish, onFinished }: DishFormProps) {
           />
 
           <DialogFooter className="pt-4">
+            <Button type="submit" disabled={form.formState.isSubmitting} className="bg-primary text-primary-foreground hover:bg-primary/90">{t('save')}</Button>
             <DialogClose asChild>
-                <Button type="button" variant="secondary">إلغاء</Button>
+                <Button type="button" variant="secondary">{t('cancel')}</Button>
             </DialogClose>
-            <Button type="submit" disabled={form.formState.isSubmitting} className="bg-primary text-primary-foreground hover:bg-primary/90">حفظ</Button>
           </DialogFooter>
         </form>
       </Form>

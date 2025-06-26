@@ -9,8 +9,10 @@ import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { PasswordInput } from '@/components/password-input';
+import { useTranslation } from 'react-i18next';
 
 export function PasswordChangeForm() {
+    const { t } = useTranslation();
     const { changePassword } = useAuth();
     const { toast } = useToast();
 
@@ -26,8 +28,8 @@ export function PasswordChangeForm() {
         try {
             await changePassword({ oldPassword, newPassword, confirmPassword });
             toast({
-                title: 'تم تغيير كلمة المرور',
-                description: 'تم تحديث كلمة المرور بنجاح.',
+                title: t('password_changed_toast'),
+                description: t('password_changed_toast_desc'),
             });
             setOldPassword('');
             setNewPassword('');
@@ -35,8 +37,8 @@ export function PasswordChangeForm() {
         } catch (error: any) {
             toast({
                 variant: 'destructive',
-                title: 'فشل تغيير كلمة المرور',
-                description: error.message || 'حدث خطأ ما، يرجى المحاولة مرة أخرى.',
+                title: t('password_change_failed_toast'),
+                description: error.message || t('password_change_failed_toast_desc'),
             });
         } finally {
             setIsSaving(false);
@@ -46,52 +48,49 @@ export function PasswordChangeForm() {
     return (
         <Card className="mt-6">
             <CardHeader>
-                <CardTitle>تغيير كلمة المرور</CardTitle>
+                <CardTitle>{t('change_password')}</CardTitle>
                 <CardDescription>
-                    قم بتحديث كلمة المرور الخاصة بك. استخدم كلمة مرور قوية لم يتم استخدامها من قبل.
+                    {t('change_password_desc')}
                 </CardDescription>
             </CardHeader>
             <form onSubmit={handleSubmit}>
                 <CardContent className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="old-password">كلمة المرور القديمة</Label>
+                        <Label htmlFor="old-password">{t('old_password')}</Label>
                         <PasswordInput 
                             id="old-password" 
                             value={oldPassword} 
                             onChange={(e) => setOldPassword(e.target.value)} 
                             required 
-                            className="text-right" 
                             placeholder="********"
                         />
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="new-password">كلمة المرور الجديدة</Label>
+                        <Label htmlFor="new-password">{t('new_password_label')}</Label>
                         <PasswordInput 
                             id="new-password" 
                             value={newPassword} 
                             onChange={(e) => setNewPassword(e.target.value)} 
                             required 
-                            className="text-right" 
                             showStrength 
                             placeholder="********"
                         />
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="confirm-password">تأكيد كلمة المرور الجديدة</Label>
+                        <Label htmlFor="confirm-password">{t('confirm_new_password_label')}</Label>
                         <PasswordInput 
                             id="confirm-password" 
                             value={confirmPassword} 
                             onChange={(e) => setConfirmPassword(e.target.value)} 
                             required 
-                            className="text-right"
                             placeholder="********"
                         />
                     </div>
                 </CardContent>
                 <CardFooter>
                     <Button type="submit" disabled={isSaving}>
-                        {isSaving && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-                        تحديث كلمة المرور
+                        {isSaving && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
+                        {t('update_password')}
                     </Button>
                 </CardFooter>
             </form>

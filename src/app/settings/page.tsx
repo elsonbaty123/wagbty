@@ -19,8 +19,10 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import type { User } from '@/lib/types';
 import { useNotifications } from '@/context/notification-context';
 import { useOrders } from '@/context/order-context';
+import { useTranslation } from 'react-i18next';
 
 export default function SettingsPage() {
+    const { t } = useTranslation();
     const { user, loading, logout, updateUser } = useAuth();
     const router = useRouter();
     const { toast } = useToast();
@@ -69,23 +71,23 @@ export default function SettingsPage() {
     }
     
     const validateEmail = (email: string): string => {
-        if (!email.trim()) return "البريد الإلكتروني مطلوب.";
+        if (!email.trim()) return t('validation_email_required');
     
         if (!/^[a-zA-Z]/.test(email)) {
-          return 'يجب أن يبدأ البريد الإلكتروني بحرف.';
+          return t('validation_email_must_start_with_letter');
         }
     
         if (!email.includes('@')) {
-            return 'البريد الإلكتروني يجب أن يحتوي على علامة "@".';
+            return t('validation_email_must_contain_at');
         }
     
         if (/[^a-zA-Z0-9@._-]/.test(email)) {
-          return 'البريد الإلكتروني يحتوي على رموز غير مسموح بها. الرجاء إزالة أي رموز خاصة أو مسافات.';
+          return t('validation_email_contains_invalid_chars');
         }
         
         const emailRegex = /^[a-zA-Z][a-zA-Z0-9._-]*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         if (!emailRegex.test(email)) {
-          return 'صيغة البريد الإلكتروني غير صحيحة. مثال: user@example.com';
+          return t('validation_email_invalid_format');
         }
         
         return '';
@@ -107,7 +109,7 @@ export default function SettingsPage() {
         if (error) {
             toast({
                 variant: 'destructive',
-                title: 'خطأ في البريد الإلكتروني',
+                title: t('error_in_email'),
                 description: error,
             });
             return;
@@ -126,14 +128,14 @@ export default function SettingsPage() {
 
             await updateUser(userDetails);
             toast({
-                title: 'تم تحديث الملف الشخصي',
-                description: 'تم حفظ تغييراتك بنجاح.',
+                title: t('profile_updated'),
+                description: t('profile_updated_desc'),
             });
         } catch (error: any) {
             toast({
                 variant: 'destructive',
-                title: 'خطأ في التحديث',
-                description: error.message || 'فشل حفظ التغييرات. يرجى المحاولة مرة أخرى.',
+                title: t('update_error'),
+                description: error.message || t('update_error_desc'),
             });
         } finally {
             setIsSaving(false);
@@ -143,15 +145,15 @@ export default function SettingsPage() {
     const handleStatusChange = async (newStatus: User['availabilityStatus']) => {
         if (!user) return;
         await updateUser({ availabilityStatus: newStatus });
-        toast({ title: "تم تحديث حالة التوفر بنجاح." });
+        toast({ title: t("availability_status_updated") });
 
         if (user.availabilityStatus === 'busy' && newStatus === 'available') {
             const queuedOrders = getOrdersByChefId(user.id).filter(o => o.status === 'بانتظار توفر الطاهي');
             if (queuedOrders.length > 0) {
                 createNotification({
                 recipientId: user.id,
-                title: `لديك ${queuedOrders.length} طلبات معلقة`,
-                message: 'أصبحت متاحًا الآن. يرجى مراجعة الطلبات التي كانت في قائمة الانتظار.',
+                title: t('you_have_pending_orders', { count: queuedOrders.length }),
+                message: t('pending_orders_desc'),
                 link: '/chef/dashboard',
                 });
             }
@@ -159,23 +161,23 @@ export default function SettingsPage() {
     };
     
     const statusMap = {
-        available: { label: 'متاح', color: 'bg-green-500' },
-        busy: { label: 'مشغول', color: 'bg-yellow-500' },
-        closed: { label: 'مغلق', color: 'bg-red-500' },
+        available: { labelKey: 'status_available', color: 'bg-green-500' },
+        busy: { labelKey: 'status_busy', color: 'bg-yellow-500' },
+        closed: { labelKey: 'status_closed', color: 'bg-red-500' },
     };
 
     return (
-        <div className="container mx-auto px-4 py-8 md:px-6 md:py-12 text-right">
-            <h1 className="font-headline text-3xl md:text-4xl font-bold text-primary mb-8">إعدادات الحساب</h1>
+        <div className="container mx-auto px-4 py-8 md:px-6 md:py-12">
+            <h1 className="font-headline text-3xl md:text-4xl font-bold text-primary mb-8">{t('account_settings')}</h1>
             <div className="max-w-4xl mx-auto">
                 <Card>
                     <CardHeader>
-                        <CardTitle>الملف الشخصي</CardTitle>
-                        <CardDescription>تحديث معلوماتك الشخصية وصورة ملفك الشخصي.</CardDescription>
+                        <CardTitle>{t('profile')}</CardTitle>
+                        <CardDescription>{t('profile_desc')}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
                         <div className="space-y-2">
-                            <Label>الصورة الشخصية</Label>
+                            <Label>{t('profile_picture')}</Label>
                             <div className="flex items-center gap-4">
                                 <Avatar className="h-20 w-20">
                                     <AvatarImage src={imagePreview || ''} alt={user.name} />
@@ -183,34 +185,34 @@ export default function SettingsPage() {
                                 </Avatar>
                                 <Input id="image-upload" type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
                                 <Label htmlFor="image-upload" className={cn(buttonVariants({ variant: 'outline' }), 'cursor-pointer')}>
-                                    <Upload className="ml-2 h-4 w-4" />
-                                    <span>تغيير الصورة</span>
+                                    <Upload className="me-2 h-4 w-4" />
+                                    <span>{t('change_picture')}</span>
                                 </Label>
                             </div>
                         </div>
 
                         {user.role === 'chef' && (
                              <div className="space-y-2">
-                                <Label>حالة التوفر</Label>
+                                <Label>{t('availability_status')}</Label>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="outline" className="w-full justify-end text-right">
-                                            <span>{statusMap[user.availabilityStatus || 'available'].label}</span>
-                                            <Circle className={`mr-2 h-3 w-3 flex-shrink-0 fill-current ${statusMap[user.availabilityStatus || 'available'].color}`} />
+                                        <Button variant="outline" className="w-full justify-between">
+                                            <span>{t(statusMap[user.availabilityStatus || 'available'].labelKey)}</span>
+                                            <Circle className={`ms-2 h-3 w-3 flex-shrink-0 fill-current ${statusMap[user.availabilityStatus || 'available'].color}`} />
                                         </Button>
                                     </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" className="w-56 text-right">
+                                    <DropdownMenuContent align="end" className="w-56">
                                         <DropdownMenuItem onClick={() => handleStatusChange('available')}>
-                                            <Circle className="ml-2 h-3 w-3 fill-current bg-green-500" />
-                                            <span>متاح</span>
+                                            <Circle className="me-2 h-3 w-3 fill-current bg-green-500" />
+                                            <span>{t('status_available')}</span>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => handleStatusChange('busy')}>
-                                            <Circle className="ml-2 h-3 w-3 fill-current bg-yellow-500" />
-                                            <span>مشغول</span>
+                                            <Circle className="me-2 h-3 w-3 fill-current bg-yellow-500" />
+                                            <span>{t('status_busy')}</span>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => handleStatusChange('closed')}>
-                                            <Circle className="ml-2 h-3 w-3 fill-current bg-red-500" />
-                                            <span>مغلق</span>
+                                            <Circle className="me-2 h-3 w-3 fill-current bg-red-500" />
+                                            <span>{t('status_closed')}</span>
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
@@ -219,47 +221,46 @@ export default function SettingsPage() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="name">الاسم الكامل</Label>
-                                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} className="text-right" placeholder="الاسم الكامل" />
+                                <Label htmlFor="name">{t('full_name_label')}</Label>
+                                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder={t('full_name_placeholder')} />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="email">البريد الإلكتروني</Label>
+                                <Label htmlFor="email">{t('email_label')}</Label>
                                 <Input 
                                     id="email" 
                                     type="email" 
                                     value={email} 
                                     onChange={(e) => setEmail(e.target.value)} 
-                                    className="text-right" 
                                     placeholder="example@email.com" 
                                 />
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="phone">رقم الهاتف</Label>
-                            <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="text-right" placeholder="01XXXXXXXXX" />
+                            <Label htmlFor="phone">{t('phone_number_label')}</Label>
+                            <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="01XXXXXXXXX" />
                         </div>
                         {user.role === 'customer' && (
                             <div className="space-y-2">
-                                <Label htmlFor="address">عنوان التوصيل</Label>
-                                <Textarea id="address" value={address} onChange={(e) => setAddress(e.target.value)} className="text-right" placeholder="أدخل عنوانك الكامل هنا..." />
+                                <Label htmlFor="address">{t('delivery_address_label')}</Label>
+                                <Textarea id="address" value={address} onChange={(e) => setAddress(e.target.value)} placeholder={t('delivery_address_placeholder')} />
                             </div>
                         )}
                         {user.role === 'chef' && (
                             <>
                                 <div className="space-y-2">
-                                    <Label htmlFor="chef-specialty">تخصص المطبخ</Label>
-                                    <Input id="chef-specialty" value={specialty} onChange={(e) => setSpecialty(e.target.value)} className="text-right" placeholder="مثال: مطبخ إيطالي" />
+                                    <Label htmlFor="chef-specialty">{t('kitchen_specialty_label')}</Label>
+                                    <Input id="chef-specialty" value={specialty} onChange={(e) => setSpecialty(e.target.value)} placeholder={t('kitchen_specialty_placeholder_alt')} />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="chef-bio">نبذة تعريفية (Bio)</Label>
-                                    <Textarea id="chef-bio" value={bio} onChange={(e) => setBio(e.target.value)} className="text-right" placeholder="نبذة تعريفية عنك وعن أسلوبك في الطهي..." />
+                                    <Label htmlFor="chef-bio">{t('bio_label')}</Label>
+                                    <Textarea id="chef-bio" value={bio} onChange={(e) => setBio(e.target.value)} placeholder={t('bio_placeholder')} />
                                 </div>
                             </>
                         )}
                         <div className="flex justify-start gap-2 pt-4 border-t">
                             <Button onClick={handleSaveChanges} disabled={isSaving} className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                                {isSaving ? <Loader2 className="ml-2 h-4 w-4 animate-spin" /> : null}
-                                حفظ التغييرات
+                                {isSaving ? <Loader2 className="me-2 h-4 w-4 animate-spin" /> : null}
+                                {t('save_changes')}
                             </Button>
                         </div>
                     </CardContent>
@@ -267,11 +268,11 @@ export default function SettingsPage() {
                 <PasswordChangeForm />
                  <Card className="mt-6 border-destructive">
                     <CardHeader>
-                        <CardTitle className="text-destructive">تسجيل الخروج</CardTitle>
-                        <CardDescription>إنهاء جلستك الحالية.</CardDescription>
+                        <CardTitle className="text-destructive">{t('logout')}</CardTitle>
+                        <CardDescription>{t('logout_desc')}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                         <Button variant="destructive" onClick={logout}>تسجيل الخروج</Button>
+                         <Button variant="destructive" onClick={logout}>{t('logout')}</Button>
                     </CardContent>
                  </Card>
             </div>

@@ -19,31 +19,8 @@ import { useAuth } from '@/context/auth-context';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { ar } from 'date-fns/locale';
-
-const couponFormSchema = z.object({
-    code: z.string().min(3, 'الرمز يجب أن يكون 3 أحرف على الأقل').regex(/^[a-zA-Z0-9]+$/, 'الرمز يجب أن يحتوي على أحرف وأرقام إنجليزية فقط'),
-    discountType: z.enum(['percentage', 'fixed']),
-    discountValue: z.coerce.number().positive('قيمة الخصم يجب أن تكون موجبة'),
-    startDate: z.date({ required_error: 'تاريخ البدء مطلوب' }),
-    endDate: z.date({ required_error: 'تاريخ الانتهاء مطلوب' }),
-    usageLimit: z.coerce.number().int().min(1, 'حد الاستخدام يجب أن يكون 1 على الأقل'),
-    appliesTo: z.enum(['all', 'specific']),
-    applicableDishIds: z.array(z.string()).optional(),
-}).refine(data => data.endDate > data.startDate, {
-    message: 'تاريخ الانتهاء يجب أن يكون بعد تاريخ البدء',
-    path: ['endDate'],
-}).refine(data => {
-    if (data.appliesTo === 'specific') {
-        return data.applicableDishIds && data.applicableDishIds.length > 0;
-    }
-    return true;
-}, {
-    message: 'الرجاء اختيار طبق واحد على الأقل عندما يكون الخصم محددًا.',
-    path: ['applicableDishIds'],
-});
-
-type CouponFormValues = z.infer<typeof couponFormSchema>;
+import { useTranslation } from 'react-i18next';
+import { dateLocales } from './language-manager';
 
 interface CouponFormProps {
   coupon?: Coupon | null;
@@ -51,11 +28,36 @@ interface CouponFormProps {
 }
 
 export function CouponForm({ coupon, onFinished }: CouponFormProps) {
+  const { t, i18n } = useTranslation();
   const { toast } = useToast();
   const { user } = useAuth();
   const { dishes, createCoupon, updateCoupon } = useOrders();
 
   const chefDishes = dishes.filter(d => d.chefId === user?.id);
+
+  const couponFormSchema = z.object({
+      code: z.string().min(3, t('coupon_code_min_length')).regex(/^[a-zA-Z0-9]+$/, t('coupon_code_alphanumeric')),
+      discountType: z.enum(['percentage', 'fixed']),
+      discountValue: z.coerce.number().positive(t('discount_value_positive')),
+      startDate: z.date({ required_error: t('start_date_required') }),
+      endDate: z.date({ required_error: t('end_date_required') }),
+      usageLimit: z.coerce.number().int().min(1, t('usage_limit_min')),
+      appliesTo: z.enum(['all', 'specific']),
+      applicableDishIds: z.array(z.string()).optional(),
+  }).refine(data => data.endDate > data.startDate, {
+      message: t('end_date_after_start_date'),
+      path: ['endDate'],
+  }).refine(data => {
+      if (data.appliesTo === 'specific') {
+          return data.applicableDishIds && data.applicableDishIds.length > 0;
+      }
+      return true;
+  }, {
+      message: t('select_one_dish_for_specific'),
+      path: ['applicableDishIds'],
+  });
+
+  type CouponFormValues = z.infer<typeof couponFormSchema>;
 
   const form = useForm<CouponFormValues>({
     resolver: zodResolver(couponFormSchema),
@@ -75,7 +77,7 @@ export function CouponForm({ coupon, onFinished }: CouponFormProps) {
 
   const onSubmit = (data: CouponFormValues) => {
     if (!user || user.role !== 'chef') {
-      toast({ variant: 'destructive', title: 'خطأ', description: 'يجب أن تكون طاهياً لتنفيذ هذا الإجراء.' });
+      toast({ variant: 'destructive', title: t('error'), description: t('must_be_chef') });
       return;
     }
     
@@ -90,29 +92,29 @@ export function CouponForm({ coupon, onFinished }: CouponFormProps) {
 
     if (coupon) {
       updateCoupon({ ...coupon, ...couponPayload });
-      toast({ title: 'تم تحديث القسيمة' });
+      toast({ title: t('coupon_updated') });
     } else {
       createCoupon(couponPayload);
-      toast({ title: 'تم إنشاء القسيمة بنجاح' });
+      toast({ title: t('coupon_created') });
     }
     onFinished?.();
   };
 
   return (
-    <DialogContent className="sm:max-w-md text-right">
+    <DialogContent className="sm:max-w-md">
       <DialogHeader>
-        <DialogTitle>{coupon ? 'تعديل القسيمة' : 'إنشاء قسيمة جديدة'}</DialogTitle>
+        <DialogTitle>{coupon ? t('edit_coupon') : t('create_new_coupon')}</DialogTitle>
       </DialogHeader>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pr-2">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pe-2">
             <FormField
                 control={form.control}
                 name="code"
                 render={({ field }) => (
                 <FormItem>
-                    <FormLabel>رمز القسيمة</FormLabel>
+                    <FormLabel>{t('coupon_code')}</FormLabel>
                     <FormControl>
-                    <Input placeholder="SAVE10" {...field} className="text-left font-mono" />
+                    <Input placeholder="SAVE10" {...field} className="font-mono" />
                     </FormControl>
                     <FormMessage />
                 </FormItem>
@@ -123,7 +125,7 @@ export function CouponForm({ coupon, onFinished }: CouponFormProps) {
                 name="discountType"
                 render={({ field }) => (
                 <FormItem className="space-y-3">
-                    <FormLabel>نوع الخصم</FormLabel>
+                    <FormLabel>{t('discount_type')}</FormLabel>
                     <FormControl>
                     <RadioGroup
                         onValueChange={field.onChange}
@@ -131,16 +133,16 @@ export function CouponForm({ coupon, onFinished }: CouponFormProps) {
                         className="flex gap-4"
                     >
                         <FormItem className="flex items-center space-x-2 space-x-reverse">
+                            <FormLabel htmlFor="percentage" className="font-normal">{t('discount_type_percentage')}</FormLabel>
                             <FormControl>
                                 <RadioGroupItem value="percentage" id="percentage" />
                             </FormControl>
-                            <FormLabel htmlFor="percentage" className="font-normal">نسبة مئوية (%)</FormLabel>
                         </FormItem>
                         <FormItem className="flex items-center space-x-2 space-x-reverse">
+                            <FormLabel htmlFor="fixed" className="font-normal">{t('discount_type_fixed')}</FormLabel>
                             <FormControl>
                                 <RadioGroupItem value="fixed" id="fixed" />
                             </FormControl>
-                            <FormLabel htmlFor="fixed" className="font-normal">مبلغ ثابت (جنيه)</FormLabel>
                         </FormItem>
                     </RadioGroup>
                     </FormControl>
@@ -154,7 +156,7 @@ export function CouponForm({ coupon, onFinished }: CouponFormProps) {
                     name="discountValue"
                     render={({ field }) => (
                     <FormItem>
-                        <FormLabel>قيمة الخصم</FormLabel>
+                        <FormLabel>{t('discount_value')}</FormLabel>
                         <FormControl>
                         <Input type="number" placeholder="10" {...field} />
                         </FormControl>
@@ -167,7 +169,7 @@ export function CouponForm({ coupon, onFinished }: CouponFormProps) {
                     name="usageLimit"
                     render={({ field }) => (
                     <FormItem>
-                        <FormLabel>حد الاستخدام</FormLabel>
+                        <FormLabel>{t('usage_limit')}</FormLabel>
                         <FormControl>
                         <Input type="number" placeholder="100" {...field} />
                         </FormControl>
@@ -182,7 +184,7 @@ export function CouponForm({ coupon, onFinished }: CouponFormProps) {
                 name="appliesTo"
                 render={({ field }) => (
                 <FormItem className="space-y-3">
-                    <FormLabel>ينطبق على</FormLabel>
+                    <FormLabel>{t('applies_to')}</FormLabel>
                     <FormControl>
                     <RadioGroup
                         onValueChange={field.onChange}
@@ -190,16 +192,16 @@ export function CouponForm({ coupon, onFinished }: CouponFormProps) {
                         className="flex gap-4"
                     >
                         <FormItem className="flex items-center space-x-2 space-x-reverse">
+                            <FormLabel htmlFor="all" className="font-normal">{t('all_dishes')}</FormLabel>
                             <FormControl>
                                 <RadioGroupItem value="all" id="all" />
                             </FormControl>
-                            <FormLabel htmlFor="all" className="font-normal">كل الوجبات</FormLabel>
                         </FormItem>
                         <FormItem className="flex items-center space-x-2 space-x-reverse">
+                             <FormLabel htmlFor="specific" className="font-normal">{t('specific_dishes')}</FormLabel>
                             <FormControl>
                                 <RadioGroupItem value="specific" id="specific" />
                             </FormControl>
-                            <FormLabel htmlFor="specific" className="font-normal">وجبات محددة</FormLabel>
                         </FormItem>
                     </RadioGroup>
                     </FormControl>
@@ -215,9 +217,9 @@ export function CouponForm({ coupon, onFinished }: CouponFormProps) {
                     render={() => (
                         <FormItem>
                             <div className="mb-4">
-                                <FormLabel>الوجبات المحددة</FormLabel>
+                                <FormLabel>{t('specific_dishes_label')}</FormLabel>
                                 <FormDescription>
-                                    اختر الوجبات التي ينطبق عليها هذا الخصم.
+                                    {t('specific_dishes_desc')}
                                 </FormDescription>
                             </div>
                             <div className="space-y-2 max-h-40 overflow-y-auto border p-2 rounded-md">
@@ -232,6 +234,9 @@ export function CouponForm({ coupon, onFinished }: CouponFormProps) {
                                                 key={dish.id}
                                                 className="flex flex-row items-start space-x-3 space-x-reverse"
                                             >
+                                                <FormLabel className="font-normal">
+                                                    {dish.name}
+                                                </FormLabel>
                                                 <FormControl>
                                                     <Checkbox
                                                         checked={field.value?.includes(dish.id)}
@@ -246,16 +251,13 @@ export function CouponForm({ coupon, onFinished }: CouponFormProps) {
                                                         }}
                                                     />
                                                 </FormControl>
-                                                <FormLabel className="font-normal">
-                                                    {dish.name}
-                                                </FormLabel>
                                             </FormItem>
                                         )
                                     }}
                                 />
                             ))}
                             {chefDishes.length === 0 && (
-                                <p className="text-sm text-muted-foreground text-center">لا يوجد لديك وجبات لإضافتها.</p>
+                                <p className="text-sm text-muted-foreground text-center">{t('no_dishes_to_add')}</p>
                             )}
                             </div>
                             <FormMessage />
@@ -270,21 +272,21 @@ export function CouponForm({ coupon, onFinished }: CouponFormProps) {
                     name="startDate"
                     render={({ field }) => (
                         <FormItem className="flex flex-col">
-                        <FormLabel>تاريخ البدء</FormLabel>
+                        <FormLabel>{t('start_date')}</FormLabel>
                         <Popover>
                             <PopoverTrigger asChild>
                             <FormControl>
                                 <Button
                                 variant={"outline"}
-                                className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
+                                className={cn("w-full ps-3 text-start font-normal", !field.value && "text-muted-foreground")}
                                 >
-                                {field.value ? format(field.value, 'd MMMM yyyy', { locale: ar }) : <span>اختر تاريخ</span>}
-                                <CalendarIcon className="mr-auto h-4 w-4 opacity-50" />
+                                {field.value ? format(field.value, 'd MMMM yyyy', { locale: dateLocales[i18n.language] }) : <span>{t('pick_a_date')}</span>}
+                                <CalendarIcon className="ms-auto h-4 w-4 opacity-50" />
                                 </Button>
                             </FormControl>
                             </PopoverTrigger>
                             <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date < new Date(new Date().setHours(0,0,0,0))} initialFocus />
+                            <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date < new Date(new Date().setHours(0,0,0,0))} initialFocus locale={dateLocales[i18n.language]} />
                             </PopoverContent>
                         </Popover>
                         <FormMessage />
@@ -296,21 +298,21 @@ export function CouponForm({ coupon, onFinished }: CouponFormProps) {
                     name="endDate"
                     render={({ field }) => (
                         <FormItem className="flex flex-col">
-                        <FormLabel>تاريخ الانتهاء</FormLabel>
+                        <FormLabel>{t('end_date')}</FormLabel>
                         <Popover>
                             <PopoverTrigger asChild>
                             <FormControl>
                                 <Button
                                 variant={"outline"}
-                                className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
+                                className={cn("w-full ps-3 text-start font-normal", !field.value && "text-muted-foreground")}
                                 >
-                                {field.value ? format(field.value, 'd MMMM yyyy', { locale: ar }) : <span>اختر تاريخ</span>}
-                                <CalendarIcon className="mr-auto h-4 w-4 opacity-50" />
+                                {field.value ? format(field.value, 'd MMMM yyyy', { locale: dateLocales[i18n.language] }) : <span>{t('pick_a_date')}</span>}
+                                <CalendarIcon className="ms-auto h-4 w-4 opacity-50" />
                                 </Button>
                             </FormControl>
                             </PopoverTrigger>
                             <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date < form.getValues('startDate')} initialFocus />
+                            <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date < form.getValues('startDate')} initialFocus locale={dateLocales[i18n.language]} />
                             </PopoverContent>
                         </Popover>
                         <FormMessage />
@@ -321,10 +323,10 @@ export function CouponForm({ coupon, onFinished }: CouponFormProps) {
             
 
           <DialogFooter className="pt-4">
+            <Button type="submit" disabled={form.formState.isSubmitting} className="bg-primary text-primary-foreground hover:bg-primary/90">{t('save')}</Button>
             <DialogClose asChild>
-                <Button type="button" variant="secondary">إلغاء</Button>
+                <Button type="button" variant="secondary">{t('cancel')}</Button>
             </DialogClose>
-            <Button type="submit" disabled={form.formState.isSubmitting} className="bg-primary text-primary-foreground hover:bg-primary/90">حفظ</Button>
           </DialogFooter>
         </form>
       </Form>

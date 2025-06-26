@@ -9,8 +9,10 @@ import { useAuth } from '@/context/auth-context';
 import { Users, Search } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { User } from '@/lib/types';
+import { useTranslation } from 'react-i18next';
 
 export default function Home() {
+  const { t } = useTranslation();
   const { dishes, loading: dishesLoading } = useOrders();
   const { chefs, loading: authLoading } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
@@ -47,18 +49,18 @@ export default function Home() {
         <div className="container mx-auto px-4 md:px-6">
           <div className="flex flex-col items-center space-y-4 text-center">
             <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none text-primary">
-              اكتشف أفضل الطهاة في منطقتك
+              {t('discover_best_chefs')}
             </h1>
             <p className="max-w-[700px] text-muted-foreground md:text-xl">
-              تصفح مجموعة من الطهاة الموهوبين واستكشف وجباتهم المميزة.
+              {t('discover_best_chefs_desc')}
             </p>
             <div className="w-full max-w-lg">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder="ابحث عن طاهٍ أو تخصص..."
-                  className="w-full rounded-full bg-background pl-10 pr-4 py-2 text-lg"
+                  placeholder={t('search_placeholder')}
+                  className="w-full rounded-full bg-background ps-10 pe-4 py-2 text-lg"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -84,10 +86,10 @@ export default function Home() {
             <div className="text-center py-24 border-2 border-dashed rounded-lg mt-12">
               <Users className="mx-auto h-16 w-16 text-muted-foreground" />
               <h3 className="mt-4 text-xl font-medium">
-                {searchQuery ? 'لا يوجد طهاة مطابقون لبحثك' : 'لا يوجد طهاة متاحون حالياً'}
+                {searchQuery ? t('no_chefs_match_search') : t('no_chefs_available')}
               </h3>
               <p className="mt-2 text-md text-muted-foreground">
-                {searchQuery ? 'جرّب كلمات بحث أخرى.' : 'انتظر طهاتنا المبدعين للانضمام!'}
+                {searchQuery ? t('try_different_search') : t('wait_for_chefs')}
               </p>
             </div>
           )}

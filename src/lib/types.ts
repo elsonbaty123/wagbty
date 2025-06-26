@@ -1,5 +1,4 @@
 
-
 export type DishStatus = 'متوفرة' | 'غير متوفرة' | 'مخفية';
 
 export type DishRating = {

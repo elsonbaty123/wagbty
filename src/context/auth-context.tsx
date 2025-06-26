@@ -2,9 +2,10 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import * as React from 'react';
 import type { User, UserRole } from '@/lib/types';
 import { isWhitelistedEmail } from '@/lib/whitelisted-emails';
+import i18n from '@/i18n';
 
 type StoredUser = User & { password: string };
 
@@ -21,15 +22,16 @@ interface AuthContextType {
   loading: boolean;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = React.createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [allUsers, setAllUsers] = useState<StoredUser[]>([]);
-  const [loading, setLoading] = useState(true);
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [user, setUser] = React.useState<User | null>(null);
+  const [allUsers, setAllUsers] = React.useState<StoredUser[]>([]);
+  const [loading, setLoading] = React.useState(true);
   const router = useRouter();
+  const t = i18n.t;
 
-  useEffect(() => {
+  React.useEffect(() => {
     try {
       const storedUser = localStorage.getItem('chefconnect_user');
       if (storedUser) {
@@ -69,13 +71,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const hasSymbol = /[^A-Za-z0-9]/.test(password);
     const isLongEnough = password.length > 7;
     if (!hasUppercase || !hasLowercase || !hasNumber || !hasSymbol || !isLongEnough) {
-      throw new Error("كلمة المرور يجب أن تحتوي على ٨ أحرف على الأقل، حرف كبير، حرف صغير، رقم، ورمز.");
+      throw new Error(t('auth_password_requirements'));
     }
   }
 
   const login = async (email: string, password: string, role: UserRole): Promise<User> => {
     if (!isWhitelistedEmail(email)) {
-      throw new Error('هذا البريد غير مسموح به. الرجاء استخدام بريد إلكتروني رسمي مثل Gmail أو Outlook.');
+      throw new Error(t('auth_email_not_allowed'));
     }
 
     const potentialUser = allUsers.find(
@@ -87,17 +89,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       persistUser(userToLogin);
       return userToLogin;
     } else {
-      throw new Error('البريد الإلكتروني أو كلمة المرور غير صحيحة.');
+      throw new Error(t('auth_incorrect_credentials'));
     }
   };
 
   const signup = async (details: Partial<User> & { password: string, role: UserRole }): Promise<User> => {
     if (!isWhitelistedEmail(details.email!)) {
-      throw new Error('هذا البريد غير مسموح به. الرجاء استخدام بريد إلكتروني رسمي مثل Gmail أو Outlook.');
+      throw new Error(t('auth_email_not_allowed'));
     }
 
     if (allUsers.some(u => u.email.toLowerCase() === details.email!.toLowerCase())) {
-      throw new Error('هذا البريد الإلكتروني مستخدم بالفعل.');
+      throw new Error(t('auth_email_in_use'));
     }
     
     validatePassword(details.password);
@@ -110,7 +112,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         phone: details.phone,
         address: details.role === 'customer' ? details.address : undefined,
         specialty: details.specialty,
-        bio: details.role === 'chef' ? `شيف جديد متحمس لمشاركة إبداعاته في المطبخ ${details.specialty}.` : undefined,
+        bio: details.role === 'chef' ? `New chef excited to share their creations in ${details.specialty} cuisine.` : undefined,
         imageUrl: details.role === 'chef' ? `https://placehold.co/400x400.png` : `https://placehold.co/100x100.png`,
         rating: details.role === 'chef' ? 4.5 : undefined,
         availabilityStatus: details.role === 'chef' ? 'available' : undefined,
@@ -127,10 +129,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
   
   const updateUser = async (updatedUserDetails: Partial<User>): Promise<User> => {
-    if (!user) throw new Error("يجب تسجيل الدخول لتحديث الملف الشخصي.");
+    if (!user) throw new Error(t("auth_must_be_logged_in_to_update"));
 
     if (updatedUserDetails.email && !isWhitelistedEmail(updatedUserDetails.email)) {
-        throw new Error('هذا البريد غير مسموح به. الرجاء استخدام بريد إلكتروني رسمي مثل Gmail أو Outlook.');
+        throw new Error(t('auth_email_not_allowed'));
     }
 
     let userToUpdate: StoredUser | undefined;
@@ -144,7 +146,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     if (!userToUpdate) {
-      throw new Error("لم يتم العثور على المستخدم.");
+      throw new Error(t("auth_user_not_found"));
     }
     
     persistAllUsers(updatedUsers);
@@ -156,15 +158,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const changePassword = async ({ oldPassword, newPassword, confirmPassword }: { oldPassword: string; newPassword: string; confirmPassword: string; }) => {
-    if (!user) throw new Error("يجب تسجيل الدخول لتغيير كلمة المرور.");
-    if (newPassword !== confirmPassword) throw new Error("كلمتا المرور الجديدتان غير متطابقتين.");
+    if (!user) throw new Error(t("auth_must_be_logged_in_to_change_password"));
+    if (newPassword !== confirmPassword) throw new Error(t("auth_passwords_do_not_match"));
   
     validatePassword(newPassword);
     
     const userInDb = allUsers.find(u => u.id === user.id);
   
-    if (!userInDb) throw new Error("لم يتم العثور على المستخدم.");
-    if (userInDb.password !== oldPassword) throw new Error("كلمة المرور القديمة غير صحيحة.");
+    if (!userInDb) throw new Error(t("auth_user_not_found"));
+    if (userInDb.password !== oldPassword) throw new Error(t("auth_old_password_incorrect"));
   
     const updatedUsers = allUsers.map(u => {
       if (u.id === user.id) {
@@ -178,7 +180,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   
   const resetPassword = async (email: string, newPassword: string) => {
     if (!isWhitelistedEmail(email)) {
-      throw new Error("هذا البريد غير مسموح به. الرجاء استخدام بريد إلكتروني رسمي مثل Gmail أو Outlook.");
+      throw new Error(t("auth_email_not_allowed"));
     }
 
     validatePassword(newPassword);
@@ -186,7 +188,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const userIndex = allUsers.findIndex(u => u.email.toLowerCase() === email.toLowerCase());
 
     if (userIndex === -1) {
-        throw new Error("البريد الإلكتروني غير موجود.");
+        throw new Error(t("auth_email_not_found"));
     }
     
     const updatedUsers = [...allUsers];
@@ -206,7 +208,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
+  const context = React.useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }

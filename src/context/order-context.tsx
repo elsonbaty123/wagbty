@@ -1,9 +1,10 @@
 
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import * as React from 'react';
 import type { Order, Dish, DishRating, Coupon, User } from '@/lib/types';
 import { useNotifications } from './notification-context';
+import i18n from '@/i18n';
 
 type OrderStatus = Order['status'];
 type CreateOrderPayload = Omit<Order, 'id' | 'status' | 'createdAt' | 'chef'> & {
@@ -29,16 +30,17 @@ interface OrderContextType {
   validateAndApplyCoupon: (code: string, chefId: string, dishId: string, subtotal: number) => { discount: number; error?: string };
 }
 
-const OrderContext = createContext<OrderContextType | undefined>(undefined);
+const OrderContext = React.createContext<OrderContextType | undefined>(undefined);
 
-export const OrderProvider = ({ children }: { children: ReactNode }) => {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [dishes, setDishes] = useState<Dish[]>([]);
-  const [coupons, setCoupons] = useState<Coupon[]>([]);
-  const [loading, setLoading] = useState(true);
+export const OrderProvider = ({ children }: { children: React.ReactNode }) => {
+  const [orders, setOrders] = React.useState<Order[]>([]);
+  const [dishes, setDishes] = React.useState<Dish[]>([]);
+  const [coupons, setCoupons] = React.useState<Coupon[]>([]);
+  const [loading, setLoading] = React.useState(true);
   const { createNotification } = useNotifications();
+  const t = i18n.t;
 
-  useEffect(() => {
+  React.useEffect(() => {
     try {
       const storedOrders = localStorage.getItem('chefconnect_orders');
       if (storedOrders) setOrders(JSON.parse(storedOrders));
@@ -85,7 +87,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
     const newOrder: Order = {
       ...orderData,
       id: `ORD${Date.now()}`,
-      status: isChefBusy ? 'بانتظار توفر الطاهي' : 'جارٍ المراجعة',
+      status: isChefBusy ? 'Waiting for Chef' : 'Pending Review',
       createdAt: new Date().toISOString(),
       chef: { id: orderData.chef.id, name: orderData.chef.name },
     };
@@ -107,21 +109,21 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
     if (isChefBusy) {
         createNotification({
             recipientId: orderData.customerId,
-            title: 'طلبك في قائمة الانتظار',
-            message: `الشيف مشغول حاليًا. تم وضع طلبك لـ'${orderData.dish.name}' في قائمة الانتظار.`,
+            title: t('order_waitlisted_notification_title'),
+            message: t('order_waitlisted_notification_desc', { dishName: orderData.dish.name }),
             link: '/profile',
         });
         createNotification({
             recipientId: orderData.chef.id,
-            title: 'طلب جديد في قائمة الانتظار',
-            message: `لديك طلب جديد من ${orderData.customerName} في الانتظار. سيظهر عند عودتك للحالة "متاح".`,
+            title: t('new_waitlisted_order_notification_title'),
+            message: t('new_waitlisted_order_notification_desc', { customerName: orderData.customerName }),
             link: '/chef/dashboard',
         });
     } else {
         createNotification({
           recipientId: orderData.chef.id,
-          title: 'طلب جديد!',
-          message: `لديك طلب جديد لـ'${orderData.dish.name}' من ${orderData.customerName}.`,
+          title: t('new_order_notification_title'),
+          message: t('new_order_notification_desc', { dishName: orderData.dish.name, customerName: orderData.customerName }),
           link: '/chef/dashboard',
         });
     }
@@ -143,35 +145,35 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
       const { customerId, dish: { name: dishName } } = updatedOrder;
       
       switch (status) {
-        case 'قيد التحضير':
+        case 'Preparing':
           createNotification({
             recipientId: customerId,
-            title: 'تم تأكيد طلبك',
-            message: `طلبك لـ'${dishName}' قيد التحضير الآن!`,
+            title: t('order_confirmed_notification_title'),
+            message: t('order_confirmed_notification_desc', { dishName }),
             link: '/profile',
           });
           break;
-        case 'جاهز للتوصيل':
+        case 'Ready for Delivery':
           createNotification({
             recipientId: customerId,
-            title: 'طلبك في الطريق!',
-            message: `وجبتك اللذيذة '${dishName}' في طريقها إليك.`,
+            title: t('order_on_the_way_notification_title'),
+            message: t('order_on_the_way_notification_desc', { dishName }),
             link: '/profile',
           });
           break;
-        case 'تم التوصيل':
+        case 'Delivered':
           createNotification({
             recipientId: customerId,
-            title: 'تم توصيل طلبك!',
-            message: `استمتع بوجبتك '${dishName}'. لا تنس تقييم التجربة.`,
+            title: t('order_delivered_notification_title'),
+            message: t('order_delivered_notification_desc', { dishName }),
             link: '/profile',
           });
           break;
-        case 'مرفوض':
+        case 'Rejected':
           createNotification({
             recipientId: customerId,
-            title: 'تم رفض طلبك',
-            message: `للأسف، تم رفض طلبك لوجبة '${dishName}'.`,
+            title: t('order_rejected_notification_title'),
+            message: t('order_rejected_notification_desc', { dishName }),
             link: '/profile',
           });
           break;
@@ -253,22 +255,22 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
     const coupon = coupons.find(c => c.code.toLowerCase() === code.toLowerCase() && c.chefId === chefId);
 
     if (!coupon) {
-      return { discount: 0, error: 'رمز القسيمة غير صالح.' };
+      return { discount: 0, error: t('coupon_invalid_error') };
     }
     if (!coupon.isActive) {
-      return { discount: 0, error: 'هذه القسيمة غير نشطة حاليًا.' };
+      return { discount: 0, error: t('coupon_inactive_error') };
     }
     const now = new Date();
     if (now < new Date(coupon.startDate) || now > new Date(coupon.endDate)) {
-      return { discount: 0, error: 'هذه القسيمة منتهية الصلاحية أو لم تبدأ بعد.' };
+      return { discount: 0, error: t('coupon_expired_error') };
     }
     if (coupon.timesUsed >= coupon.usageLimit) {
-      return { discount: 0, error: 'تم الوصول للحد الأقصى لاستخدام هذه القسيمة.' };
+      return { discount: 0, error: t('coupon_limit_reached_error') };
     }
     
     if (coupon.appliesTo === 'specific') {
       if (!coupon.applicableDishIds || !coupon.applicableDishIds.includes(dishId)) {
-        return { discount: 0, error: 'هذه القسيمة لا تنطبق على هذا الطبق.' };
+        return { discount: 0, error: t('coupon_not_applicable_error') };
       }
     }
 
@@ -312,7 +314,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const useOrders = () => {
-  const context = useContext(OrderContext);
+  const context = React.useContext(OrderContext);
   if (context === undefined) {
     throw new Error('useOrders must be used within an OrderProvider');
   }
