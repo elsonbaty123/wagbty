@@ -129,11 +129,11 @@ export default function SignupPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={(e) => {e.preventDefault(); handleSignup('customer')}} className="space-y-4">
-              <div className="space-y-2">
+              <div className="space-y-2 text-start">
                 <Label htmlFor="customer-name">{t('full_name')}</Label>
                 <Input id="customer-name" required value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder={t('full_name_placeholder')} />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 text-start">
                 <Label htmlFor="customer-email">{t('email')}</Label>
                 <Input 
                     id="customer-email" 
@@ -144,15 +144,15 @@ export default function SignupPage() {
                     onChange={(e) => setCustomerEmail(e.target.value)} 
                 />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 text-start">
                 <Label htmlFor="customer-phone">{t('phone_number')}</Label>
                 <Input id="customer-phone" type="tel" placeholder="01XXXXXXXXX" required value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)}/>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 text-start">
                   <Label htmlFor="customer-address">{t('address')}</Label>
                   <Input id="customer-address" placeholder={t('address_placeholder_customer')} required value={customerAddress} onChange={(e) => setCustomerAddress(e.target.value)} />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 text-start">
                 <Label htmlFor="customer-password">{t('password')}</Label>
                 <PasswordInput
                   id="customer-password"
@@ -185,15 +185,15 @@ export default function SignupPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={(e) => {e.preventDefault(); handleSignup('chef')}} className="space-y-4">
-               <div className="space-y-2">
+               <div className="space-y-2 text-start">
                 <Label htmlFor="chef-name">{t('full_name')}</Label>
                 <Input id="chef-name" required value={chefName} onChange={(e) => setChefName(e.target.value)} placeholder={t('full_name_placeholder_chef')}/>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 text-start">
                 <Label htmlFor="chef-specialty">{t('kitchen_specialty')}</Label>
                 <Input id="chef-specialty" placeholder={t('kitchen_specialty_placeholder')} required value={chefSpecialty} onChange={(e) => setChefSpecialty(e.target.value)} />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 text-start">
                 <Label htmlFor="chef-email">{t('email')}</Label>
                 <Input 
                     id="chef-email" 
@@ -204,11 +204,11 @@ export default function SignupPage() {
                     onChange={(e) => setChefEmail(e.target.value)} 
                 />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 text-start">
                 <Label htmlFor="chef-phone">{t('phone_number')}</Label>
                 <Input id="chef-phone" type="tel" placeholder="01XXXXXXXXX" required value={chefPhone} onChange={(e) => setChefPhone(e.target.value)} />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 text-start">
                 <Label htmlFor="chef-password">{t('password')}</Label>
                 <PasswordInput
                   id="chef-password"

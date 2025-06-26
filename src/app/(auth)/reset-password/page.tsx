@@ -78,7 +78,7 @@ function ResetPasswordComponent() {
             </CardHeader>
             <form onSubmit={handleSubmit}>
                 <CardContent className="space-y-4">
-                    <div className="space-y-2">
+                    <div className="space-y-2 text-start">
                         <Label htmlFor="new-password">{t('new_password')}</Label>
                         <PasswordInput
                             id="new-password"
@@ -89,7 +89,7 @@ function ResetPasswordComponent() {
                             placeholder="********"
                         />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 text-start">
                         <Label htmlFor="confirm-password">{t('confirm_new_password')}</Label>
                         <PasswordInput
                             id="confirm-password"

@@ -98,7 +98,7 @@ export default function LoginPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={(e) => { e.preventDefault(); handleLogin('customer'); }} className="space-y-4">
-              <div className="space-y-2">
+              <div className="space-y-2 text-start">
                 <Label htmlFor="customer-email">{t('email')}</Label>
                 <Input 
                   id="customer-email" 
@@ -109,7 +109,7 @@ export default function LoginPage() {
                   onChange={(e) => setCustomerEmail(e.target.value)}
                 />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 text-start">
                   <Label htmlFor="customer-password">{t('password')}</Label>
                 <PasswordInput
                   id="customer-password"
@@ -146,7 +146,7 @@ export default function LoginPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={(e) => { e.preventDefault(); handleLogin('chef'); }} className="space-y-4">
-              <div className="space-y-2">
+              <div className="space-y-2 text-start">
                 <Label htmlFor="chef-email">{t('email')}</Label>
                 <Input 
                   id="chef-email" 
@@ -157,7 +157,7 @@ export default function LoginPage() {
                   onChange={(e) => setChefEmail(e.target.value)}
                 />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 text-start">
                   <Label htmlFor="chef-password">{t('password')}</Label>
                  <PasswordInput
                   id="chef-password"

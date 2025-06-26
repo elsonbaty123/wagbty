@@ -148,7 +148,7 @@ export default function SettingsPage() {
         toast({ title: t("availability_status_updated") });
 
         if (user.availabilityStatus === 'busy' && newStatus === 'available') {
-            const queuedOrders = getOrdersByChefId(user.id).filter(o => o.status === 'بانتظار توفر الطاهي');
+            const queuedOrders = getOrdersByChefId(user.id).filter(o => o.status === 'waiting_for_chef');
             if (queuedOrders.length > 0) {
                 createNotification({
                 recipientId: user.id,
@@ -176,7 +176,7 @@ export default function SettingsPage() {
                         <CardDescription>{t('profile_desc')}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                        <div className="space-y-2">
+                        <div className="space-y-2 text-start">
                             <Label>{t('profile_picture')}</Label>
                             <div className="flex items-center gap-4">
                                 <Avatar className="h-20 w-20">
@@ -192,7 +192,7 @@ export default function SettingsPage() {
                         </div>
 
                         {user.role === 'chef' && (
-                             <div className="space-y-2">
+                             <div className="space-y-2 text-start">
                                 <Label>{t('availability_status')}</Label>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
@@ -220,11 +220,11 @@ export default function SettingsPage() {
                         )}
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
+                            <div className="space-y-2 text-start">
                                 <Label htmlFor="name">{t('full_name_label')}</Label>
                                 <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder={t('full_name_placeholder')} />
                             </div>
-                            <div className="space-y-2">
+                            <div className="space-y-2 text-start">
                                 <Label htmlFor="email">{t('email_label')}</Label>
                                 <Input 
                                     id="email" 
@@ -235,23 +235,23 @@ export default function SettingsPage() {
                                 />
                             </div>
                         </div>
-                        <div className="space-y-2">
+                        <div className="space-y-2 text-start">
                             <Label htmlFor="phone">{t('phone_number_label')}</Label>
                             <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="01XXXXXXXXX" />
                         </div>
                         {user.role === 'customer' && (
-                            <div className="space-y-2">
+                            <div className="space-y-2 text-start">
                                 <Label htmlFor="address">{t('delivery_address_label')}</Label>
                                 <Textarea id="address" value={address} onChange={(e) => setAddress(e.target.value)} placeholder={t('delivery_address_placeholder')} />
                             </div>
                         )}
                         {user.role === 'chef' && (
                             <>
-                                <div className="space-y-2">
+                                <div className="space-y-2 text-start">
                                     <Label htmlFor="chef-specialty">{t('kitchen_specialty_label')}</Label>
                                     <Input id="chef-specialty" value={specialty} onChange={(e) => setSpecialty(e.target.value)} placeholder={t('kitchen_specialty_placeholder_alt')} />
                                 </div>
-                                <div className="space-y-2">
+                                <div className="space-y-2 text-start">
                                     <Label htmlFor="chef-bio">{t('bio_label')}</Label>
                                     <Textarea id="chef-bio" value={bio} onChange={(e) => setBio(e.target.value)} placeholder={t('bio_placeholder')} />
                                 </div>

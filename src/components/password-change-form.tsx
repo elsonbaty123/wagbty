@@ -55,7 +55,7 @@ export function PasswordChangeForm() {
             </CardHeader>
             <form onSubmit={handleSubmit}>
                 <CardContent className="space-y-4">
-                    <div className="space-y-2">
+                    <div className="space-y-2 text-start">
                         <Label htmlFor="old-password">{t('old_password')}</Label>
                         <PasswordInput 
                             id="old-password" 
@@ -65,7 +65,7 @@ export function PasswordChangeForm() {
                             placeholder="********"
                         />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 text-start">
                         <Label htmlFor="new-password">{t('new_password_label')}</Label>
                         <PasswordInput 
                             id="new-password" 
@@ -76,7 +76,7 @@ export function PasswordChangeForm() {
                             placeholder="********"
                         />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 text-start">
                         <Label htmlFor="confirm-password">{t('confirm_new_password_label')}</Label>
                         <PasswordInput 
                             id="confirm-password" 
