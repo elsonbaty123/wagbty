@@ -2,14 +2,8 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { cn } from '@/lib/utils';
-import { Header } from '@/components/layout/header';
-import { Footer } from '@/components/layout/footer';
-import { Toaster } from '@/components/ui/toaster';
-import { AuthProvider } from '@/context/auth-context';
-import { OrderProvider } from '@/context/order-context';
-import { NotificationProvider } from '@/context/notification-context';
-import { ThemeProvider } from '@/components/theme-provider';
-import I18nProvider from './i18n-provider';
+import MainLayout from '@/components/main-layout';
+
 
 export const metadata: Metadata = {
   title: {
@@ -36,27 +30,7 @@ export default function RootLayout({
           'min-h-screen bg-background font-body antialiased'
         )}
       >
-        <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-        >
-          <I18nProvider>
-            <AuthProvider>
-            <NotificationProvider>
-                <OrderProvider>
-                <div className="relative flex min-h-screen flex-col">
-                    <Header />
-                    <main className="flex-1">{children}</main>
-                    <Footer />
-                </div>
-                <Toaster />
-                </OrderProvider>
-            </NotificationProvider>
-            </AuthProvider>
-          </I18nProvider>
-        </ThemeProvider>
+        <MainLayout>{children}</MainLayout>
       </body>
     </html>
   );
