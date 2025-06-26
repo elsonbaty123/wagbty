@@ -1,32 +1,27 @@
-
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { DollarSign, Utensils, Star, BookOpenCheck, Loader2, Upload, User as UserIcon, ArrowUp, ArrowDown, Tag, Circle } from 'lucide-react';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { DollarSign, Utensils, Star, ArrowUp, ArrowDown } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { useOrders } from '@/context/order-context';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { OrderCard } from '@/components/order-card';
-import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
 import { format, isWithinInterval, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import { dateLocales } from '@/components/language-manager';
 import { CouponManagementTab } from '@/components/coupon-management-tab';
-import { useNotifications } from '@/context/notification-context';
+import { MenuManagementTab } from '@/components/menu-management-tab';
 
 
 export default function ChefDashboardPage() {
   const { t, i18n } = useTranslation();
   const { user, loading } = useAuth();
   const { dishes, getOrdersByChefId, updateOrderStatus } = useOrders();
-  const { createNotification } = useNotifications();
   const router = useRouter();
 
   useEffect(() => {
@@ -134,7 +129,7 @@ export default function ChefDashboardPage() {
       </div>
 
       <Tabs defaultValue="dashboard" className="w-full">
-        <TabsList className="flex h-auto flex-wrap justify-center gap-2 md:flex-nowrap md:gap-4">
+        <TabsList className="h-auto justify-start overflow-x-auto whitespace-nowrap p-1 flex-nowrap gap-1">
             <TabsTrigger value="dashboard">{t('overview')}</TabsTrigger>
             <TabsTrigger value="orders">{t('orders')}</TabsTrigger>
             <TabsTrigger value="menu">{t('menu')}</TabsTrigger>
@@ -257,22 +252,7 @@ export default function ChefDashboardPage() {
         </TabsContent>
         
         <TabsContent value="menu">
-            <Card className="mt-4">
-                <CardHeader>
-                    <CardTitle>{t('menu_management')}</CardTitle>
-                    <CardDescription>
-                    {t('menu_management_desc')}
-                    </CardDescription>
-                </CardHeader>
-                <CardFooter>
-                    <Button asChild className="bg-accent text-accent-foreground hover:bg-accent/90">
-                    <Link href="/chef/menu">
-                        <BookOpenCheck className="ms-2 h-4 w-4" />
-                        {t('go_to_menu_management')}
-                    </Link>
-                    </Button>
-                </CardFooter>
-            </Card>
+            <MenuManagementTab />
         </TabsContent>
         
         <TabsContent value="coupons">
