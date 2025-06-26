@@ -20,7 +20,7 @@ import { LanguageSwitcher } from "../language-switcher"
 import { useTranslation } from "react-i18next"
 
 export function Header() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user, logout, loading } = useAuth()
 
   const getDashboardLink = () => {
@@ -101,6 +101,8 @@ export function Header() {
     )
   }
 
+  const sheetSide = i18n.dir() === 'rtl' ? 'right' : 'left';
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-card shadow-sm">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
@@ -123,7 +125,7 @@ export function Header() {
               <span className="sr-only">{t('toggle_nav')}</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="right">
+          <SheetContent side={sheetSide}>
             <SheetHeader>
                 <SheetTitle className="sr-only">{t('toggle_nav')}</SheetTitle>
                 <SheetDescription className="sr-only">{t('app_name')}</SheetDescription>
