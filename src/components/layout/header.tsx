@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { NotificationsPopover } from "../notifications-popover"
 import { ThemeToggleButton } from "../theme-toggle-button"
+import { LanguageSwitcher } from "../language-switcher"
 
 export function Header() {
   const { user, logout, loading } = useAuth()
@@ -39,6 +40,7 @@ export function Header() {
                     <span className="sr-only">الإعدادات</span>
                 </Button>
             </Link>
+            <LanguageSwitcher />
             <ThemeToggleButton />
             <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -91,6 +93,7 @@ export function Header() {
     }
     return (
       <div className="flex items-center gap-2">
+        <LanguageSwitcher />
         <ThemeToggleButton />
         <Button variant="ghost" asChild>
           <Link href="/login">تسجيل الدخول</Link>
@@ -158,6 +161,10 @@ export function Header() {
                     </Button>
                     </>
                 )}
+              </div>
+              <div className="mt-6 flex justify-center gap-4 border-t pt-6">
+                <LanguageSwitcher />
+                <ThemeToggleButton />
               </div>
             </div>
           </SheetContent>
