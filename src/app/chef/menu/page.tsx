@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import { PlusCircle, Utensils } from 'lucide-react';
 import { Dialog } from '@/components/ui/dialog';
 import { DishForm } from '@/components/dish-form';
-import { DishManagementCard } from '@/components/dish-management-card';
 import type { Dish } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useTranslation } from 'react-i18next';
@@ -55,7 +54,7 @@ export default function ChefMenuPage() {
     return (
         <>
             <div className="container mx-auto px-4 py-8 md:px-6 md:py-12">
-                <div className="flex justify-between items-center mb-8">
+                <div className="flex flex-col gap-4 text-center sm:text-start sm:flex-row sm:justify-between sm:items-center mb-8">
                     <h1 className="font-headline text-3xl md:text-4xl font-bold text-primary">{t('menu_management')}</h1>
                     <Button onClick={() => handleOpenDialog(null)} className="bg-primary text-primary-foreground hover:bg-primary/90">
                         <PlusCircle className="ms-2 h-4 w-4" />

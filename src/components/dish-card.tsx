@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -74,7 +75,7 @@ export function DishCard({ dish, chefName, chefStatus = 'available' }: DishCardP
             </div>
         </div>
       </CardContent>
-      <CardFooter className="p-4 flex justify-between items-center bg-muted/50 mt-auto">
+      <CardFooter className="p-4 flex flex-col items-stretch gap-4 sm:flex-row sm:items-center sm:justify-between bg-muted/50 mt-auto">
         <Button asChild className={cn("bg-accent hover:bg-accent/90 text-accent-foreground", !canOrder && "bg-muted text-muted-foreground hover:bg-muted")} disabled={!canOrder}>
           <Link href={`/order?dishId=${dish.id}`}>{getButtonText()}</Link>
         </Button>
