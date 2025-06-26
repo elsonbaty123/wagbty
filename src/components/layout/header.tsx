@@ -59,27 +59,27 @@ export function Header() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                 <Link href={getDashboardLink()}>
-                    <User className="me-2 h-4 w-4" />
+                    <User className="h-4 w-4" />
                     <span>{user.role === 'chef' ? t('dashboard') : t('my_orders')}</span>
                 </Link>
                 </DropdownMenuItem>
                 {user.role === 'chef' && (
                 <DropdownMenuItem asChild>
                     <Link href="/chef/menu">
-                        <BookOpenCheck className="me-2 h-4 w-4" />
+                        <BookOpenCheck className="h-4 w-4" />
                         <span>{t('manage_menu')}</span>
                     </Link>
                 </DropdownMenuItem>
                 )}
                 <DropdownMenuItem asChild>
                     <Link href="/settings">
-                        <Settings className="me-2 h-4 w-4" />
+                        <Settings className="h-4 w-4" />
                         <span>{t('settings')}</span>
                     </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={logout}>
-                    <LogOut className="me-2 h-4 w-4" />
+                    <LogOut className="h-4 w-4" />
                     <span>{t('logout')}</span>
                 </DropdownMenuItem>
             </DropdownMenuContent>

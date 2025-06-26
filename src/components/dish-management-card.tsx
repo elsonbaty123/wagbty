@@ -1,4 +1,3 @@
-
 'use client';
 import Image from 'next/image';
 import {
@@ -77,13 +76,13 @@ export function DishManagementCard({ dish, onEdit }: DishManagementCardProps) {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                                 <DropdownMenuItem onClick={onEdit}>
+                                    <Edit className="h-4 w-4" />
                                     <span>{t('edit')}</span>
-                                    <Edit className="me-2 h-4 w-4" />
                                 </DropdownMenuItem>
                                 <AlertDialogTrigger asChild>
                                     <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                        <Trash2 className="h-4 w-4" />
                                         <span>{t('delete')}</span>
-                                        <Trash2 className="me-2 h-4 w-4" />
                                     </DropdownMenuItem>
                                 </AlertDialogTrigger>
                             </DropdownMenuContent>
@@ -106,16 +105,16 @@ export function DishManagementCard({ dish, onEdit }: DishManagementCardProps) {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="center" className="w-56">
                             <DropdownMenuItem onClick={() => handleStatusChange('available')}>
+                                <CheckCircle className="h-4 w-4 text-green-500" />
                                 <span>{t('dish_status_available')}</span>
-                                <CheckCircle className="me-2 h-4 w-4 text-green-500" />
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleStatusChange('unavailable')}>
+                                <Eye className="h-4 w-4 text-orange-500" />
                                 <span>{t('status_temporarily_unavailable')}</span>
-                                <Eye className="me-2 h-4 w-4 text-orange-500" />
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleStatusChange('hidden')}>
+                                <EyeOff className="h-4 w-4 text-gray-500" />
                                 <span>{t('status_hidden_disabled')}</span>
-                                <EyeOff className="me-2 h-4 w-4 text-gray-500" />
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
