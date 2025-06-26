@@ -2,7 +2,7 @@
 "use client"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription, SheetClose } from "@/components/ui/sheet"
 import { Menu, UtensilsCrossed, User, LogOut, ClipboardList, BookOpenCheck, Settings } from "lucide-react"
 import { useAuth } from "@/context/auth-context"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -59,28 +59,28 @@ export function Header() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                 <Link href={getDashboardLink()}>
-                    <span>{user.role === 'chef' ? t('dashboard') : t('my_orders')}</span>
                     <User className="me-2 h-4 w-4" />
+                    <span>{user.role === 'chef' ? t('dashboard') : t('my_orders')}</span>
                 </Link>
                 </DropdownMenuItem>
                 {user.role === 'chef' && (
                 <DropdownMenuItem asChild>
                     <Link href="/chef/menu">
-                        <span>{t('manage_menu')}</span>
                         <BookOpenCheck className="me-2 h-4 w-4" />
+                        <span>{t('manage_menu')}</span>
                     </Link>
                 </DropdownMenuItem>
                 )}
                 <DropdownMenuItem asChild>
                     <Link href="/settings">
-                        <span>{t('settings')}</span>
                         <Settings className="me-2 h-4 w-4" />
+                        <span>{t('settings')}</span>
                     </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={logout}>
-                    <span>{t('logout')}</span>
                     <LogOut className="me-2 h-4 w-4" />
+                    <span>{t('logout')}</span>
                 </DropdownMenuItem>
             </DropdownMenuContent>
             </DropdownMenu>
@@ -113,8 +113,8 @@ export function Header() {
           </Link>
         </nav>
         <Link href="/" className="flex items-center gap-2">
-          <span className="text-xl font-bold font-headline text-primary">{t('app_name')}</span>
           <UtensilsCrossed className="h-6 w-6 text-primary" />
+          <span className="text-xl font-bold font-headline text-primary">{t('app_name')}</span>
         </Link>
         <Sheet>
           <SheetTrigger asChild>
@@ -129,36 +129,50 @@ export function Header() {
                 <SheetDescription className="sr-only">{t('app_name')}</SheetDescription>
             </SheetHeader>
             <div className="grid gap-4 py-6">
-              <Link href="/" className="flex items-center gap-2">
-                <UtensilsCrossed className="h-6 w-6 text-primary" />
-                <span className="text-xl font-bold font-headline text-primary">{t('app_name')}</span>
-              </Link>
+                <SheetClose asChild>
+                    <Link href="/" className="flex items-center gap-2">
+                        <UtensilsCrossed className="h-6 w-6 text-primary" />
+                        <span className="text-xl font-bold font-headline text-primary">{t('app_name')}</span>
+                    </Link>
+                </SheetClose>
               <nav className="grid gap-2 text-lg font-medium">
-                 <Link href="/" className="transition-colors hover:text-primary">
-                    {t('home')}
-                 </Link>
+                 <SheetClose asChild>
+                    <Link href="/" className="transition-colors hover:text-primary">
+                        {t('home')}
+                    </Link>
+                 </SheetClose>
               </nav>
               <div className="flex flex-col gap-2">
                 {loading ? (
                     <div className="h-10 w-full animate-pulse rounded-md bg-muted" />
                 ) : user ? (
                     <>
-                    <Button variant="ghost" asChild>
-                        <Link href={getDashboardLink()}>{user.role === 'chef' ? t('dashboard') : t('my_orders')}</Link>
-                    </Button>
-                     <Button variant="ghost" asChild>
-                        <Link href="/settings">{t('settings')}</Link>
-                     </Button>
-                    <Button onClick={logout} variant="outline">{t('logout')}</Button>
+                    <SheetClose asChild>
+                        <Button variant="ghost" asChild>
+                            <Link href={getDashboardLink()}>{user.role === 'chef' ? t('dashboard') : t('my_orders')}</Link>
+                        </Button>
+                    </SheetClose>
+                     <SheetClose asChild>
+                        <Button variant="ghost" asChild>
+                            <Link href="/settings">{t('settings')}</Link>
+                        </Button>
+                     </SheetClose>
+                    <SheetClose asChild>
+                        <Button onClick={logout} variant="outline">{t('logout')}</Button>
+                    </SheetClose>
                     </>
                 ) : (
                     <>
-                    <Button variant="ghost" asChild>
-                        <Link href="/login">{t('login')}</Link>
-                    </Button>
-                    <Button asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                        <Link href="/signup">{t('signup')}</Link>
-                    </Button>
+                    <SheetClose asChild>
+                        <Button variant="ghost" asChild>
+                            <Link href="/login">{t('login')}</Link>
+                        </Button>
+                    </SheetClose>
+                    <SheetClose asChild>
+                        <Button asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
+                            <Link href="/signup">{t('signup')}</Link>
+                        </Button>
+                    </SheetClose>
                     </>
                 )}
               </div>
