@@ -41,8 +41,8 @@ export default function ProfilePage() {
     }
 
     const myOrders = getOrdersByCustomerId(user.id);
-    const ongoingOrders = myOrders.filter(o => o.status !== 'تم التوصيل' && o.status !== 'مرفوض');
-    const completedOrders = myOrders.filter(o => o.status === 'تم التوصيل' || o.status === 'مرفوض');
+    const ongoingOrders = myOrders.filter(o => o.status !== 'delivered' && o.status !== 'rejected');
+    const completedOrders = myOrders.filter(o => o.status === 'delivered' || o.status === 'rejected');
 
   return (
     <div className="container mx-auto px-4 py-8 md:px-6 md:py-12">

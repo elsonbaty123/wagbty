@@ -19,7 +19,7 @@ interface DishCardProps {
 
 export function DishCard({ dish, chefName, chefStatus = 'available' }: DishCardProps) {
   const { t } = useTranslation();
-  const isDishAvailable = dish.status === 'متوفرة';
+  const isDishAvailable = dish.status === 'available';
   const canOrder = isDishAvailable && chefStatus !== 'closed';
 
   const getButtonText = () => {

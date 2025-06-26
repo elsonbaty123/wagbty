@@ -87,7 +87,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
     const newOrder: Order = {
       ...orderData,
       id: `ORD${Date.now()}`,
-      status: isChefBusy ? 'بانتظار توفر الطاهي' : 'جارٍ المراجعة',
+      status: isChefBusy ? 'waiting_for_chef' : 'pending_review',
       createdAt: new Date().toISOString(),
       chef: { id: orderData.chef.id, name: orderData.chef.name },
     };
@@ -145,7 +145,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
       const { customerId, dish: { name: dishName } } = updatedOrder;
       
       switch (status) {
-        case 'قيد التحضير':
+        case 'preparing':
           createNotification({
             recipientId: customerId,
             title: t('order_confirmed_notification_title'),
@@ -153,7 +153,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
             link: '/profile',
           });
           break;
-        case 'جاهز للتوصيل':
+        case 'ready_for_delivery':
           createNotification({
             recipientId: customerId,
             title: t('order_on_the_way_notification_title'),
@@ -161,7 +161,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
             link: '/profile',
           });
           break;
-        case 'تم التوصيل':
+        case 'delivered':
           createNotification({
             recipientId: customerId,
             title: t('order_delivered_notification_title'),
@@ -169,7 +169,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
             link: '/profile',
           });
           break;
-        case 'مرفوض':
+        case 'rejected':
           createNotification({
             recipientId: customerId,
             title: t('order_rejected_notification_title'),

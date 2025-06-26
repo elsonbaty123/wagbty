@@ -27,7 +27,7 @@ export default function ChefProfilePage() {
     if (!chef) {
       return { chefDishes: [], chefAverageRating: 0, totalRatingsCount: 0 };
     }
-    const filteredDishes = dishes.filter(dish => dish.chefId === chef.id && dish.status !== 'مخفية');
+    const filteredDishes = dishes.filter(dish => dish.chefId === chef.id && dish.status !== 'hidden');
     const allRatings = filteredDishes.flatMap(d => d.ratings?.map(r => r.rating) || []);
     const averageRating = allRatings.length > 0
       ? allRatings.reduce((a, b) => a + b, 0) / allRatings.length

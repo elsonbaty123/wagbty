@@ -46,9 +46,9 @@ export default function ChefDashboardPage() {
     revenuePercentageChange,
     allReviews,
   } = useMemo(() => {
-    const pending = chefOrders.filter(o => o.status === 'جارٍ المراجعة' || o.status === 'بانتظار توفر الطاهي');
-    const ongoing = chefOrders.filter(o => ['قيد التحضير', 'جاهز للتوصيل'].includes(o.status));
-    const completed = chefOrders.filter(o => o.status === 'تم التوصيل');
+    const pending = chefOrders.filter(o => o.status === 'pending_review' || o.status === 'waiting_for_chef');
+    const ongoing = chefOrders.filter(o => ['preparing', 'ready_for_delivery'].includes(o.status));
+    const completed = chefOrders.filter(o => o.status === 'delivered');
     
     const now = new Date();
     const startOfCurrentMonth = startOfMonth(now);
@@ -134,7 +134,7 @@ export default function ChefDashboardPage() {
       </div>
 
       <Tabs defaultValue="dashboard" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
             <TabsTrigger value="dashboard">{t('overview')}</TabsTrigger>
             <TabsTrigger value="orders">{t('orders')}</TabsTrigger>
             <TabsTrigger value="menu">{t('menu')}</TabsTrigger>

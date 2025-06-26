@@ -55,12 +55,12 @@ export function DishManagementCard({ dish, onEdit }: DishManagementCardProps) {
     };
 
     const statusMap: Record<DishStatus, { labelKey: string, variant: "default" | "secondary" | "outline" | "destructive" | null | undefined }> = {
-      'متوفرة': { labelKey: 'dish_status_available', variant: 'default' },
-      'غير متوفرة': { labelKey: 'dish_status_unavailable', variant: 'secondary' },
-      'مخفية': { labelKey: 'dish_status_hidden', variant: 'outline' },
+      'available': { labelKey: 'dish_status_available', variant: 'default' },
+      'unavailable': { labelKey: 'dish_status_unavailable', variant: 'secondary' },
+      'hidden': { labelKey: 'dish_status_hidden', variant: 'outline' },
     };
     
-    const isHidden = dish.status === 'مخفية';
+    const isHidden = dish.status === 'hidden';
     const currentStatus = statusMap[dish.status];
 
     return (
@@ -105,15 +105,15 @@ export function DishManagementCard({ dish, onEdit }: DishManagementCardProps) {
                             <Button variant="outline" className="w-full">{t('change_status')}</Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="center" className="w-56">
-                            <DropdownMenuItem onClick={() => handleStatusChange('متوفرة')}>
+                            <DropdownMenuItem onClick={() => handleStatusChange('available')}>
                                 <span>{t('dish_status_available')}</span>
                                 <CheckCircle className="me-2 h-4 w-4 text-green-500" />
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleStatusChange('غير متوفرة')}>
+                            <DropdownMenuItem onClick={() => handleStatusChange('unavailable')}>
                                 <span>{t('status_temporarily_unavailable')}</span>
                                 <Eye className="me-2 h-4 w-4 text-orange-500" />
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleStatusChange('مخفية')}>
+                            <DropdownMenuItem onClick={() => handleStatusChange('hidden')}>
                                 <span>{t('status_hidden_disabled')}</span>
                                 <EyeOff className="me-2 h-4 w-4 text-gray-500" />
                             </DropdownMenuItem>

@@ -1,5 +1,5 @@
 
-export type DishStatus = 'متوفرة' | 'غير متوفرة' | 'مخفية';
+export type DishStatus = 'available' | 'unavailable' | 'hidden';
 
 export type DishRating = {
   customerName: string;
@@ -39,7 +39,7 @@ export interface User {
   availabilityStatus?: 'available' | 'busy' | 'closed';
 }
 
-export type OrderStatus = 'جارٍ المراجعة' | 'قيد التحضير' | 'جاهز للتوصيل' | 'تم التوصيل' | 'مرفوض' | 'بانتظار توفر الطاهي';
+export type OrderStatus = 'pending_review' | 'preparing' | 'ready_for_delivery' | 'delivered' | 'rejected' | 'waiting_for_chef';
 
 export type Order = {
   id: string;

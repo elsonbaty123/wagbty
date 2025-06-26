@@ -35,12 +35,12 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
   const [reviewText, setReviewText] = useState(order.review || '');
 
   const statusMap: Record<OrderStatus, { labelKey: string, variant: "default" | "secondary" | "outline" | "destructive" | null | undefined, icon?: React.ReactNode }> = {
-    'جارٍ المراجعة': { labelKey: 'order_status_pending_review', variant: 'secondary' },
-    'قيد التحضير': { labelKey: 'order_status_preparing', variant: 'default' },
-    'جاهز للتوصيل': { labelKey: 'order_status_ready_for_delivery', variant: 'default' },
-    'تم التوصيل': { labelKey: 'order_status_delivered', variant: 'outline' },
-    'مرفوض': { labelKey: 'order_status_rejected', variant: 'destructive' },
-    'بانتظار توفر الطاهي': { labelKey: 'order_status_waiting_for_chef', variant: 'secondary', icon: <Clock className="me-2 h-4 w-4" /> },
+    'pending_review': { labelKey: 'order_status_pending_review', variant: 'secondary' },
+    'preparing': { labelKey: 'order_status_preparing', variant: 'default' },
+    'ready_for_delivery': { labelKey: 'order_status_ready_for_delivery', variant: 'default' },
+    'delivered': { labelKey: 'order_status_delivered', variant: 'outline' },
+    'rejected': { labelKey: 'order_status_rejected', variant: 'destructive' },
+    'waiting_for_chef': { labelKey: 'order_status_waiting_for_chef', variant: 'secondary', icon: <Clock className="me-2 h-4 w-4" /> },
   };
 
   const handleStatusChange = (status: OrderStatus) => {
@@ -126,7 +126,7 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
             </div>
         </div>
       </CardContent>
-      {isCustomerView && order.status === 'تم التوصيل' && !order.rating && addReview && (
+      {isCustomerView && order.status === 'delivered' && !order.rating && addReview && (
         <CardFooter className="flex-col items-start gap-2 border-t pt-4">
             <h4 className="font-medium">{t('rate_order')}</h4>
             <div className="flex items-center gap-1" dir="ltr">
@@ -163,7 +163,7 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
             </div>
         </CardFooter>
       )}
-       {isChefView && order.status !== 'تم التوصيل' && order.status !== 'مرفوض' && (
+       {isChefView && order.status !== 'delivered' && order.status !== 'rejected' && (
         <CardFooter>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -173,23 +173,23 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="center" className="w-56">
-              {(order.status === 'جارٍ المراجعة' || order.status === 'بانتظار توفر الطاهي') && (
+              {(order.status === 'pending_review' || order.status === 'waiting_for_chef') && (
                 <>
-                  <DropdownMenuItem onClick={() => handleStatusChange('قيد التحضير')}>
+                  <DropdownMenuItem onClick={() => handleStatusChange('preparing')}>
                     {t('accept_order_preparing')}
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleStatusChange('مرفوض')} className="text-destructive focus:text-destructive">
+                  <DropdownMenuItem onClick={() => handleStatusChange('rejected')} className="text-destructive focus:text-destructive">
                     {t('reject_order')}
                   </DropdownMenuItem>
                 </>
               )}
-              {order.status === 'قيد التحضير' && (
-                <DropdownMenuItem onClick={() => handleStatusChange('جاهز للتوصيل')}>
+              {order.status === 'preparing' && (
+                <DropdownMenuItem onClick={() => handleStatusChange('ready_for_delivery')}>
                   {t('ready_for_delivery')}
                 </DropdownMenuItem>
               )}
-              {order.status === 'جاهز للتوصيل' && (
-                <DropdownMenuItem onClick={() => handleStatusChange('تم التوصيل')}>
+              {order.status === 'ready_for_delivery' && (
+                <DropdownMenuItem onClick={() => handleStatusChange('delivered')}>
                   {t('delivered')}
                 </DropdownMenuItem>
               )}

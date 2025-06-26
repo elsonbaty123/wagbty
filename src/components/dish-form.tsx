@@ -78,7 +78,7 @@ export function DishForm({ dish, onFinished }: DishFormProps) {
         description: t('dish_updated_toast_desc', { name: data.name }),
       });
     } else {
-      addDish({ ...dishPayload, chefId: user.id, status: 'متوفرة' });
+      addDish({ ...dishPayload, chefId: user.id, status: 'available' });
        toast({
         title: t('dish_added_toast'),
         description: t('dish_added_toast_desc', { name: data.name }),
