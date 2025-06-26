@@ -23,7 +23,7 @@ export default function ForgotPasswordPage() {
 
     const validateEmail = (email: string): string => {
         if (!email.trim()) return "البريد الإلكتروني مطلوب.";
-        const emailRegex = /^[a-zA-Z][^\s@]*@[^\s@]+\.[^\s@]+$/;
+        const emailRegex = /^[a-zA-Z][a-zA-Z0-9]*(?:[._][a-zA-Z0-9]+)*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         if (!emailRegex.test(email)) {
           return "البريد الإلكتروني غير صحيح. يجب أن يبدأ بحرف ويتبع الصيغة مثل: example@gmail.com";
         }
