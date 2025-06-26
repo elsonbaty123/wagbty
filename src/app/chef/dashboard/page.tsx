@@ -134,7 +134,7 @@ export default function ChefDashboardPage() {
       </div>
 
       <Tabs defaultValue="dashboard" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 gap-2 md:grid-cols-4">
+        <TabsList className="flex h-auto flex-wrap justify-center gap-2 md:flex-nowrap md:gap-4">
             <TabsTrigger value="dashboard">{t('overview')}</TabsTrigger>
             <TabsTrigger value="orders">{t('orders')}</TabsTrigger>
             <TabsTrigger value="menu">{t('menu')}</TabsTrigger>
