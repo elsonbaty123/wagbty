@@ -13,9 +13,11 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import type { User } from '@/lib/types';
+import { useTranslation } from 'react-i18next';
 
 
 export default function SignupPage() {
+  const { t } = useTranslation();
   const [customerName, setCustomerName] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
@@ -35,23 +37,23 @@ export default function SignupPage() {
   const { toast } = useToast();
 
     const validateEmail = (email: string): string => {
-        if (!email.trim()) return "البريد الإلكتروني مطلوب.";
+        if (!email.trim()) return t('validation_email_required');
     
         if (!/^[a-zA-Z]/.test(email)) {
-          return 'يجب أن يبدأ البريد الإلكتروني بحرف.';
+          return t('validation_email_must_start_with_letter');
         }
     
         if (!email.includes('@')) {
-            return 'البريد الإلكتروني يجب أن يحتوي على علامة "@".';
+            return t('validation_email_must_contain_at');
         }
     
         if (/[^a-zA-Z0-9@._-]/.test(email)) {
-          return 'البريد الإلكتروني يحتوي على رموز غير مسموح بها. الرجاء إزالة أي رموز خاصة أو مسافات.';
+          return t('validation_email_contains_invalid_chars');
         }
         
         const emailRegex = /^[a-zA-Z][a-zA-Z0-9._-]*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         if (!emailRegex.test(email)) {
-          return 'صيغة البريد الإلكتروني غير صحيحة. مثال: user@example.com';
+          return t('validation_email_invalid_format');
         }
         
         return '';
@@ -88,7 +90,7 @@ export default function SignupPage() {
     if (emailError) {
         toast({
             variant: 'destructive',
-            title: 'خطأ في البريد الإلكتروني',
+            title: t('error_in_email'),
             description: emailError,
         });
         setIsLoading(false);
@@ -105,8 +107,8 @@ export default function SignupPage() {
     } catch (error: any) {
       toast({
         variant: 'destructive',
-        title: 'فشل إنشاء الحساب',
-        description: error.message || 'حدث خطأ ما، يرجى المحاولة مرة أخرى.',
+        title: t('signup_failed'),
+        description: error.message || t('something_went_wrong'),
       });
     } finally {
         setIsLoading(false);
@@ -114,49 +116,47 @@ export default function SignupPage() {
   };
 
   return (
-    <Tabs defaultValue="customer" className="w-full max-w-md text-right">
+    <Tabs defaultValue="customer" className="w-full max-w-md">
       <TabsList className="grid w-full grid-cols-2">
-        <TabsTrigger value="customer">أنا عميل</TabsTrigger>
-        <TabsTrigger value="chef">أنا طاهٍ</TabsTrigger>
+        <TabsTrigger value="customer">{t('i_am_a_customer', 'أنا عميل')}</TabsTrigger>
+        <TabsTrigger value="chef">{t('i_am_a_chef', 'أنا طاهٍ')}</TabsTrigger>
       </TabsList>
       <TabsContent value="customer">
         <Card>
-          <CardHeader>
-            <CardTitle className="font-headline text-2xl">إنشاء حساب عميل</CardTitle>
-            <CardDescription>انضم إلى مجتمع محبي الطعام.</CardDescription>
+          <CardHeader className="text-center">
+            <CardTitle className="font-headline text-2xl">{t('customer_signup_title')}</CardTitle>
+            <CardDescription>{t('customer_signup_desc')}</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={(e) => {e.preventDefault(); handleSignup('customer')}} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="customer-name">الاسم الكامل</Label>
-                <Input id="customer-name" required className="text-right" value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="مثال: أحمد محمد" />
+                <Label htmlFor="customer-name">{t('full_name')}</Label>
+                <Input id="customer-name" required value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder={t('full_name_placeholder', 'مثال: أحمد محمد')} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="customer-email">البريد الإلكتروني</Label>
+                <Label htmlFor="customer-email">{t('email')}</Label>
                 <Input 
                     id="customer-email" 
                     type="email" 
                     placeholder="m@example.com" 
                     required 
-                    className="text-right" 
                     value={customerEmail} 
                     onChange={(e) => setCustomerEmail(e.target.value)} 
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="customer-phone">رقم الهاتف</Label>
-                <Input id="customer-phone" type="tel" placeholder="01XXXXXXXXX" required className="text-right" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)}/>
+                <Label htmlFor="customer-phone">{t('phone_number')}</Label>
+                <Input id="customer-phone" type="tel" placeholder="01XXXXXXXXX" required value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)}/>
               </div>
               <div className="space-y-2">
-                  <Label htmlFor="customer-address">العنوان</Label>
-                  <Input id="customer-address" placeholder="456 شارع الجزيرة، الزمالك" required className="text-right" value={customerAddress} onChange={(e) => setCustomerAddress(e.target.value)} />
+                  <Label htmlFor="customer-address">{t('address')}</Label>
+                  <Input id="customer-address" placeholder={t('address_placeholder_customer', '456 شارع الجزيرة، الزمالك')} required value={customerAddress} onChange={(e) => setCustomerAddress(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="customer-password">كلمة المرور</Label>
+                <Label htmlFor="customer-password">{t('password')}</Label>
                 <PasswordInput
                   id="customer-password"
                   required
-                  className="text-right"
                   placeholder="********"
                   value={customerPassword}
                   onChange={(e) => setCustomerPassword(e.target.value)}
@@ -164,13 +164,13 @@ export default function SignupPage() {
                 />
               </div>
               <Button type="submit" disabled={isLoading} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
-                {isLoading && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-                إنشاء حساب
+                {isLoading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
+                {t('signup')}
               </Button>
               <div className="mt-4 text-center text-sm">
-                لديك حساب بالفعل؟{' '}
+                {t('already_a_member')}{' '}
                 <Link href="/login" className="underline text-primary">
-                  تسجيل الدخول
+                  {t('login')}
                 </Link>
               </div>
             </form>
@@ -179,42 +179,40 @@ export default function SignupPage() {
       </TabsContent>
       <TabsContent value="chef">
         <Card>
-          <CardHeader>
-            <CardTitle className="font-headline text-2xl">انضم كطاهٍ</CardTitle>
-            <CardDescription>شارك إبداعاتك في الطهي مع العالم.</CardDescription>
+          <CardHeader className="text-center">
+            <CardTitle className="font-headline text-2xl">{t('chef_signup_title')}</CardTitle>
+            <CardDescription>{t('chef_signup_desc')}</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={(e) => {e.preventDefault(); handleSignup('chef')}} className="space-y-4">
                <div className="space-y-2">
-                <Label htmlFor="chef-name">الاسم الكامل</Label>
-                <Input id="chef-name" required className="text-right" value={chefName} onChange={(e) => setChefName(e.target.value)} placeholder="مثال: الشيف أنطوان"/>
+                <Label htmlFor="chef-name">{t('full_name')}</Label>
+                <Input id="chef-name" required value={chefName} onChange={(e) => setChefName(e.target.value)} placeholder={t('full_name_placeholder_chef', 'مثال: الشيف أنطوان')}/>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="chef-specialty">تخصص المطبخ</Label>
-                <Input id="chef-specialty" placeholder="مثال: فرنسي، إيطالي، نباتي" required className="text-right" value={chefSpecialty} onChange={(e) => setChefSpecialty(e.target.value)} />
+                <Label htmlFor="chef-specialty">{t('kitchen_specialty')}</Label>
+                <Input id="chef-specialty" placeholder={t('kitchen_specialty_placeholder', 'مثال: فرنسي، إيطالي، نباتي')} required value={chefSpecialty} onChange={(e) => setChefSpecialty(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="chef-email">البريد الإلكتروني</Label>
+                <Label htmlFor="chef-email">{t('email')}</Label>
                 <Input 
                     id="chef-email" 
                     type="email" 
                     placeholder="chef@example.com" 
                     required 
-                    className="text-right" 
                     value={chefEmail} 
                     onChange={(e) => setChefEmail(e.target.value)} 
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="chef-phone">رقم الهاتف</Label>
-                <Input id="chef-phone" type="tel" placeholder="01XXXXXXXXX" required className="text-right" value={chefPhone} onChange={(e) => setChefPhone(e.target.value)} />
+                <Label htmlFor="chef-phone">{t('phone_number')}</Label>
+                <Input id="chef-phone" type="tel" placeholder="01XXXXXXXXX" required value={chefPhone} onChange={(e) => setChefPhone(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="chef-password">كلمة المرور</Label>
+                <Label htmlFor="chef-password">{t('password')}</Label>
                 <PasswordInput
                   id="chef-password"
                   required
-                  className="text-right"
                   placeholder="********"
                   value={chefPassword}
                   onChange={(e) => setChefPassword(e.target.value)}
@@ -222,13 +220,13 @@ export default function SignupPage() {
                 />
               </div>
               <Button type="submit" disabled={isLoading} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
-                 {isLoading && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-                تقدم لتكون طاهيًا
+                 {isLoading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
+                 {t('apply_to_be_chef')}
               </Button>
               <div className="mt-4 text-center text-sm">
-                عضو بالفعل؟{' '}
+                {t('already_a_member')}{' '}
                 <Link href="/login" className="underline text-primary">
-                  تسجيل الدخول
+                  {t('login')}
                 </Link>
               </div>
             </form>

@@ -1,4 +1,3 @@
-
 import type { Metadata } from 'next';
 import './globals.css';
 import { cn } from '@/lib/utils';
@@ -9,6 +8,7 @@ import { AuthProvider } from '@/context/auth-context';
 import { OrderProvider } from '@/context/order-context';
 import { NotificationProvider } from '@/context/notification-context';
 import { ThemeProvider } from '@/components/theme-provider';
+import I18nProvider from './i18n-provider';
 
 export const metadata: Metadata = {
   title: 'اكل بيتي',
@@ -38,6 +38,7 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
         >
+          <I18nProvider>
             <AuthProvider>
             <NotificationProvider>
                 <OrderProvider>
@@ -50,6 +51,7 @@ export default function RootLayout({
                 </OrderProvider>
             </NotificationProvider>
             </AuthProvider>
+          </I18nProvider>
         </ThemeProvider>
       </body>
     </html>

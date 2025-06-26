@@ -11,8 +11,10 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { isWhitelistedEmail } from '@/lib/whitelisted-emails';
+import { useTranslation } from 'react-i18next';
 
 export default function ForgotPasswordPage() {
+    const { t } = useTranslation();
     const [email, setEmail] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
@@ -20,23 +22,23 @@ export default function ForgotPasswordPage() {
     const { toast } = useToast();
 
     const validateEmail = (email: string): string => {
-        if (!email.trim()) return "البريد الإلكتروني مطلوب.";
+        if (!email.trim()) return t('validation_email_required');
     
         if (!/^[a-zA-Z]/.test(email)) {
-          return 'يجب أن يبدأ البريد الإلكتروني بحرف.';
+          return t('validation_email_must_start_with_letter');
         }
     
         if (!email.includes('@')) {
-            return 'البريد الإلكتروني يجب أن يحتوي على علامة "@".';
+            return t('validation_email_must_contain_at');
         }
     
         if (/[^a-zA-Z0-9@._-]/.test(email)) {
-          return 'البريد الإلكتروني يحتوي على رموز غير مسموح بها. الرجاء إزالة أي رموز خاصة أو مسافات.';
+          return t('validation_email_contains_invalid_chars');
         }
         
         const emailRegex = /^[a-zA-Z][a-zA-Z0-9._-]*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         if (!emailRegex.test(email)) {
-          return 'صيغة البريد الإلكتروني غير صحيحة. مثال: user@example.com';
+          return t('validation_email_invalid_format');
         }
         
         return '';
@@ -49,7 +51,7 @@ export default function ForgotPasswordPage() {
         if (error) {
             toast({
                 variant: 'destructive',
-                title: 'خطأ في البريد الإلكتروني',
+                title: t('error_in_email'),
                 description: error,
             });
             return;
@@ -58,8 +60,8 @@ export default function ForgotPasswordPage() {
         if (!isWhitelistedEmail(email)) {
             toast({
                 variant: 'destructive',
-                title: 'بريد إلكتروني غير مسموح به',
-                description: 'يرجى استخدام بريد إلكتروني رسمي من قائمة مقدمي الخدمة المعتمدين.',
+                title: t('unauthorized_email'),
+                description: t('unauthorized_email_desc'),
             });
             return;
         }
@@ -68,34 +70,32 @@ export default function ForgotPasswordPage() {
 
         const userExists = users.some(u => u.email.toLowerCase() === email.toLowerCase());
 
-        // Simulate sending a reset link with a delay
         setTimeout(() => {
             setIsLoading(false);
             setIsSubmitted(true);
             
-            // For demo purposes, we log the "magic link" to the console for the user to test the flow.
             if (userExists) {
-                console.log(`رابط إعادة تعيين كلمة المرور لـ ${email}: /reset-password?email=${encodeURIComponent(email)}`);
+                console.log(`Password reset link for ${email}: /reset-password?email=${encodeURIComponent(email)}`);
             } else {
-                 console.log(`البريد الإلكتروني ${email} غير موجود، ولكن يتم عرض رسالة نجاح لأسباب أمنية. لم يتم إنشاء رابط إعادة تعيين.`);
+                 console.log(`Email ${email} not found, but showing success message for security. No reset link generated.`);
             }
 
             toast({
-                title: 'تم إرسال الطلب',
-                description: 'إذا كان البريد الإلكتروني مسجلاً، فستتلقى رابطًا لإعادة التعيين قريبًا.',
+                title: t('request_sent'),
+                description: t('reset_link_sent_desc'),
             });
 
         }, 1500);
     };
 
     return (
-        <Card className="w-full max-w-md text-right">
-            <CardHeader>
-                <CardTitle className="font-headline text-2xl">نسيت كلمة المرور؟</CardTitle>
+        <Card className="w-full max-w-md">
+            <CardHeader className="text-center">
+                <CardTitle className="font-headline text-2xl">{t('forgot_password_title')}</CardTitle>
                 <CardDescription>
                     {isSubmitted 
-                        ? 'تم إرسال طلب إعادة تعيين كلمة المرور.'
-                        : 'لا تقلق. أدخل بريدك الإلكتروني أدناه وسنرسل لك رابطًا لإعادة تعيين كلمة المرور الخاصة بك.'
+                        ? t('forgot_password_desc_sent')
+                        : t('forgot_password_desc_initial')
                     }
                 </CardDescription>
             </CardHeader>
@@ -103,39 +103,38 @@ export default function ForgotPasswordPage() {
                 {isSubmitted ? (
                     <div className="flex flex-col items-center justify-center text-center space-y-4 p-8">
                         <CheckCircle className="h-16 w-16 text-green-500" />
-                        <h3 className="text-xl font-semibold">تحقق من بريدك الإلكتروني</h3>
+                        <h3 className="text-xl font-semibold">{t('check_your_email')}</h3>
                         <p className="text-muted-foreground">
-                            تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني إذا كان مسجلًا لدينا. الرجاء التحقق من صندوق الوارد أو البريد العشوائي.
+                            {t('password_reset_link_sent')}
                         </p>
-                        <p className="text-xs text-muted-foreground mt-2">(لأغراض العرض التوضيحي، تم طباعة الرابط في وحدة تحكم المطور.)</p>
+                        <p className="text-xs text-muted-foreground mt-2">{t('demo_link_in_console')}</p>
                         <Button asChild variant="outline" className="mt-6">
                             <Link href="/login">
-                                العودة إلى تسجيل الدخول
+                                {t('back_to_login')}
                             </Link>
                         </Button>
                     </div>
                 ) : (
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="email">البريد الإلكتروني</Label>
+                            <Label htmlFor="email">{t('email')}</Label>
                             <Input
                                 id="email"
                                 type="email"
                                 placeholder="m@example.com"
                                 required
-                                className="text-right"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                             />
                         </div>
                         <Button type="submit" disabled={isLoading} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-                            {isLoading && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-                            إرسال رابط إعادة التعيين
+                            {isLoading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
+                            {t('send_reset_link')}
                         </Button>
                          <div className="mt-4 text-center text-sm">
-                            تذكرت كلمة المرور؟{' '}
+                            {t('remembered_password')}{' '}
                             <Link href="/login" className="underline text-accent">
-                                تسجيل الدخول
+                                {t('login')}
                             </Link>
                         </div>
                     </form>

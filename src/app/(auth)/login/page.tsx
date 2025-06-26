@@ -12,9 +12,11 @@ import { useAuth } from '@/context/auth-context';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 
 export default function LoginPage() {
+  const { t } = useTranslation();
   const [customerEmail, setCustomerEmail] = useState('');
   const [customerPassword, setCustomerPassword] = useState('');
   const [chefEmail, setChefEmail] = useState('');
@@ -26,23 +28,23 @@ export default function LoginPage() {
   const router = useRouter();
 
     const validateEmail = (email: string): string => {
-        if (!email.trim()) return "البريد الإلكتروني مطلوب.";
+        if (!email.trim()) return t('validation_email_required');
     
         if (!/^[a-zA-Z]/.test(email)) {
-          return 'يجب أن يبدأ البريد الإلكتروني بحرف.';
+          return t('validation_email_must_start_with_letter');
         }
     
         if (!email.includes('@')) {
-            return 'البريد الإلكتروني يجب أن يحتوي على علامة "@".';
+            return t('validation_email_must_contain_at');
         }
     
         if (/[^a-zA-Z0-9@._-]/.test(email)) {
-          return 'البريد الإلكتروني يحتوي على رموز غير مسموح بها. الرجاء إزالة أي رموز خاصة أو مسافات.';
+          return t('validation_email_contains_invalid_chars');
         }
         
         const emailRegex = /^[a-zA-Z][a-zA-Z0-9._-]*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         if (!emailRegex.test(email)) {
-          return 'صيغة البريد الإلكتروني غير صحيحة. مثال: user@example.com';
+          return t('validation_email_invalid_format');
         }
         
         return '';
@@ -57,7 +59,7 @@ export default function LoginPage() {
     if (emailError) {
         toast({
             variant: "destructive",
-            title: "خطأ في البريد الإلكتروني",
+            title: t('error_in_email'),
             description: emailError,
         });
         setIsLoading(false);
@@ -74,8 +76,8 @@ export default function LoginPage() {
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "فشل تسجيل الدخول",
-        description: error.message || 'حدث خطأ ما، يرجى المحاولة مرة أخرى.',
+        title: t('login_failed'),
+        description: error.message || t('something_went_wrong'),
       });
     } finally {
       setIsLoading(false);
@@ -83,53 +85,51 @@ export default function LoginPage() {
   }
 
   return (
-    <Tabs defaultValue="customer" className="w-full max-w-md text-right">
+    <Tabs defaultValue="customer" className="w-full max-w-md">
       <TabsList className="grid w-full grid-cols-2">
-        <TabsTrigger value="customer">عميل</TabsTrigger>
-        <TabsTrigger value="chef">طاهٍ</TabsTrigger>
+        <TabsTrigger value="customer">{t('customer')}</TabsTrigger>
+        <TabsTrigger value="chef">{t('chef')}</TabsTrigger>
       </TabsList>
       <TabsContent value="customer">
         <Card>
-          <CardHeader>
-            <CardTitle className="font-headline text-2xl">تسجيل دخول العميل</CardTitle>
-            <CardDescription>مرحبًا بعودتك! يرجى إدخال بياناتك لطلب وجبتك التالية.</CardDescription>
+          <CardHeader className="text-center">
+            <CardTitle className="font-headline text-2xl">{t('customer_login_title')}</CardTitle>
+            <CardDescription>{t('customer_login_desc')}</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={(e) => { e.preventDefault(); handleLogin('customer'); }} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="customer-email">البريد الإلكتروني</Label>
+                <Label htmlFor="customer-email">{t('email')}</Label>
                 <Input 
                   id="customer-email" 
                   type="email" 
                   placeholder="jane.doe@example.com" 
                   required 
-                  className="text-right"
                   value={customerEmail}
                   onChange={(e) => setCustomerEmail(e.target.value)}
                 />
               </div>
               <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                      <Label htmlFor="customer-password">كلمة المرور</Label>
-                      <Link href="/forgot-password" className="text-sm text-accent underline">نسيت كلمة المرور؟</Link>
+                      <Label htmlFor="customer-password">{t('password')}</Label>
+                      <Link href="/forgot-password" className="text-sm text-accent underline">{t('forgot_password')}</Link>
                   </div>
                 <PasswordInput
                   id="customer-password"
                   required
-                  className="text-right"
                   value={customerPassword}
                   onChange={(e) => setCustomerPassword(e.target.value)}
                   placeholder="Password123!"
                 />
               </div>
               <Button type="submit" disabled={isLoading} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-                 {isLoading && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-                تسجيل الدخول
+                 {isLoading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
+                {t('login')}
               </Button>
               <div className="mt-4 text-center text-sm">
-                ليس لديك حساب؟{' '}
+                {t('no_account_yet')}{' '}
                 <Link href="/signup" className="underline text-accent">
-                  إنشاء حساب
+                  {t('signup')}
                 </Link>
               </div>
             </form>
@@ -138,46 +138,44 @@ export default function LoginPage() {
       </TabsContent>
       <TabsContent value="chef">
         <Card>
-          <CardHeader>
-            <CardTitle className="font-headline text-2xl">تسجيل دخول الطاهي</CardTitle>
-            <CardDescription>ادخل إلى لوحة التحكم الخاصة بك لإدارة الطلبات وقائمة طعامك.</CardDescription>
+          <CardHeader className="text-center">
+            <CardTitle className="font-headline text-2xl">{t('chef_login_title')}</CardTitle>
+            <CardDescription>{t('chef_login_desc')}</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={(e) => { e.preventDefault(); handleLogin('chef'); }} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="chef-email">البريد الإلكتروني</Label>
+                <Label htmlFor="chef-email">{t('email')}</Label>
                 <Input 
                   id="chef-email" 
                   type="email" 
                   placeholder="chef.antoine@example.com" 
                   required 
-                  className="text-right"
                   value={chefEmail}
                   onChange={(e) => setChefEmail(e.target.value)}
                 />
               </div>
               <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                      <Label htmlFor="chef-password">كلمة المرور</Label>
-                      <Link href="/forgot-password" className="text-sm text-accent underline">نسيت كلمة المرور؟</Link>
+                      <Label htmlFor="chef-password">{t('password')}</Label>
+                      <Link href="/forgot-password" className="text-sm text-accent underline">{t('forgot_password')}</Link>
                   </div>
                  <PasswordInput
                   id="chef-password"
                   required
-                  className="text-right"
                   value={chefPassword}
                   onChange={(e) => setChefPassword(e.target.value)}
                   placeholder="Password123!"
                 />
               </div>
               <Button type="submit" disabled={isLoading} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-                {isLoading && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-                تسجيل الدخول
+                {isLoading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
+                {t('login')}
               </Button>
               <div className="mt-4 text-center text-sm">
-                لست طاهيًا معنا بعد؟{' '}
+                {t('not_a_chef_yet')}{' '}
                 <Link href="/signup" className="underline text-accent">
-                  انضم الآن
+                  {t('join_now')}
                 </Link>
               </div>
             </form>
