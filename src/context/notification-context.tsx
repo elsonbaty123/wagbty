@@ -1,7 +1,7 @@
 
 'use client';
 
-import * as React from 'react';
+import { createContext, useState, useEffect, useContext, type ReactNode } from 'react';
 import type { Notification } from '@/lib/types';
 
 interface NotificationContextType {
@@ -13,12 +13,12 @@ interface NotificationContextType {
   unreadCount: (userId: string) => number;
 }
 
-const NotificationContext = React.createContext<NotificationContextType | undefined>(undefined);
+const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
-export const NotificationProvider = ({ children }: { children: React.ReactNode }) => {
-  const [notifications, setNotifications] = React.useState<Notification[]>([]);
+export const NotificationProvider = ({ children }: { children: ReactNode }) => {
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     try {
       const storedNotifications = localStorage.getItem('chefconnect_notifications');
       if (storedNotifications) setNotifications(JSON.parse(storedNotifications));
@@ -83,7 +83,7 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
 };
 
 export const useNotifications = () => {
-  const context = React.useContext(NotificationContext);
+  const context = useContext(NotificationContext);
   if (context === undefined) {
     throw new Error('useNotifications must be used within a NotificationProvider');
   }

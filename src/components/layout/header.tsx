@@ -2,7 +2,7 @@
 "use client"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet"
 import { Menu, UtensilsCrossed, User, LogOut, ClipboardList, BookOpenCheck, Settings } from "lucide-react"
 import { useAuth } from "@/context/auth-context"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -124,6 +124,10 @@ export function Header() {
             </Button>
           </SheetTrigger>
           <SheetContent side="right">
+            <SheetHeader>
+                <SheetTitle className="sr-only">{t('toggle_nav')}</SheetTitle>
+                <SheetDescription className="sr-only">{t('app_name')}</SheetDescription>
+            </SheetHeader>
             <div className="grid gap-4 py-6">
               <Link href="/" className="flex items-center gap-2">
                 <UtensilsCrossed className="h-6 w-6 text-primary" />

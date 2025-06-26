@@ -2,7 +2,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import * as React from 'react';
+import { createContext, useState, useEffect, useContext, type ReactNode } from 'react';
 import type { User, UserRole } from '@/lib/types';
 import { isWhitelistedEmail } from '@/lib/whitelisted-emails';
 import i18n from '@/i18n';
@@ -22,16 +22,16 @@ interface AuthContextType {
   loading: boolean;
 }
 
-const AuthContext = React.createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = React.useState<User | null>(null);
-  const [allUsers, setAllUsers] = React.useState<StoredUser[]>([]);
-  const [loading, setLoading] = React.useState(true);
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [allUsers, setAllUsers] = useState<StoredUser[]>([]);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
   const t = i18n.t;
 
-  React.useEffect(() => {
+  useEffect(() => {
     try {
       const storedUser = localStorage.getItem('chefconnect_user');
       if (storedUser) {
@@ -208,7 +208,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 };
 
 export const useAuth = () => {
-  const context = React.useContext(AuthContext);
+  const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }

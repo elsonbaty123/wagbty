@@ -1,7 +1,7 @@
 
 'use client';
 
-import * as React from 'react';
+import { createContext, useState, useEffect, useContext, type ReactNode } from 'react';
 import type { Order, Dish, DishRating, Coupon, User } from '@/lib/types';
 import { useNotifications } from './notification-context';
 import i18n from '@/i18n';
@@ -30,17 +30,17 @@ interface OrderContextType {
   validateAndApplyCoupon: (code: string, chefId: string, dishId: string, subtotal: number) => { discount: number; error?: string };
 }
 
-const OrderContext = React.createContext<OrderContextType | undefined>(undefined);
+const OrderContext = createContext<OrderContextType | undefined>(undefined);
 
-export const OrderProvider = ({ children }: { children: React.ReactNode }) => {
-  const [orders, setOrders] = React.useState<Order[]>([]);
-  const [dishes, setDishes] = React.useState<Dish[]>([]);
-  const [coupons, setCoupons] = React.useState<Coupon[]>([]);
-  const [loading, setLoading] = React.useState(true);
+export const OrderProvider = ({ children }: { children: ReactNode }) => {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [dishes, setDishes] = useState<Dish[]>([]);
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [loading, setLoading] = useState(true);
   const { createNotification } = useNotifications();
   const t = i18n.t;
 
-  React.useEffect(() => {
+  useEffect(() => {
     try {
       const storedOrders = localStorage.getItem('chefconnect_orders');
       if (storedOrders) setOrders(JSON.parse(storedOrders));
@@ -87,7 +87,7 @@ export const OrderProvider = ({ children }: { children: React.ReactNode }) => {
     const newOrder: Order = {
       ...orderData,
       id: `ORD${Date.now()}`,
-      status: isChefBusy ? 'Waiting for Chef' : 'Pending Review',
+      status: isChefBusy ? 'بانتظار توفر الطاهي' : 'جارٍ المراجعة',
       createdAt: new Date().toISOString(),
       chef: { id: orderData.chef.id, name: orderData.chef.name },
     };
@@ -145,7 +145,7 @@ export const OrderProvider = ({ children }: { children: React.ReactNode }) => {
       const { customerId, dish: { name: dishName } } = updatedOrder;
       
       switch (status) {
-        case 'Preparing':
+        case 'قيد التحضير':
           createNotification({
             recipientId: customerId,
             title: t('order_confirmed_notification_title'),
@@ -153,7 +153,7 @@ export const OrderProvider = ({ children }: { children: React.ReactNode }) => {
             link: '/profile',
           });
           break;
-        case 'Ready for Delivery':
+        case 'جاهز للتوصيل':
           createNotification({
             recipientId: customerId,
             title: t('order_on_the_way_notification_title'),
@@ -161,7 +161,7 @@ export const OrderProvider = ({ children }: { children: React.ReactNode }) => {
             link: '/profile',
           });
           break;
-        case 'Delivered':
+        case 'تم التوصيل':
           createNotification({
             recipientId: customerId,
             title: t('order_delivered_notification_title'),
@@ -169,7 +169,7 @@ export const OrderProvider = ({ children }: { children: React.ReactNode }) => {
             link: '/profile',
           });
           break;
-        case 'Rejected':
+        case 'مرفوض':
           createNotification({
             recipientId: customerId,
             title: t('order_rejected_notification_title'),
@@ -314,7 +314,7 @@ export const OrderProvider = ({ children }: { children: React.ReactNode }) => {
 };
 
 export const useOrders = () => {
-  const context = React.useContext(OrderContext);
+  const context = useContext(OrderContext);
   if (context === undefined) {
     throw new Error('useOrders must be used within an OrderProvider');
   }
