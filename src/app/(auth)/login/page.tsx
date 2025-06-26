@@ -110,10 +110,7 @@ export default function LoginPage() {
                 />
               </div>
               <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                      <Label htmlFor="customer-password">{t('password')}</Label>
-                      <Link href="/forgot-password" className="text-sm text-accent underline">{t('forgot_password')}</Link>
-                  </div>
+                  <Label htmlFor="customer-password">{t('password')}</Label>
                 <PasswordInput
                   id="customer-password"
                   required
@@ -126,11 +123,16 @@ export default function LoginPage() {
                  {isLoading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
                 {t('login')}
               </Button>
-              <div className="mt-4 text-center text-sm">
-                {t('no_account_yet')}{' '}
-                <Link href="/signup" className="underline text-accent">
-                  {t('signup')}
-                </Link>
+               <div className="mt-4 flex flex-col items-center gap-2 text-sm">
+                  <Link href="/forgot-password" className="underline text-accent">
+                      {t('forgot_password')}
+                  </Link>
+                  <div>
+                    {t('no_account_yet')}{' '}
+                    <Link href="/signup" className="underline text-accent">
+                      {t('signup')}
+                    </Link>
+                  </div>
               </div>
             </form>
           </CardContent>
@@ -156,10 +158,7 @@ export default function LoginPage() {
                 />
               </div>
               <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                      <Label htmlFor="chef-password">{t('password')}</Label>
-                      <Link href="/forgot-password" className="text-sm text-accent underline">{t('forgot_password')}</Link>
-                  </div>
+                  <Label htmlFor="chef-password">{t('password')}</Label>
                  <PasswordInput
                   id="chef-password"
                   required
@@ -172,11 +171,16 @@ export default function LoginPage() {
                 {isLoading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
                 {t('login')}
               </Button>
-              <div className="mt-4 text-center text-sm">
-                {t('not_a_chef_yet')}{' '}
-                <Link href="/signup" className="underline text-accent">
-                  {t('join_now')}
-                </Link>
+               <div className="mt-4 flex flex-col items-center gap-2 text-sm">
+                  <Link href="/forgot-password" className="underline text-accent">
+                      {t('forgot_password')}
+                  </Link>
+                  <div>
+                    {t('not_a_chef_yet')}{' '}
+                    <Link href="/signup" className="underline text-accent">
+                      {t('join_now')}
+                    </Link>
+                  </div>
               </div>
             </form>
           </CardContent>
