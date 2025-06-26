@@ -134,15 +134,15 @@ export default function ChefDashboardPage() {
       </div>
 
       <Tabs defaultValue="dashboard" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
+        <TabsList className="grid w-full grid-cols-2 gap-2 md:grid-cols-4">
             <TabsTrigger value="dashboard">{t('overview')}</TabsTrigger>
             <TabsTrigger value="orders">{t('orders')}</TabsTrigger>
             <TabsTrigger value="menu">{t('menu')}</TabsTrigger>
             <TabsTrigger value="coupons">{t('coupons')}</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="dashboard">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 my-8">
+        <TabsContent value="dashboard" className="mt-6 space-y-6">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">{t('revenue_this_month')}</CardTitle>
@@ -227,7 +227,7 @@ export default function ChefDashboardPage() {
 
         <TabsContent value="orders">
             <Tabs defaultValue="new" className="w-full mt-4">
-                 <TabsList className="grid w-full grid-cols-1 text-center sm:grid-cols-3">
+                 <TabsList className="grid w-full grid-cols-1 gap-2 text-center sm:grid-cols-3">
                     <TabsTrigger value="new">{t('new_orders')} ({pendingOrders.length})</TabsTrigger>
                     <TabsTrigger value="ongoing">{t('ongoing_orders')} ({ongoingOrders.length})</TabsTrigger>
                     <TabsTrigger value="completed">{t('completed_orders')} ({completedOrders.length})</TabsTrigger>
