@@ -8,8 +8,8 @@ import MainLayout from '@/components/main-layout';
 
 export const metadata: Metadata = {
   title: {
-    default: "ChefConnect",
-    template: `%s | ChefConnect`,
+    default: "Wagbty",
+    template: `%s | Wagbty`,
   },
   description: "Discover the best homemade food prepared just for you.",
 };

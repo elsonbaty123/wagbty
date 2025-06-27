@@ -70,13 +70,13 @@ export function Header() {
               <SheetContent side={sheetSide}>
                 <SheetHeader>
                     <SheetTitle className="sr-only">{t('toggle_nav')}</SheetTitle>
-                    <SheetDescription className="sr-only">{t('app_name')}</SheetDescription>
+                    <SheetDescription className="sr-only">{i18n.language === 'ar' ? 'وجبتي' : 'Wagbty'}</SheetDescription>
                 </SheetHeader>
                 <div className="grid gap-4 py-6">
                     <SheetClose asChild>
                         <Link href="/" className="flex items-center gap-2">
                             <UtensilsCrossed className="h-6 w-6 text-primary" />
-                            <span className="text-xl font-bold font-headline text-primary">{t('app_name')}</span>
+                            <span className="text-xl font-bold font-headline text-primary">{i18n.language === 'ar' ? 'وجبتي' : 'Wagbty'}</span>
                         </Link>
                     </SheetClose>
                   <nav className="grid gap-2 text-lg font-medium">
@@ -126,7 +126,7 @@ export function Header() {
           </div>
           <Link href="/" className="flex items-center gap-2">
             <UtensilsCrossed className="h-6 w-6 text-primary" />
-            <span className="hidden sm:inline text-xl font-bold font-headline text-primary">{t('app_name')}</span>
+            <span className="hidden sm:inline text-xl font-bold font-headline text-primary">{i18n.language === 'ar' ? 'وجبتي' : 'Wagbty'}</span>
           </Link>
         </div>
 

@@ -4,14 +4,14 @@ import { UtensilsCrossed } from "lucide-react"
 import { useTranslation } from "react-i18next";
 
 export function Footer() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   return (
     <footer className="border-t bg-card">
       <div className="container mx-auto px-4 py-8 md:px-6">
         <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
           <Link href="/" className="flex items-center gap-2">
             <UtensilsCrossed className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold font-headline text-primary">{t('app_name')}</span>
+            <span className="text-xl font-bold font-headline text-primary">{i18n.language === 'ar' ? 'وجبتي' : 'Wagbty'}</span>
           </Link>
           <p className="text-sm text-muted-foreground">{t('copyright')}</p>
           <nav className="flex gap-4 sm:gap-6">

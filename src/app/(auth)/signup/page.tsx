@@ -17,7 +17,7 @@ import { useTranslation } from 'react-i18next';
 
 
 export default function SignupPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [customerName, setCustomerName] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
@@ -101,7 +101,7 @@ export default function SignupPage() {
       const signedUpUser = await signup(userDetails);
       toast({
         title: t('signup_successful'),
-        description: t('welcome_to_chefconnect'),
+        description: i18n.language === 'ar' ? 'أهلاً بك في وجبتي!' : 'Welcome to Wagbty!',
       });
       if (signedUpUser.role === 'chef') {
         router.push('/chef/dashboard');
