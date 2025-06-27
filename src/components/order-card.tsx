@@ -73,6 +73,14 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
   const renderChefActions = () => {
     if (!isChefView || !updateOrderStatus) return null;
 
+    const actionTexts = {
+      reject_order: i18n.language === 'ar' ? 'رفض الطلب' : 'Reject Order',
+      accept_order: i18n.language === 'ar' ? 'قبول الطلب' : 'Accept Order',
+      mark_as_prepared: i18n.language === 'ar' ? 'تم التحضير' : 'Mark as Prepared',
+      mark_as_out_for_delivery: i18n.language === 'ar' ? 'جاري التوصيل' : 'Out for Delivery',
+      mark_as_delivered: i18n.language === 'ar' ? 'تم التوصيل' : 'Mark as Delivered',
+    };
+
     switch (order.status) {
         case 'pending_review':
         case 'waiting_for_chef':
@@ -80,11 +88,11 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
                 <div className="grid grid-cols-2 gap-2 w-full">
                     <Button variant="destructive" onClick={() => handleStatusChange('rejected')}>
                         <X className="me-2 h-4 w-4" />
-                        {t('reject_order')}
+                        {actionTexts.reject_order}
                     </Button>
                     <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={() => handleStatusChange('preparing')}>
                         <Check className="me-2 h-4 w-4" />
-                        {t('accept_order')}
+                        {actionTexts.accept_order}
                     </Button>
                 </div>
             );
@@ -92,21 +100,21 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
             return (
                 <Button className="w-full" onClick={() => handleStatusChange('ready_for_delivery')}>
                     <PackageCheck className="me-2 h-4 w-4" />
-                    {t('mark_as_prepared')}
+                    {actionTexts.mark_as_prepared}
                 </Button>
             );
         case 'ready_for_delivery':
             return (
                 <Button className="w-full" onClick={() => handleStatusChange('out_for_delivery')}>
                     <Truck className="me-2 h-4 w-4" />
-                    {t('mark_as_out_for_delivery')}
+                    {actionTexts.mark_as_out_for_delivery}
                 </Button>
             );
         case 'out_for_delivery':
             return (
                 <Button className="w-full" onClick={() => handleStatusChange('delivered')}>
                     <Check className="me-2 h-4 w-4" />
-                    {t('mark_as_delivered')}
+                    {actionTexts.mark_as_delivered}
                 </Button>
             );
         default:
