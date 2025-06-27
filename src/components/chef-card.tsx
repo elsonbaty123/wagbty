@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -42,7 +43,7 @@ export function ChefCard({ chef }: ChefCardProps) {
               alt={chef.name}
               className={cn("aspect-[4/3] w-full object-cover", hasUnreadStatus ? "rounded-md" : "rounded-t-lg")}
               height="300"
-              src={chef.imageUrl!}
+              src={chef.imageUrl || 'https://placehold.co/400x400.png'}
               data-ai-hint="chef portrait"
               width="400"
             />

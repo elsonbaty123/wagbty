@@ -1,3 +1,4 @@
+
 'use client';
 import Image from 'next/image';
 import { Star, X } from 'lucide-react';
@@ -95,7 +96,7 @@ export default function ChefProfilePage() {
                       alt={chef.name}
                       className="aspect-square w-full rounded-lg object-cover shadow-lg"
                       height="400"
-                      src={chef.imageUrl!}
+                      src={chef.imageUrl || 'https://placehold.co/400x400.png'}
                       data-ai-hint="chef cooking"
                       width="400"
                     />
