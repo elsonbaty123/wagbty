@@ -63,7 +63,7 @@ export default function DishDetailsPage() {
     : 0;
 
   const isChefClosed = chef.availabilityStatus === 'closed';
-  const isDishAvailable = dish.status === 'متوفرة';
+  const isDishAvailable = dish.status === 'available';
   const canOrder = isDishAvailable && !isChefClosed;
 
   const getButtonText = () => {

@@ -60,7 +60,7 @@ export function DishManagementCard({ dish, onEdit }: DishManagementCardProps) {
     };
     
     const isHidden = dish.status === 'hidden';
-    const currentStatus = statusMap[dish.status];
+    const currentStatus = statusMap[dish.status] || statusMap['available'];
 
     return (
         <AlertDialog>
