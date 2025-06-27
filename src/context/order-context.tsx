@@ -3,13 +3,12 @@
 'use client';
 
 import { createContext, useState, useEffect, useContext, type ReactNode } from 'react';
-import type { Order, Dish, DishRating, Coupon, User } from '@/lib/types';
+import type { Order, Dish, DishRating, Coupon, User, OrderStatus, NotDeliveredResponsibility } from '@/lib/types';
 import { useNotifications } from './notification-context';
 import { useTranslation } from 'react-i18next';
 import { initialOrders, allDishes, initialCoupons } from '@/lib/data';
 import localforage from 'localforage';
 
-type OrderStatus = Order['status'];
 type CreateOrderPayload = Omit<Order, 'id' | 'status' | 'createdAt' | 'chef' | 'dailyDishOrderNumber'> & {
   chef: User;
 };
@@ -23,6 +22,7 @@ interface OrderContextType {
   getOrdersByChefId: (chefId: string) => Order[];
   createOrder: (orderData: CreateOrderPayload) => Promise<void>;
   updateOrderStatus: (orderId: string, status: OrderStatus) => Promise<void>;
+  markOrderAsNotDelivered: (orderId: string, details: { reason: string; responsibility: NotDeliveredResponsibility }) => Promise<void>;
   addDish: (dishData: Omit<Dish, 'id' | 'ratings'>) => Promise<void>;
   updateDish: (dishData: Dish) => Promise<void>;
   deleteDish: (dishId: string) => Promise<void>;
@@ -163,6 +163,28 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
       }
     }
   };
+
+  const markOrderAsNotDelivered = async (orderId: string, details: { reason: string; responsibility: NotDeliveredResponsibility }) => {
+    const updatedOrder = orders.find(o => o.id === orderId);
+    if (updatedOrder) {
+        setOrders(prev => prev.map(o => o.id === orderId ? { 
+            ...o, 
+            status: 'not_delivered',
+            notDeliveredInfo: {
+                ...details,
+                timestamp: new Date().toISOString()
+            }
+        } : o));
+
+        createNotification({
+            recipientId: updatedOrder.customerId,
+            titleKey: 'order_not_delivered_title',
+            messageKey: 'order_not_delivered_desc',
+            params: { dishName: updatedOrder.dish.name, reason: details.reason },
+            link: `/profile?tab=completed`,
+        });
+    }
+  };
     
   const addDish = async (dishData: Omit<Dish, 'id' | 'ratings'>) => {
     const newDish: Dish = { ...dishData, id: `dish_${Date.now()}`, ratings: [] };
@@ -226,7 +248,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <OrderContext.Provider value={{ orders, dishes, coupons, loading, getOrdersByCustomerId, getOrdersByChefId, createOrder, updateOrderStatus, addDish, updateDish, deleteDish, addReviewToOrder, getCouponsByChefId, createCoupon, updateCoupon, validateAndApplyCoupon }}>
+    <OrderContext.Provider value={{ orders, dishes, coupons, loading, getOrdersByCustomerId, getOrdersByChefId, createOrder, updateOrderStatus, markOrderAsNotDelivered, addDish, updateDish, deleteDish, addReviewToOrder, getCouponsByChefId, createCoupon, updateCoupon, validateAndApplyCoupon }}>
       {children}
     </OrderContext.Provider>
   );

@@ -68,7 +68,7 @@ export default function ChefDashboardPage() {
   } = useMemo(() => {
     const pending = chefOrders.filter(o => o.status === 'pending_review' || o.status === 'waiting_for_chef');
     const ongoing = chefOrders.filter(o => ['preparing', 'ready_for_delivery', 'out_for_delivery'].includes(o.status));
-    const completed = chefOrders.filter(o => o.status === 'delivered');
+    const completed = chefOrders.filter(o => o.status === 'delivered' || o.status === 'rejected' || o.status === 'not_delivered');
     
     const now = new Date();
     const startOfCurrentMonth = startOfMonth(now);
@@ -76,18 +76,12 @@ export default function ChefDashboardPage() {
     const startOfLastMonth = startOfMonth(subMonths(now, 1));
     const endOfLastMonth = endOfMonth(subMonths(now, 1));
 
-    const revenueThisMonth = completed
-        .filter(o => {
-            if (!o.createdAt || isNaN(new Date(o.createdAt).getTime())) return false;
-            return isWithinInterval(new Date(o.createdAt), { start: startOfCurrentMonth, end: endOfCurrentMonth });
-        })
+    const revenueThisMonth = chefOrders
+        .filter(o => o.status === 'delivered' && o.createdAt && !isNaN(new Date(o.createdAt).getTime()) && isWithinInterval(new Date(o.createdAt), { start: startOfCurrentMonth, end: endOfCurrentMonth }))
         .reduce((acc, order) => acc + (order.subtotal - order.discount), 0);
 
-    const revenueLastMonth = completed
-        .filter(o => {
-            if (!o.createdAt || isNaN(new Date(o.createdAt).getTime())) return false;
-            return isWithinInterval(new Date(o.createdAt), { start: startOfLastMonth, end: endOfLastMonth });
-        })
+    const revenueLastMonth = chefOrders
+        .filter(o => o.status === 'delivered' && o.createdAt && !isNaN(new Date(o.createdAt).getTime()) && isWithinInterval(new Date(o.createdAt), { start: startOfLastMonth, end: endOfLastMonth }))
         .reduce((acc, order) => acc + (order.subtotal - order.discount), 0);
 
     let percentageChange = 0;
@@ -120,7 +114,7 @@ export default function ChefDashboardPage() {
          monthlyData[monthName] = 0;
      }
  
-     completedOrders.forEach(order => {
+     chefOrders.filter(o => o.status === 'delivered').forEach(order => {
         if (order.createdAt && !isNaN(new Date(order.createdAt).getTime())) {
           const orderDate = new Date(order.createdAt);
           if (orderDate.getFullYear() === now.getFullYear()) {
@@ -134,7 +128,7 @@ export default function ChefDashboardPage() {
  
      const data = Object.entries(monthlyData).map(([name, total]) => ({ name, total }));
      return i18n.dir() === 'rtl' ? data.reverse() : data;
-  }, [completedOrders, i18n.language, i18n.dir]);
+  }, [chefOrders, i18n.language, i18n.dir]);
 
   const orderTabs = [
     { value: 'new', labelKey: 'new_orders', orders: pendingOrders },

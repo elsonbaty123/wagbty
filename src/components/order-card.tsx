@@ -11,13 +11,15 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Order, OrderStatus } from '@/lib/types';
-import { Home, Phone, User, Star, Tag, Clock, PackageCheck, Check, X, Truck, Utensils } from 'lucide-react';
+import { Home, Phone, User, Star, Tag, Clock, PackageCheck, Check, X, Truck, Utensils, XCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Textarea } from './ui/textarea';
 import { Separator } from './ui/separator';
 import { useTranslation } from 'react-i18next';
+import { Dialog, DialogTrigger } from './ui/dialog';
+import { NotDeliveredForm } from './not-delivered-form';
 
 interface OrderCardProps {
   order: Order;
@@ -32,6 +34,7 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
   const [rating, setRating] = useState(order.rating || 0);
   const [hoverRating, setHoverRating] = useState(0);
   const [reviewText, setReviewText] = useState(order.review || '');
+  const [isNotDeliveredDialogOpen, setNotDeliveredDialogOpen] = useState(false);
 
   const statusMap: Record<OrderStatus, { labelKey: string, variant: "default" | "secondary" | "outline" | "destructive" | null | undefined, icon?: React.ReactNode }> = {
     'pending_review': { labelKey: 'order_status_pending_review', variant: 'secondary' },
@@ -40,6 +43,7 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
     'out_for_delivery': { labelKey: 'order_status_out_for_delivery', variant: 'default', icon: <Truck className="me-2 h-4 w-4" /> },
     'delivered': { labelKey: 'order_status_delivered', variant: 'outline' },
     'rejected': { labelKey: 'order_status_rejected', variant: 'destructive' },
+    'not_delivered': { labelKey: 'order_status_not_delivered', variant: 'destructive', icon: <XCircle className="me-2 h-4 w-4" /> },
     'waiting_for_chef': { labelKey: 'order_status_waiting_for_chef', variant: 'secondary', icon: <Clock className="me-2 h-4 w-4" /> },
   };
 
@@ -79,6 +83,7 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
       mark_as_prepared: t('mark_as_prepared'),
       mark_as_out_for_delivery: t('mark_as_out_for_delivery'),
       mark_as_delivered: t('mark_as_delivered'),
+      report_not_delivered: t('report_not_delivered'),
     };
 
     const renderChefActions = () => {
@@ -115,10 +120,21 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
                 );
             case 'out_for_delivery':
                 return (
-                    <Button className="w-full" onClick={() => handleStatusChange('delivered')}>
-                        <Check className="me-2 h-4 w-4" />
-                        {actionTexts.mark_as_delivered}
-                    </Button>
+                    <Dialog open={isNotDeliveredDialogOpen} onOpenChange={setNotDeliveredDialogOpen}>
+                        <div className="grid grid-cols-2 gap-2 w-full">
+                           <Button variant="destructive" asChild>
+                             <DialogTrigger>
+                               <XCircle className="me-2 h-4 w-4" />
+                               {actionTexts.report_not_delivered}
+                              </DialogTrigger>
+                           </Button>
+                           <Button className="w-full bg-green-600 hover:bg-green-700 text-white" onClick={() => handleStatusChange('delivered')}>
+                               <Check className="me-2 h-4 w-4" />
+                               {actionTexts.mark_as_delivered}
+                           </Button>
+                        </div>
+                        <NotDeliveredForm orderId={order.id} onFinished={() => setNotDeliveredDialogOpen(false)} />
+                    </Dialog>
                 );
             default:
                 return null;
@@ -175,7 +191,7 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
             {order.discount > 0 && (
                  <div className="flex items-center justify-between text-green-600">
                     <span>- {order.discount.toFixed(2)} {t('currency_egp')}</span>
-                    <span className="flex items-center gap-1">{t('discount:')}<Tag className="h-4 w-4" /></span>
+                    <span className="flex items-center gap-1">{t('discount:')} ({order.appliedCouponCode})<Tag className="h-4 w-4" /></span>
                 </div>
             )}
              <div className="flex items-center justify-between">
@@ -187,6 +203,13 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
                 <span className="text-primary">{t('total:')}</span>
             </div>
         </div>
+         {order.notDeliveredInfo && (
+            <div className="mt-3 pt-3 border-t text-sm space-y-1">
+                <h4 className="font-semibold text-destructive">{t('non_delivery_reason_title')}</h4>
+                <p className="italic">"{order.notDeliveredInfo.reason}"</p>
+                <p><span className="font-medium">{t('reported_as')}:</span> {t(`responsibility_${order.notDeliveredInfo.responsibility}`)}</p>
+            </div>
+        )}
       </CardContent>
       {isCustomerView && order.status === 'delivered' && !order.rating && addReview && (
         <CardFooter className="flex-col items-start gap-2 border-t pt-4">

@@ -51,7 +51,9 @@ export interface User {
   status?: StatusObject;
 }
 
-export type OrderStatus = 'pending_review' | 'preparing' | 'ready_for_delivery' | 'out_for_delivery' | 'delivered' | 'rejected' | 'waiting_for_chef';
+export type OrderStatus = 'pending_review' | 'preparing' | 'ready_for_delivery' | 'out_for_delivery' | 'delivered' | 'rejected' | 'waiting_for_chef' | 'not_delivered';
+
+export type NotDeliveredResponsibility = 'customer_unavailable' | 'customer_refused' | 'address_issue' | 'external_issue' | 'other';
 
 export type Order = {
   id: string;
@@ -72,6 +74,11 @@ export type Order = {
   discount: number;
   total: number;
   appliedCouponCode?: string;
+  notDeliveredInfo?: {
+    reason: string;
+    responsibility: NotDeliveredResponsibility;
+    timestamp: string;
+  };
 };
 
 export type DiscountType = 'percentage' | 'fixed';

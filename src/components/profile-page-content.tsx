@@ -44,8 +44,8 @@ export function ProfilePageContent() {
     }
 
     const myOrders = getOrdersByCustomerId(user.id);
-    const ongoingOrders = myOrders.filter(o => o.status !== 'delivered' && o.status !== 'rejected');
-    const completedOrders = myOrders.filter(o => o.status === 'delivered' || o.status === 'rejected');
+    const ongoingOrders = myOrders.filter(o => !['delivered', 'rejected', 'not_delivered'].includes(o.status));
+    const completedOrders = myOrders.filter(o => ['delivered', 'rejected', 'not_delivered'].includes(o.status));
 
 
   return (
