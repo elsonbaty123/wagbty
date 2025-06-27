@@ -51,7 +51,7 @@ function ProfilePageContent() {
 
   return (
     <div className="container mx-auto px-4 py-8 md:px-6 md:py-12">
-      <h1 className="font-headline text-3xl md:text-4xl font-bold text-primary mb-8">{t('my_profile')}</h1>
+      <h1 className="font-headline text-3xl md:text-4xl font-bold text-primary mb-8">{t('my_orders_title')}</h1>
         <Tabs defaultValue={tab === 'completed' ? 'completed' : 'ongoing'} className="w-full mt-4">
                 <TabsList className="grid w-full grid-cols-2 sm:max-w-sm">
                 <TabsTrigger value="ongoing">{t('ongoing_orders')}</TabsTrigger>

@@ -34,12 +34,17 @@ export function Header() {
       <>
         <SheetClose asChild>
             <Link href="/" className="transition-colors hover:text-primary">
-                {t('home')}
+                {t('nav_home')}
+            </Link>
+        </SheetClose>
+        <SheetClose asChild>
+            <Link href="/favorites" className="transition-colors hover:text-primary">
+                {t('nav_favorites')}
             </Link>
         </SheetClose>
         <SheetClose asChild>
             <Link href="/community" className="transition-colors hover:text-primary">
-                {t('community')}
+                {t('nav_community')}
             </Link>
         </SheetClose>
       </>
@@ -48,7 +53,7 @@ export function Header() {
   const defaultMobileNavLinks = (
       <SheetClose asChild>
         <Link href="/" className="transition-colors hover:text-primary">
-            {t('home')}
+            {t('nav_home')}
         </Link>
       </SheetClose>
   );
@@ -89,7 +94,7 @@ export function Header() {
                           <>
                           <SheetClose asChild>
                               <Button variant="ghost" asChild>
-                                  <Link href={getDashboardLink()}>{user.role === 'chef' ? t('dashboard') : t('my_orders')}</Link>
+                                  <Link href={getDashboardLink()}>{user.role === 'chef' ? t('dashboard') : t('my_orders_title')}</Link>
                               </Button>
                           </SheetClose>
                           <SheetClose asChild>
@@ -133,13 +138,8 @@ export function Header() {
         {/* Centered Navigation */}
         <nav className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 md:flex items-center gap-6 text-sm font-medium">
             <Link href="/" className="transition-colors hover:text-primary">
-              {t('home')}
+              {t('nav_home')}
             </Link>
-            {user?.role === 'customer' && (
-              <Link href="/community" className="transition-colors hover:text-primary">
-                {t('community')}
-              </Link>
-            )}
         </nav>
 
         {/* Right Side */}
@@ -149,14 +149,6 @@ export function Header() {
           {!loading && user && (
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1 md:hidden">
-                {user.role === 'customer' && (
-                  <Button variant="ghost" size="icon" asChild>
-                    <Link href="/community">
-                      <MessageSquare className="h-5 w-5" />
-                      <span className="sr-only">{t('community')}</span>
-                    </Link>
-                  </Button>
-                )}
                 <NotificationsPopover />
               </div>
 
@@ -187,17 +179,9 @@ export function Header() {
                   <DropdownMenuItem asChild>
                     <Link href={getDashboardLink()}>
                       <User className="me-2 h-4 w-4" />
-                      <span>{user.role === 'chef' ? t('dashboard') : t('my_orders')}</span>
+                      <span>{user.role === 'chef' ? t('dashboard') : t('my_orders_title')}</span>
                     </Link>
                   </DropdownMenuItem>
-                   {user.role === 'customer' && (
-                    <DropdownMenuItem asChild>
-                        <Link href="/community">
-                            <MessageSquare className="me-2 h-4 w-4" />
-                            <span>{t('community')}</span>
-                        </Link>
-                    </DropdownMenuItem>
-                   )}
                   <DropdownMenuItem asChild>
                     <Link href="/settings">
                       <Settings className="me-2 h-4 w-4" />
