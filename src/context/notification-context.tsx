@@ -66,13 +66,20 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   }, [user]);
 
   const createNotification = async (notificationData: Omit<Notification, 'id' | 'createdAt' | 'isRead'>) => {
-    if (!db) return; // Firebase not configured
+    if (!db) {
+      console.warn("Firebase not configured, cannot create notification.", notificationData);
+      return;
+    }
     const newNotificationData = {
       ...notificationData,
       createdAt: serverTimestamp(),
       isRead: false,
     };
-    await addDoc(collection(db, 'notifications'), newNotificationData);
+    try {
+        await addDoc(collection(db, 'notifications'), newNotificationData);
+    } catch (error) {
+        console.error("Failed to create notification:", error);
+    }
   };
   
   const notificationsForUser = (userId: string) => {

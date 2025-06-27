@@ -146,7 +146,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
   
   const updateUser = async (updatedUserDetails: Partial<User>): Promise<User> => {
-    if (!user || !db) throw new Error(t("auth_must_be_logged_in_to_update"));
+    if (!auth || !db) throw new Error("Firebase is not configured. Please add your credentials to .env.local");
+    if (!user) throw new Error(t("auth_must_be_logged_in_to_update"));
 
     const userDocRef = doc(db, 'users', user.id);
     await updateDoc(userDocRef, updatedUserDetails);

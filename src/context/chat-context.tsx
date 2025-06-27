@@ -12,7 +12,7 @@ import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, Timest
 
 interface ChatContextType {
   messages: ChatMessage[];
-  sendMessage: (text: string) => void;
+  sendMessage: (text: string) => Promise<void>;
   loading: boolean;
 }
 
@@ -67,7 +67,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
   const sendMessage = async (text: string) => {
     if (!user || user.role !== 'customer') return;
-    if (!db) return; // Firebase not configured
+    if (!db) throw new Error("Firebase is not configured. Please add your credentials to a .env.local file and restart the server.");
     if (!validateMessage(text)) return;
     
     const newMessage = {
@@ -78,12 +78,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       createdAt: serverTimestamp(),
     };
     
-    try {
-        await addDoc(collection(db, "chat_messages"), newMessage);
-    } catch(error) {
-        console.error("Error sending message: ", error);
-        toast({ variant: 'destructive', title: t('error'), description: t('failed_to_send_message') });
-    }
+    await addDoc(collection(db, "chat_messages"), newMessage);
   };
 
   return (

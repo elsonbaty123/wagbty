@@ -13,12 +13,14 @@ import { ChatMessageCard } from '@/components/chat-message-card';
 import { Send, MessageSquare } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/hooks/use-toast';
 
 export default function CommunityPage() {
     const { t } = useTranslation();
     const { user, loading: authLoading } = useAuth();
     const { messages, sendMessage, loading: chatLoading } = useChat();
     const router = useRouter();
+    const { toast } = useToast();
     const [newMessage, setNewMessage] = useState('');
     const scrollAreaRef = useRef<HTMLDivElement>(null);
 
@@ -36,11 +38,19 @@ export default function CommunityPage() {
         }
     }, [messages]);
 
-    const handleSendMessage = (e: React.FormEvent) => {
+    const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
         if (newMessage.trim()) {
-            sendMessage(newMessage);
-            setNewMessage('');
+            try {
+                await sendMessage(newMessage);
+                setNewMessage('');
+            } catch (error: any) {
+                 toast({
+                    variant: 'destructive',
+                    title: t('error'),
+                    description: error.message || t('failed_to_send_message'),
+                });
+            }
         }
     };
     
