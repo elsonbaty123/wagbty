@@ -1,9 +1,10 @@
 
+
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { DollarSign, Utensils, Star, ArrowUp, ArrowDown } from 'lucide-react';
+import { DollarSign, Utensils, Star, ArrowUp, ArrowDown, Camera, Trash2 } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { useOrders } from '@/context/order-context';
 import { useRouter } from 'next/navigation';
@@ -12,18 +13,36 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { OrderCard } from '@/components/order-card';
 import { cn } from '@/lib/utils';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
-import { format, isWithinInterval, startOfMonth, endOfMonth, subMonths } from 'date-fns';
+import { format, isWithinInterval, startOfMonth, endOfMonth, subMonths, formatDistanceToNow } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import { dateLocales } from '@/components/language-manager';
 import { CouponManagementTab } from '@/components/coupon-management-tab';
 import { MenuManagementTab } from '@/components/menu-management-tab';
+import { ChefStatusForm } from '@/components/chef-status-form';
+import { Dialog } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import Image from 'next/image';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 
 
 export default function ChefDashboardPage() {
   const { t, i18n } = useTranslation();
-  const { user, loading } = useAuth();
+  const { user, loading, updateUser } = useAuth();
   const { dishes, getOrdersByChefId, updateOrderStatus } = useOrders();
   const router = useRouter();
+  const { toast } = useToast();
+  const [isStatusFormOpen, setStatusFormOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && (!user || user.role !== 'chef')) {
@@ -33,6 +52,9 @@ export default function ChefDashboardPage() {
 
   const chefOrders = useMemo(() => user ? getOrdersByChefId(user.id) : [], [user, getOrdersByChefId]);
   const chefDishes = useMemo(() => user ? dishes.filter(d => d.chefId === user.id) : [], [user, dishes]);
+  
+  const isStatusActive = user?.status && (new Date().getTime() - new Date(user.status.createdAt).getTime()) < 24 * 60 * 60 * 1000;
+  const activeStatus = isStatusActive ? user.status : null;
 
   const {
     pendingOrders,
@@ -123,9 +145,20 @@ export default function ChefDashboardPage() {
     { value: 'dashboard', labelKey: 'overview' },
     { value: 'orders', labelKey: 'orders' },
     { value: 'menu', labelKey: 'menu' },
+    { value: 'status', labelKey: 'status' },
     { value: 'coupons', labelKey: 'coupons' },
   ];
   const renderedMainTabs = i18n.dir() === 'rtl' ? [...mainTabs].reverse() : mainTabs;
+
+  const handleDeleteStatus = async () => {
+    if (!user) return;
+    try {
+        await updateUser({ status: undefined });
+        toast({ title: t('status_deleted') });
+    } catch (error) {
+        toast({ variant: 'destructive', title: t('error'), description: t('failed_to_delete_status') });
+    }
+  };
 
   if (loading || !user) {
     return (
@@ -272,6 +305,69 @@ export default function ChefDashboardPage() {
         
         <TabsContent value="menu">
             <MenuManagementTab />
+        </TabsContent>
+
+        <TabsContent value="status">
+            <AlertDialog>
+                <Dialog open={isStatusFormOpen} onOpenChange={setStatusFormOpen}>
+                    <Card className="mt-4">
+                        <CardHeader>
+                            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                                <div>
+                                    <CardTitle>{t('status_management')}</CardTitle>
+                                    <CardDescription>{t('status_management_desc')}</CardDescription>
+                                </div>
+                                <Button onClick={() => setStatusFormOpen(true)}>
+                                    <Camera className="me-2 h-4 w-4" />
+                                    {activeStatus ? t('update_status') : t('add_status')}
+                                </Button>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            {activeStatus ? (
+                                <div className="relative group w-full max-w-sm mx-auto">
+                                    <p className="text-sm text-muted-foreground mb-2">{t('current_active_status')}</p>
+                                    <div className="aspect-video rounded-lg overflow-hidden relative">
+                                        <Image src={activeStatus.imageUrl} layout="fill" objectFit="cover" alt={t('current_status')} />
+                                        <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center p-4">
+                                            {activeStatus.caption && <p className="text-white text-center font-semibold drop-shadow-md">{activeStatus.caption}</p>}
+                                            <p className="text-xs text-neutral-200 mt-2">
+                                                {t('posted')} {formatDistanceToNow(new Date(activeStatus.createdAt), { addSuffix: true, locale: dateLocales[i18n.language] })}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <AlertDialogTrigger asChild>
+                                        <Button variant="destructive" size="icon" className="absolute top-4 end-4 opacity-80 group-hover:opacity-100 transition-opacity">
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                </div>
+                            ) : (
+                                <div className="text-center py-24 border-2 border-dashed rounded-lg">
+                                    <Camera className="mx-auto h-16 w-16 text-muted-foreground" />
+                                    <h3 className="mt-4 text-xl font-medium">{t('no_active_status')}</h3>
+                                    <p className="mt-2 text-md text-muted-foreground">{t('no_active_status_desc')}</p>
+                                    <Button onClick={() => setStatusFormOpen(true)} className="mt-6">
+                                        <Camera className="me-2 h-4 w-4" />
+                                        {t('add_your_first_status')}
+                                    </Button>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                    <ChefStatusForm onFinished={() => setStatusFormOpen(false)} />
+                </Dialog>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>{t('are_you_sure')}</AlertDialogTitle>
+                        <AlertDialogDescription>{t('delete_status_warning')}</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeleteStatus} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">{t('delete')}</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </TabsContent>
         
         <TabsContent value="coupons">

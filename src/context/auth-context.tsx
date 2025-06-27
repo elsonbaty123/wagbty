@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -145,21 +146,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
   
   const updateUser = async (updatedUserDetails: Partial<User>): Promise<User> => {
-    if (!user) throw new Error(t("auth_must_be_logged_in_to_update"));
-
-    const updatedUser: User = { ...user, ...updatedUserDetails };
-    const updatedStoredUser: StoredUser = { 
-        ...users.find(u => u.id === user.id)!, 
-        ...updatedUserDetails 
-    };
-
-    const updatedUsers = users.map(u => u.id === user.id ? updatedStoredUser : u);
-    setAllUsers(updatedUsers);
-    await localforage.setItem('users', updatedUsers);
-    
-    setUser(updatedUser);
-    
-    return updatedUser;
+      if (!user) throw new Error(t("auth_must_be_logged_in_to_update"));
+  
+      const userIndex = users.findIndex(u => u.id === user.id);
+      if (userIndex === -1) throw new Error("User not found");
+  
+      const currentUserState = users[userIndex];
+      // Create a new object to avoid direct mutation
+      const updatedStoredUser: StoredUser = { ...currentUserState, ...updatedUserDetails };
+  
+      // Explicitly handle removal of optional keys like 'status'
+      if ('status' in updatedUserDetails && updatedUserDetails.status === undefined) {
+          delete updatedStoredUser.status;
+      }
+  
+      const updatedUsers = [...users];
+      updatedUsers[userIndex] = updatedStoredUser;
+  
+      setAllUsers(updatedUsers);
+      await localforage.setItem('users', updatedUsers);
+      
+      const { hashedPassword, ...userToSet } = updatedStoredUser;
+      setUser(userToSet);
+      
+      return userToSet;
   };
 
   const changePassword = async ({ newPassword, confirmPassword }: { newPassword: string; confirmPassword: string; }) => {
@@ -212,3 +222,4 @@ export const useAuth = () => {
   }
   return context;
 };
+

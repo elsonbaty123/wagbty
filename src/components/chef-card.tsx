@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -16,6 +17,9 @@ interface ChefCardProps {
 
 export function ChefCard({ chef }: ChefCardProps) {
   const { t } = useTranslation();
+
+  const isStatusActive = chef.status && (new Date().getTime() - new Date(chef.status.createdAt).getTime()) < 24 * 60 * 60 * 1000;
+
   const statusMap: { [key: string]: { labelKey: string; className: string; } } = {
     available: { labelKey: 'status_available', className: 'bg-green-500 text-white hover:bg-green-500/90' },
     busy: { labelKey: 'status_busy', className: 'bg-yellow-500 text-white hover:bg-yellow-500/90' },
@@ -27,14 +31,16 @@ export function ChefCard({ chef }: ChefCardProps) {
     <Card className="flex flex-col overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
       <CardHeader className="p-0 relative">
         <Link href={`/chefs/${chef.id}`}>
-          <Image
-            alt={chef.name}
-            className="aspect-[4/3] w-full object-cover"
-            height="300"
-            src={chef.imageUrl!}
-            data-ai-hint="chef portrait"
-            width="400"
-          />
+          <div className={cn("bg-card", isStatusActive && "p-1 bg-gradient-to-tr from-yellow-400 via-primary to-accent rounded-t-lg")}>
+            <Image
+              alt={chef.name}
+              className={cn("aspect-[4/3] w-full object-cover", isStatusActive ? "rounded-md" : "rounded-t-lg")}
+              height="300"
+              src={chef.imageUrl!}
+              data-ai-hint="chef portrait"
+              width="400"
+            />
+          </div>
         </Link>
         {statusInfo && (
           <Badge className={cn('absolute top-3 end-3 border-none', statusInfo.className)}>

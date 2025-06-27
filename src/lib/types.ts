@@ -38,6 +38,11 @@ export interface User {
   bio?: string;
   rating?: number;
   availabilityStatus?: 'available' | 'busy' | 'closed';
+  status?: {
+    imageUrl: string;
+    caption?: string;
+    createdAt: string; // ISO String
+  };
 }
 
 export type OrderStatus = 'pending_review' | 'preparing' | 'ready_for_delivery' | 'out_for_delivery' | 'delivered' | 'rejected' | 'waiting_for_chef';

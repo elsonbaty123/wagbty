@@ -1,4 +1,5 @@
 
+
 'use client';
 import Image from 'next/image';
 import { Star } from 'lucide-react';
@@ -12,6 +13,8 @@ import { Badge } from '@/components/ui/badge';
 import type { User } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
+import { Dialog, DialogTrigger } from '@/components/ui/dialog';
+import { StatusViewer } from '@/components/status-viewer';
 
 export default function ChefProfilePage() {
   const { t, i18n } = useTranslation();
@@ -65,6 +68,9 @@ export default function ChefProfilePage() {
   if (!chef) {
     notFound();
   }
+
+  const isStatusActive = chef.status && (new Date().getTime() - new Date(chef.status.createdAt).getTime()) < 24 * 60 * 60 * 1000;
+  const activeStatus = isStatusActive ? chef.status : null;
   
   const statusMap: { [key: string]: { labelKey: string; className: string; } } = {
     available: { labelKey: 'status_available', className: 'bg-green-500 text-white hover:bg-green-500/90' },
@@ -78,14 +84,27 @@ export default function ChefProfilePage() {
       <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
         <div className="md:col-span-1">
           <div className="sticky top-24">
-            <Image
-              alt={chef.name}
-              className="aspect-square w-full rounded-xl object-cover shadow-lg"
-              height="400"
-              src={chef.imageUrl!}
-              data-ai-hint="chef cooking"
-              width="400"
-            />
+            <Dialog>
+              <DialogTrigger asChild disabled={!activeStatus}>
+                 <div className={cn(
+                  "relative",
+                  activeStatus && "cursor-pointer"
+                )}>
+                  <div className={cn(activeStatus && "p-1.5 bg-gradient-to-tr from-yellow-400 via-primary to-accent rounded-xl")}>
+                     <Image
+                      alt={chef.name}
+                      className="aspect-square w-full rounded-lg object-cover shadow-lg"
+                      height="400"
+                      src={chef.imageUrl!}
+                      data-ai-hint="chef cooking"
+                      width="400"
+                    />
+                  </div>
+                </div>
+              </DialogTrigger>
+              {activeStatus && <StatusViewer chef={chef} />}
+            </Dialog>
+
             <h1 className="font-headline text-3xl font-bold mt-4">{chef.name}</h1>
             {statusInfo && (
                 <Badge className={cn('mt-2 border-none', statusInfo.className)}>
