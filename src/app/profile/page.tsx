@@ -2,8 +2,8 @@
 
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -15,11 +15,13 @@ import { Utensils, Heart } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { DishCard } from '@/components/dish-card';
 
-export default function ProfilePage() {
+function ProfilePageContent() {
     const { t } = useTranslation();
     const { user, chefs, loading } = useAuth();
     const { getOrdersByCustomerId, addReviewToOrder, dishes, loading: ordersLoading } = useOrders();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const tab = searchParams.get('tab') || 'ongoing';
 
     useEffect(() => {
         if (!loading && !user) {
@@ -51,7 +53,7 @@ export default function ProfilePage() {
   return (
     <div className="container mx-auto px-4 py-8 md:px-6 md:py-12">
       <h1 className="font-headline text-3xl md:text-4xl font-bold text-primary mb-8">{t('my_profile')}</h1>
-        <Tabs defaultValue="ongoing" className="w-full mt-4">
+        <Tabs defaultValue={tab} className="w-full mt-4">
                 <TabsList className="grid w-full grid-cols-3 sm:max-w-md">
                 <TabsTrigger value="ongoing">{t('ongoing_orders')}</TabsTrigger>
                 <TabsTrigger value="completed">{t('completed_orders')}</TabsTrigger>
@@ -136,4 +138,12 @@ export default function ProfilePage() {
         </Tabs>
     </div>
   );
+}
+
+export default function ProfilePage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <ProfilePageContent />
+        </Suspense>
+    );
 }
