@@ -49,10 +49,10 @@ export function DishForm({ dish, onFinished }: DishFormProps) {
     defaultValues: {
       name: dish?.name || '',
       description: dish?.description || '',
-      price: dish?.price,
+      price: dish?.price ?? '',
       imageUrl: dish?.imageUrl || '',
       ingredients: dish?.ingredients?.join(', ') || '',
-      prepTime: dish?.prepTime,
+      prepTime: dish?.prepTime ?? '',
       category: dish?.category || '',
     },
   });
