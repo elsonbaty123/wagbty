@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -10,19 +9,16 @@ import type { User } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import { dateLocales } from './language-manager';
-import { Clock, Send, X, Loader2 } from 'lucide-react';
+import { Clock, Send, X, Loader2, Heart } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { useStatus } from '@/context/status-context';
 import { cn } from '@/lib/utils';
 import { Input } from './ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { containsProfanity } from '@/lib/profanity-filter';
 
 interface StatusViewerProps {
   chef: User;
 }
-
-const EMOJI_REACTIONS = ['❤️', '🔥', '👍', '😋', '😍'];
 
 export function StatusViewer({ chef }: StatusViewerProps) {
   const { i18n, t } = useTranslation();
@@ -30,8 +26,6 @@ export function StatusViewer({ chef }: StatusViewerProps) {
   const { markAsViewed, addReaction, getUserReactionForStatus } = useStatus();
   const { toast } = useToast();
   
-  const [reply, setReply] = useState('');
-  const [selectedEmoji, setSelectedEmoji] = useState<string | undefined>(undefined);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // New state for video control
@@ -84,20 +78,12 @@ export function StatusViewer({ chef }: StatusViewerProps) {
   const canInteract = isStatusActive && user && user.role === 'customer' && !userReaction;
 
   const handleSendReaction = async () => {
-    if (!canInteract || (!selectedEmoji && !reply.trim())) return;
-
-    if (reply.trim() && containsProfanity(reply)) {
-        toast({ variant: 'destructive', title: t('inappropriate_language_detected'), description: t('inappropriate_language_detected_desc') });
-        return;
-    }
-
+    if (!canInteract) return;
     setIsSubmitting(true);
     try {
         await addReaction({
             statusId: chef.status!.id,
-            chefId: chef.id,
-            emoji: selectedEmoji,
-            message: reply.trim() || undefined,
+            chefId: chef.id
         });
         toast({ title: t('reaction_sent') });
     } catch (error) {
@@ -107,18 +93,6 @@ export function StatusViewer({ chef }: StatusViewerProps) {
     }
   };
   
-  const handleEmojiClick = (emoji: string) => {
-    if (!canInteract) return;
-    // If only emoji is selected, send immediately
-    if (!reply.trim()) {
-        setSelectedEmoji(emoji);
-        addReaction({ statusId: chef.status!.id, chefId: chef.id, emoji });
-        toast({ title: t('reaction_sent') });
-    } else {
-        setSelectedEmoji(emoji);
-    }
-  };
-
   const handleTogglePlay = () => {
     const video = videoRef.current;
     if (!video) return;
@@ -147,44 +121,26 @@ export function StatusViewer({ chef }: StatusViewerProps) {
         return (
              <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent flex justify-center items-center">
                 <div className="flex items-center gap-2 bg-black/30 text-white px-4 py-2 rounded-full">
-                    {userReaction.emoji && <span className="text-2xl">{userReaction.emoji}</span>}
-                    {userReaction.message && <p className="italic">"{userReaction.message}"</p>}
-                    {!userReaction.emoji && !userReaction.message && <p>{t('you_reacted')}</p>}
+                    <Heart className="h-5 w-5 fill-red-500 text-red-500"/>
+                    <p>{t('you_loved_this')}</p>
                 </div>
             </div>
         );
     }
 
     return (
-      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent flex flex-col gap-3">
-        <div className="flex justify-center gap-2">
-            {EMOJI_REACTIONS.map((emoji) => (
-                <Button 
-                    key={emoji}
-                    onClick={() => handleEmojiClick(emoji)}
-                    variant="ghost" 
-                    size="icon" 
-                    className={cn("rounded-full h-12 w-12 bg-black/30 hover:bg-black/50 text-2xl hover:scale-110 transition-transform transform", selectedEmoji === emoji && "bg-primary/50 ring-2 ring-primary")}
-                    aria-label={emoji}
-                    disabled={isSubmitting}
-                >
-                    {emoji}
-                </Button>
-            ))}
-        </div>
-        <div className="flex gap-2">
-            <Input 
-                placeholder={t('send_a_reply')} 
-                className="bg-black/30 text-white border-white/30 placeholder:text-white/60" 
-                value={reply}
-                onChange={(e) => setReply(e.target.value)}
-                disabled={isSubmitting}
-            />
-            <Button size="icon" onClick={handleSendReaction} disabled={isSubmitting || (!selectedEmoji && !reply.trim())}>
-                {isSubmitting ? <Loader2 className="animate-spin" /> : <Send />}
-                <span className="sr-only">{t('send_reaction')}</span>
-            </Button>
-        </div>
+      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent flex justify-center gap-3">
+        <Button 
+            onClick={handleSendReaction}
+            variant="ghost" 
+            size="lg" 
+            className={cn("rounded-full h-14 w-auto px-6 bg-black/30 hover:bg-black/50 text-xl hover:scale-105 transition-transform transform text-white")}
+            aria-label={t('love_reaction')}
+            disabled={isSubmitting}
+        >
+            {isSubmitting ? <Loader2 className="animate-spin h-6 w-6" /> : <Heart className="me-2 h-6 w-6" />}
+            {t('love_reaction')}
+        </Button>
       </div>
     );
   };
@@ -200,7 +156,7 @@ export function StatusViewer({ chef }: StatusViewerProps) {
           <video
             ref={videoRef}
             src={chef.status.imageUrl}
-            className="w-full h-full object-contain rounded-lg cursor-pointer"
+            className="w-full h-full object-cover rounded-lg cursor-pointer"
             autoPlay
             muted
             playsInline
@@ -212,7 +168,7 @@ export function StatusViewer({ chef }: StatusViewerProps) {
             src={chef.status.imageUrl}
             alt={statusAltText}
             layout="fill"
-            objectFit="contain"
+            objectFit="cover"
             className="rounded-lg"
           />
         )}
