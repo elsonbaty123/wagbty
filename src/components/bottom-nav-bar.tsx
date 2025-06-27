@@ -2,31 +2,26 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { Home, Heart, MessageSquare, User as UserIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/auth-context';
 import { useTranslation } from 'react-i18next';
 
 export function BottomNavBar() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { user, loading } = useAuth();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
 
   if (loading || !user || user.role !== 'customer') {
     return null;
   }
   
-  const isProfilePage = pathname === '/profile';
-  const isFavoritesTab = searchParams.get('tab') === 'favorites';
-  const isProfileActive = isProfilePage && !isFavoritesTab;
-
   const navItems = [
     { href: '/', icon: Home, labelKey: 'home', isActive: pathname === '/' },
-    { href: '/profile?tab=favorites', icon: Heart, labelKey: 'my_favorites', isActive: isProfilePage && isFavoritesTab },
+    { href: '/favorites', icon: Heart, labelKey: 'my_favorites', isActive: pathname === '/favorites' },
     { href: '/community', icon: MessageSquare, labelKey: 'community', isActive: pathname === '/community' },
-    { href: '/profile', icon: UserIcon, labelKey: 'my_profile', isActive: isProfileActive },
+    { href: '/profile', icon: UserIcon, labelKey: 'my_profile', isActive: pathname === '/profile' },
   ];
 
   return (
@@ -42,9 +37,7 @@ export function BottomNavBar() {
             )}
           >
             <item.icon className="h-5 w-5" />
-            <span>{
-                item.labelKey === 'my_favorites' && i18n.language === 'ar' ? 'مفضلتي' : t(item.labelKey)
-            }</span>
+            <span>{t(item.labelKey)}</span>
           </Link>
         ))}
       </div>

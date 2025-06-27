@@ -11,14 +11,14 @@ import { OrderCard } from '@/components/order-card';
 import { useAuth } from '@/context/auth-context';
 import { useOrders } from '@/context/order-context';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Utensils, Heart } from 'lucide-react';
+import { Utensils } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { DishCard } from '@/components/dish-card';
+import Link from 'next/link';
 
 function ProfilePageContent() {
     const { t } = useTranslation();
-    const { user, chefs, loading } = useAuth();
-    const { getOrdersByCustomerId, addReviewToOrder, dishes, loading: ordersLoading } = useOrders();
+    const { user, loading } = useAuth();
+    const { getOrdersByCustomerId, addReviewToOrder, loading: ordersLoading } = useOrders();
     const router = useRouter();
     const searchParams = useSearchParams();
     const tab = searchParams.get('tab') || 'ongoing';
@@ -47,17 +47,15 @@ function ProfilePageContent() {
     const myOrders = getOrdersByCustomerId(user.id);
     const ongoingOrders = myOrders.filter(o => o.status !== 'delivered' && o.status !== 'rejected');
     const completedOrders = myOrders.filter(o => o.status === 'delivered' || o.status === 'rejected');
-    const favoriteDishes = dishes.filter(dish => user.favoriteDishIds?.includes(dish.id));
 
 
   return (
     <div className="container mx-auto px-4 py-8 md:px-6 md:py-12">
       <h1 className="font-headline text-3xl md:text-4xl font-bold text-primary mb-8">{t('my_profile')}</h1>
-        <Tabs defaultValue={tab} className="w-full mt-4">
-                <TabsList className="grid w-full grid-cols-3 sm:max-w-md">
+        <Tabs defaultValue={tab === 'completed' ? 'completed' : 'ongoing'} className="w-full mt-4">
+                <TabsList className="grid w-full grid-cols-2 sm:max-w-sm">
                 <TabsTrigger value="ongoing">{t('ongoing_orders')}</TabsTrigger>
                 <TabsTrigger value="completed">{t('completed_orders')}</TabsTrigger>
-                <TabsTrigger value="favorites">{t('my_favorites')}</TabsTrigger>
             </TabsList>
             <TabsContent value="ongoing">
                 <Card>
@@ -99,36 +97,7 @@ function ProfilePageContent() {
                                     {t('no_orders_yet_desc')}
                                 </p>
                                 <Button asChild className="mt-6">
-                                    <a href="/">{t('browse_dishes')}</a>
-                                </Button>
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
-            </TabsContent>
-            <TabsContent value="favorites">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>{t('my_favorites')}</CardTitle>
-                        <CardDescription>{t('your_favorite_dishes_desc')}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        {favoriteDishes.length > 0 ? (
-                            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                                {favoriteDishes.map((dish) => {
-                                    const chef = chefs.find(c => c.id === dish.chefId);
-                                    return chef ? <DishCard key={dish.id} dish={dish} chefName={chef.name} chefStatus={chef.availabilityStatus} /> : null;
-                                })}
-                            </div>
-                        ) : (
-                            <div className="text-center py-16">
-                                <Heart className="mx-auto h-12 w-12 text-muted-foreground" />
-                                <h3 className="mt-4 text-lg font-medium">{t('no_favorites_yet')}</h3>
-                                <p className="mt-2 text-sm text-muted-foreground">
-                                    {t('no_favorites_yet_desc')}
-                                </p>
-                                <Button asChild className="mt-6">
-                                    <a href="/">{t('browse_dishes')}</a>
+                                    <Link href="/">{t('browse_dishes')}</Link>
                                 </Button>
                             </div>
                         )}
