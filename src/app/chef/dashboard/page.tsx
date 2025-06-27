@@ -131,12 +131,14 @@ export default function ChefDashboardPage() {
       </div>
 
       <Tabs defaultValue="dashboard" className="w-full">
-        <TabsList className="h-auto justify-start overflow-x-auto whitespace-nowrap p-1 flex-nowrap gap-2">
-            <TabsTrigger value="dashboard">{t('overview')}</TabsTrigger>
-            <TabsTrigger value="orders">{t('orders')}</TabsTrigger>
-            <TabsTrigger value="menu">{t('menu')}</TabsTrigger>
-            <TabsTrigger value="coupons">{t('coupons')}</TabsTrigger>
-        </TabsList>
+        <div className="flex justify-start rtl:justify-end">
+          <TabsList className="h-auto overflow-x-auto whitespace-nowrap p-1 flex-nowrap gap-2">
+              <TabsTrigger value="dashboard">{t('overview')}</TabsTrigger>
+              <TabsTrigger value="orders">{t('orders')}</TabsTrigger>
+              <TabsTrigger value="menu">{t('menu')}</TabsTrigger>
+              <TabsTrigger value="coupons">{t('coupons')}</TabsTrigger>
+          </TabsList>
+        </div>
         
         <TabsContent value="dashboard" className="mt-6 space-y-8">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
