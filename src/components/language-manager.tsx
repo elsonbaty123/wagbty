@@ -1,9 +1,11 @@
+
 'use client';
 
 import { useTranslation } from 'react-i18next';
 import { useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { ar, enUS } from 'date-fns/locale';
+import type { Locale } from 'date-fns';
 
 export const dateLocales: {[key: string]: Locale} = {
     ar,
