@@ -100,7 +100,7 @@ export default function SignupPage() {
     try {
       const signedUpUser = await signup(userDetails);
       toast({
-        title: t('signup_successful'),
+        title: i18n.language === 'ar' ? 'تم إنشاء الحساب بنجاح' : 'Signup Successful',
         description: i18n.language === 'ar' ? 'أهلاً بك في وجبتي!' : 'Welcome to Wagbty!',
       });
       if (signedUpUser.role === 'chef') {

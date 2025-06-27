@@ -16,7 +16,7 @@ import { useTranslation } from 'react-i18next';
 
 
 export default function LoginPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [customerEmail, setCustomerEmail] = useState('');
   const [customerPassword, setCustomerPassword] = useState('');
   const [chefEmail, setChefEmail] = useState('');
@@ -69,8 +69,8 @@ export default function LoginPage() {
     try {
       const loggedInUser = await login(email, password, role);
       toast({
-        title: t('login_successful'),
-        description: t('welcome_back', { name: loggedInUser.name }),
+        title: i18n.language === 'ar' ? 'تم تسجيل الدخول بنجاح' : 'Login Successful',
+        description: i18n.language === 'ar' ? `أهلاً بعودتك، ${loggedInUser.name}` : `Welcome back, ${loggedInUser.name}`,
       });
       if (loggedInUser.role === 'chef') {
         router.push('/chef/dashboard');
