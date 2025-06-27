@@ -265,13 +265,13 @@ export default function SettingsPage() {
                                     type="email" 
                                     value={email} 
                                     onChange={(e) => setEmail(e.target.value)} 
-                                    placeholder="example@email.com" 
+                                    placeholder={t('email_placeholder')}
                                 />
                             </div>
                         </div>
                         <div className="space-y-2 text-left rtl:text-right">
                             <Label htmlFor="phone">{t('phone_number_label')}</Label>
-                            <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="01XXXXXXXXX" />
+                            <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={t('phone_placeholder')} />
                         </div>
                         {user.role === 'customer' && (
                             <div className="space-y-2 text-left rtl:text-right">

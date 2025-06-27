@@ -142,7 +142,7 @@ export default function SignupPage() {
                 <Input 
                     id="customer-email" 
                     type="email" 
-                    placeholder="m@example.com" 
+                    placeholder={t('email_placeholder')} 
                     required 
                     value={customerEmail} 
                     onChange={(e) => setCustomerEmail(e.target.value)} 
@@ -150,7 +150,7 @@ export default function SignupPage() {
               </div>
               <div className="space-y-2 text-left rtl:text-right">
                 <Label htmlFor="customer-phone">{t('phone_number')}</Label>
-                <Input id="customer-phone" type="tel" placeholder="01XXXXXXXXX" required value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)}/>
+                <Input id="customer-phone" type="tel" placeholder={t('phone_placeholder')} required value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)}/>
               </div>
               <div className="space-y-2 text-left rtl:text-right">
                   <Label htmlFor="customer-address">{t('address')}</Label>
@@ -161,7 +161,7 @@ export default function SignupPage() {
                 <PasswordInput
                   id="customer-password"
                   required
-                  placeholder="********"
+                  placeholder={t('password_placeholder')}
                   value={customerPassword}
                   onChange={(e) => setCustomerPassword(e.target.value)}
                   showStrength
@@ -202,7 +202,7 @@ export default function SignupPage() {
                 <Input 
                     id="chef-email" 
                     type="email" 
-                    placeholder="chef@example.com" 
+                    placeholder={t('chef_email_placeholder')} 
                     required 
                     value={chefEmail} 
                     onChange={(e) => setChefEmail(e.target.value)} 
@@ -210,14 +210,14 @@ export default function SignupPage() {
               </div>
               <div className="space-y-2 text-left rtl:text-right">
                 <Label htmlFor="chef-phone">{t('phone_number')}</Label>
-                <Input id="chef-phone" type="tel" placeholder="01XXXXXXXXX" required value={chefPhone} onChange={(e) => setChefPhone(e.target.value)} />
+                <Input id="chef-phone" type="tel" placeholder={t('phone_placeholder')} required value={chefPhone} onChange={(e) => setChefPhone(e.target.value)} />
               </div>
               <div className="space-y-2 text-left rtl:text-right">
                 <Label htmlFor="chef-password">{t('password')}</Label>
                 <PasswordInput
                   id="chef-password"
                   required
-                  placeholder="********"
+                  placeholder={t('password_placeholder')}
                   value={chefPassword}
                   onChange={(e) => setChefPassword(e.target.value)}
                   showStrength

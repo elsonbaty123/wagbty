@@ -61,7 +61,7 @@ export function PasswordChangeForm() {
                             onChange={(e) => setNewPassword(e.target.value)} 
                             required 
                             showStrength 
-                            placeholder="********"
+                            placeholder={t('password_placeholder')}
                         />
                     </div>
                     <div className="space-y-2 text-left rtl:text-right">
@@ -71,7 +71,7 @@ export function PasswordChangeForm() {
                             value={confirmPassword} 
                             onChange={(e) => setConfirmPassword(e.target.value)} 
                             required 
-                            placeholder="********"
+                            placeholder={t('password_placeholder')}
                         />
                     </div>
                 </CardContent>

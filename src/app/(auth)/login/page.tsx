@@ -107,7 +107,7 @@ export default function LoginPage() {
                 <Input 
                   id="customer-email" 
                   type="email" 
-                  placeholder="jane.doe@example.com" 
+                  placeholder={t('customer_email_placeholder')} 
                   required 
                   value={customerEmail}
                   onChange={(e) => setCustomerEmail(e.target.value)}
@@ -120,7 +120,7 @@ export default function LoginPage() {
                   required
                   value={customerPassword}
                   onChange={(e) => setCustomerPassword(e.target.value)}
-                  placeholder="Password123!"
+                  placeholder={t('password_placeholder')}
                 />
               </div>
               <Button type="submit" disabled={isLoading} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
@@ -152,7 +152,7 @@ export default function LoginPage() {
                 <Input 
                   id="chef-email" 
                   type="email" 
-                  placeholder="chef.antoine@example.com" 
+                  placeholder={t('chef_email_placeholder')} 
                   required 
                   value={chefEmail}
                   onChange={(e) => setChefEmail(e.target.value)}
@@ -165,7 +165,7 @@ export default function LoginPage() {
                   required
                   value={chefPassword}
                   onChange={(e) => setChefPassword(e.target.value)}
-                  placeholder="Password123!"
+                  placeholder={t('password_placeholder')}
                 />
               </div>
               <Button type="submit" disabled={isLoading} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
