@@ -1,7 +1,6 @@
 
 'use client';
 
-import { Suspense } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTranslation } from 'react-i18next';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
@@ -9,7 +8,7 @@ import { Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
-function ResetPasswordComponent() {
+export default function ResetPasswordPage() {
     const { t } = useTranslation();
 
     return (
@@ -30,13 +29,5 @@ function ResetPasswordComponent() {
                 </Button>
             </CardContent>
         </Card>
-    );
-}
-
-export default function ResetPasswordPage() {
-    return (
-        <Suspense fallback={<div>Loading...</div>}>
-            <ResetPasswordComponent />
-        </Suspense>
     );
 }
