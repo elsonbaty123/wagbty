@@ -20,7 +20,7 @@ import type { User } from '@/lib/types';
 import { useNotifications } from '@/context/notification-context';
 import { useOrders } from '@/context/order-context';
 import { useTranslation } from 'react-i18next';
-import { DEFAULT_CHEF_AVATAR } from '@/lib/data';
+import { DEFAULT_CHEF_AVATAR, DEFAULT_CUSTOMER_AVATAR } from '@/lib/data';
 
 export default function SettingsPage() {
     const { t } = useTranslation();
@@ -106,11 +106,12 @@ export default function SettingsPage() {
     };
 
     const handleRemoveImage = async () => {
-        if (!user || user.role !== 'chef') return;
+        if (!user) return;
         setIsSaving(true);
         try {
-            await updateUser({ imageUrl: DEFAULT_CHEF_AVATAR });
-            setImagePreview(DEFAULT_CHEF_AVATAR);
+            const defaultAvatar = user.role === 'chef' ? DEFAULT_CHEF_AVATAR : DEFAULT_CUSTOMER_AVATAR;
+            await updateUser({ imageUrl: defaultAvatar });
+            setImagePreview(defaultAvatar);
             toast({
                 title: t('profile_picture_removed'),
                 description: t('profile_picture_restored_to_default'),
@@ -191,7 +192,7 @@ export default function SettingsPage() {
         closed: { labelKey: 'status_closed', color: 'bg-red-500' },
     };
     
-    const defaultAvatar = user.role === 'chef' ? DEFAULT_CHEF_AVATAR : 'https://placehold.co/100x100.png';
+    const defaultAvatar = user.role === 'chef' ? DEFAULT_CHEF_AVATAR : DEFAULT_CUSTOMER_AVATAR;
 
     return (
         <div className="container mx-auto px-4 py-8 md:px-6 md:py-12">
@@ -215,7 +216,7 @@ export default function SettingsPage() {
                                     <Upload className="me-2 h-4 w-4" />
                                     <span>{t('change_picture')}</span>
                                 </Label>
-                                {user.role === 'chef' && imagePreview && imagePreview !== DEFAULT_CHEF_AVATAR && (
+                                {imagePreview && imagePreview !== defaultAvatar && (
                                     <Button variant="ghost" size="icon" onClick={handleRemoveImage} disabled={isSaving} aria-label={t('remove_picture')}>
                                         <Trash2 className="h-5 w-5 text-destructive" />
                                         <span className="sr-only">{t('remove_picture')}</span>
