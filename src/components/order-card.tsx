@@ -11,7 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Order, OrderStatus } from '@/lib/types';
-import { Home, Phone, User, Star, Tag, Clock, Truck, PackageCheck, Check, X } from 'lucide-react';
+import { Home, Phone, User, Star, Tag, Clock, PackageCheck, Check, X, Truck, Utensils } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -35,7 +35,7 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
 
   const statusMap: Record<OrderStatus, { labelKey: string, variant: "default" | "secondary" | "outline" | "destructive" | null | undefined, icon?: React.ReactNode }> = {
     'pending_review': { labelKey: 'order_status_pending_review', variant: 'secondary' },
-    'preparing': { labelKey: 'order_status_preparing', variant: 'default' },
+    'preparing': { labelKey: 'order_status_preparing', variant: 'default', icon: <Utensils className="me-2 h-4 w-4" /> },
     'ready_for_delivery': { labelKey: 'order_status_ready_for_delivery', variant: 'default', icon: <PackageCheck className="me-2 h-4 w-4" /> },
     'out_for_delivery': { labelKey: 'order_status_out_for_delivery', variant: 'default', icon: <Truck className="me-2 h-4 w-4" /> },
     'delivered': { labelKey: 'order_status_delivered', variant: 'outline' },
@@ -47,9 +47,12 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
     if (updateOrderStatus) {
       const translatedStatus = t(statusMap[status].labelKey);
       updateOrderStatus(order.id, status);
+      
+      const orderIdentifier = order.dailyDishOrderNumber ?? order.id.slice(-6);
+
       toast({
         title: t('order_status_updated_toast'),
-        description: t('order_status_updated_toast_desc', { id: order.id.slice(-4), status: translatedStatus }),
+        description: t('order_status_updated_toast_desc', { id: orderIdentifier, status: translatedStatus }),
       });
     }
   };
@@ -68,7 +71,7 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
     ? i18n.language === 'ar'
       ? `طلب اليوم #${order.dailyDishOrderNumber}`
       : `Daily Order #${order.dailyDishOrderNumber}`
-    : null;
+    : t('order_#', { id: order.id.slice(-6) });
     
     const actionTexts = {
       reject_order: t('reject_order'),
@@ -131,15 +134,15 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
             {currentStatus.icon}
             {t(currentStatus.labelKey)}
           </Badge>
-          <div className="rtl:text-right">
+          <div className="text-end">
             <CardTitle className="font-headline text-xl">{order.dish.name}</CardTitle>
-            <CardDescription>{dailyOrderNumberText || t('order_#', { id: order.id.slice(-6) })}</CardDescription>
+            <CardDescription>{dailyOrderNumberText}</CardDescription>
           </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-3 flex-grow">
         {isChefView ? (
-          <div className="space-y-3 rtl:text-right">
+          <div className="space-y-3 text-end">
             <div className="flex items-center gap-2 justify-end">
               <span className="font-medium">{order.customerName}</span>
               <User className="w-4 h-4 text-muted-foreground" />
