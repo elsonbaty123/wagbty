@@ -161,6 +161,15 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
         case 'ready_for_delivery':
           createNotification({
             recipientId: customerId,
+            titleKey: 'order_ready_notification_title',
+            messageKey: 'order_ready_notification_desc',
+            params: { dishName },
+            link: '/profile',
+          });
+          break;
+        case 'out_for_delivery':
+           createNotification({
+            recipientId: customerId,
             titleKey: 'order_on_the_way_notification_title',
             messageKey: 'order_on_the_way_notification_desc',
             params: { dishName },

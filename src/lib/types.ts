@@ -39,7 +39,7 @@ export interface User {
   availabilityStatus?: 'available' | 'busy' | 'closed';
 }
 
-export type OrderStatus = 'pending_review' | 'preparing' | 'ready_for_delivery' | 'delivered' | 'rejected' | 'waiting_for_chef';
+export type OrderStatus = 'pending_review' | 'preparing' | 'ready_for_delivery' | 'out_for_delivery' | 'delivered' | 'rejected' | 'waiting_for_chef';
 
 export type Order = {
   id: string;

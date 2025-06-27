@@ -11,7 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Order, OrderStatus } from '@/lib/types';
-import { Home, Phone, User, CreditCard, ChevronDown, Star, Tag, Clock } from 'lucide-react';
+import { Home, Phone, User, ChevronDown, Star, Tag, Clock, Truck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useState } from 'react';
@@ -38,6 +38,7 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
     'pending_review': { labelKey: 'order_status_pending_review', variant: 'secondary' },
     'preparing': { labelKey: 'order_status_preparing', variant: 'default' },
     'ready_for_delivery': { labelKey: 'order_status_ready_for_delivery', variant: 'default' },
+    'out_for_delivery': { labelKey: 'order_status_out_for_delivery', variant: 'default', icon: <Truck className="me-2 h-4 w-4" /> },
     'delivered': { labelKey: 'order_status_delivered', variant: 'outline' },
     'rejected': { labelKey: 'order_status_rejected', variant: 'destructive' },
     'waiting_for_chef': { labelKey: 'order_status_waiting_for_chef', variant: 'secondary', icon: <Clock className="me-2 h-4 w-4" /> },
@@ -189,6 +190,11 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
                 </DropdownMenuItem>
               )}
               {order.status === 'ready_for_delivery' && (
+                <DropdownMenuItem onClick={() => handleStatusChange('out_for_delivery')}>
+                  {t('out_for_delivery')}
+                </DropdownMenuItem>
+              )}
+              {order.status === 'out_for_delivery' && (
                 <DropdownMenuItem onClick={() => handleStatusChange('delivered')}>
                   {t('delivered')}
                 </DropdownMenuItem>
