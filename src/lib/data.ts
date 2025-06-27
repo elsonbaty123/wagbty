@@ -190,8 +190,6 @@ export const allDishes: Dish[] = [
     price: 150.00,
     imageUrl: 'https://placehold.co/800x450.png',
     ingredients: ['Potato Gnocchi', 'Pesto', 'Cherry Tomatoes', 'Mozzarella', 'Basil'],
-    prepTime: 15,
-    category: 'Vegetarian',
     status: 'hidden',
     ratings: [
       { customerId: 'customer_2', customerName: 'Jane Smith', rating: 4, review: 'A fantastic vegetarian option. So quick and satisfying!', createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString() },
