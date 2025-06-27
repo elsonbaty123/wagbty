@@ -11,7 +11,7 @@ import type { User, EmojiReaction } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import { dateLocales } from './language-manager';
-import { Clock, Send, Loader2 } from 'lucide-react';
+import { Clock, Send, Loader2, X } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { useStatus } from '@/context/status-context';
 import { containsProfanity } from '@/lib/profanity-filter';
