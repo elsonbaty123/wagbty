@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/context/auth-context';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Upload, Loader2, User as UserIcon, Circle } from 'lucide-react';
+import { Upload, Loader2, User as UserIcon, Circle, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -105,6 +105,27 @@ export default function SettingsPage() {
         }
     };
 
+    const handleRemoveImage = async () => {
+        if (!user || user.role !== 'chef') return;
+        setIsSaving(true);
+        try {
+            await updateUser({ imageUrl: DEFAULT_CHEF_AVATAR });
+            setImagePreview(DEFAULT_CHEF_AVATAR);
+            toast({
+                title: t('profile_picture_removed'),
+                description: t('profile_picture_restored_to_default'),
+            });
+        } catch (error: any) {
+            toast({
+                variant: 'destructive',
+                title: t('update_error'),
+                description: error.message || t('update_error_desc'),
+            });
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     const handleSaveChanges = async () => {
         const error = validateEmail(email);
         if (error) {
@@ -194,6 +215,12 @@ export default function SettingsPage() {
                                     <Upload className="me-2 h-4 w-4" />
                                     <span>{t('change_picture')}</span>
                                 </Label>
+                                {user.role === 'chef' && imagePreview && imagePreview !== DEFAULT_CHEF_AVATAR && (
+                                    <Button variant="ghost" size="icon" onClick={handleRemoveImage} disabled={isSaving} aria-label={t('remove_picture')}>
+                                        <Trash2 className="h-5 w-5 text-destructive" />
+                                        <span className="sr-only">{t('remove_picture')}</span>
+                                    </Button>
+                                )}
                             </div>
                         </div>
 

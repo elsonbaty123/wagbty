@@ -6,7 +6,7 @@ import bcrypt from 'bcryptjs';
 // The application will now start with pre-defined data for local storage.
 // This data will be used to seed the database if it's empty.
 
-export const DEFAULT_CHEF_AVATAR = `data:image/svg+xml,%3csvg width='100px' height='125px' viewBox='0 0 100 125' xmlns='http://www.w3.org/2000/svg'%3e%3cg stroke='%23000' stroke-width='5' fill='none' fill-rule='evenodd' stroke-linecap='round' stroke-linejoin='round'%3e%3cpath d='M70.7,39.89v-0.03c9.67-2.14,17.65,7.24,16.42,17.26c-1.02,8.61-8.32,14.65-16.42,13.48c-8.1-1.17-13.82-8.83-12.65-17.46C59.05,44.53,64.37,40.8,70.7,39.89z'/%3e%3cpath d='M29.2,39.89v-0.03c-9.67-2.14,17.65,7.24-16.42,17.26c1.02,8.61,8.32,14.65,16.42,13.48c8.1-1.17,13.82-8.83,12.65-17.46C40.85,44.53,35.53,40.8,29.2,39.89z'/%3e%3cpath d='M49.95,17.43c-11.45,0-20.75,10.05-20.75,22.46h41.5C70.7,27.48,61.4,17.43,49.95,17.43z'/%3e%3cpath d='M24.2,63.13h51.5'/%3e%3cpath d='M73.15,89.38c6.9-5.74,5.32-16.84-3.64-19.82'/%3e%3cpath d='M26.85,89.38c-6.9-5.74,5.32-16.84,3.64-19.82'/%3e%3cpath d='M24.2,63.13C24.2,77.6,35.67,89.38,50,89.38s25.8-11.78,25.8-26.25'/%3e%3c/g%3e%3c/svg%3e`;
+export const DEFAULT_CHEF_AVATAR = `data:image/svg+xml,%3csvg width='100px' height='125px' viewBox='0 0 100 125' xmlns='http://www.w3.org/2000/svg'%3e%3cg stroke='%23000' stroke-width='8' fill='none' fill-rule='evenodd' stroke-linecap='round' stroke-linejoin='round'%3e%3cpath d='M75,50 H25'/%3e%3cpath d='M25,25 C25,10 50,10 50,25 C50,10 75,10 75,25 C90,25 90,50 75,50'/%3e%3cpath d='M25,25 C10,25 10,50 25,50'/%3e%3cpath d='M30,60 A20,20 0,0,0 70,60'/%3e%3cpath d='M40,80 C25,100 50,100 50,80'/%3e%3cpath d='M60,80 C75,100 50,100 50,80'/%3e%3c/g%3e%3c/svg%3e`;
 
 
 // Note: All initial passwords are 'Password123!'
