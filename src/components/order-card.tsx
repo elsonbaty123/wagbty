@@ -70,57 +70,57 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
       : `Daily Order #${order.dailyDishOrderNumber}`
     : null;
     
-  const renderChefActions = () => {
-    if (!isChefView || !updateOrderStatus) return null;
-
     const actionTexts = {
-      reject_order: i18n.language === 'ar' ? 'رفض الطلب' : 'Reject Order',
-      accept_order: i18n.language === 'ar' ? 'قبول الطلب' : 'Accept Order',
-      mark_as_prepared: i18n.language === 'ar' ? 'تم التحضير' : 'Mark as Prepared',
-      mark_as_out_for_delivery: i18n.language === 'ar' ? 'جاري التوصيل' : 'Out for Delivery',
-      mark_as_delivered: i18n.language === 'ar' ? 'تم التوصيل' : 'Mark as Delivered',
+      reject_order: t('reject_order'),
+      accept_order: t('accept_order'),
+      mark_as_prepared: t('mark_as_prepared'),
+      mark_as_out_for_delivery: t('mark_as_out_for_delivery'),
+      mark_as_delivered: t('mark_as_delivered'),
     };
 
-    switch (order.status) {
-        case 'pending_review':
-        case 'waiting_for_chef':
-            return (
-                <div className="grid grid-cols-2 gap-2 w-full">
-                    <Button variant="destructive" onClick={() => handleStatusChange('rejected')}>
-                        <X className="me-2 h-4 w-4" />
-                        {actionTexts.reject_order}
+    const renderChefActions = () => {
+        if (!isChefView || !updateOrderStatus) return null;
+
+        switch (order.status) {
+            case 'pending_review':
+            case 'waiting_for_chef':
+                return (
+                    <div className="grid grid-cols-2 gap-2 w-full">
+                        <Button variant="destructive" onClick={() => handleStatusChange('rejected')}>
+                            <X className="me-2 h-4 w-4" />
+                            {actionTexts.reject_order}
+                        </Button>
+                        <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={() => handleStatusChange('preparing')}>
+                            <Check className="me-2 h-4 w-4" />
+                            {actionTexts.accept_order}
+                        </Button>
+                    </div>
+                );
+            case 'preparing':
+                return (
+                    <Button className="w-full" onClick={() => handleStatusChange('ready_for_delivery')}>
+                        <PackageCheck className="me-2 h-4 w-4" />
+                        {actionTexts.mark_as_prepared}
                     </Button>
-                    <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={() => handleStatusChange('preparing')}>
+                );
+            case 'ready_for_delivery':
+                return (
+                    <Button className="w-full" onClick={() => handleStatusChange('out_for_delivery')}>
+                        <Truck className="me-2 h-4 w-4" />
+                        {actionTexts.mark_as_out_for_delivery}
+                    </Button>
+                );
+            case 'out_for_delivery':
+                return (
+                    <Button className="w-full" onClick={() => handleStatusChange('delivered')}>
                         <Check className="me-2 h-4 w-4" />
-                        {actionTexts.accept_order}
+                        {actionTexts.mark_as_delivered}
                     </Button>
-                </div>
-            );
-        case 'preparing':
-            return (
-                <Button className="w-full" onClick={() => handleStatusChange('ready_for_delivery')}>
-                    <PackageCheck className="me-2 h-4 w-4" />
-                    {actionTexts.mark_as_prepared}
-                </Button>
-            );
-        case 'ready_for_delivery':
-            return (
-                <Button className="w-full" onClick={() => handleStatusChange('out_for_delivery')}>
-                    <Truck className="me-2 h-4 w-4" />
-                    {actionTexts.mark_as_out_for_delivery}
-                </Button>
-            );
-        case 'out_for_delivery':
-            return (
-                <Button className="w-full" onClick={() => handleStatusChange('delivered')}>
-                    <Check className="me-2 h-4 w-4" />
-                    {actionTexts.mark_as_delivered}
-                </Button>
-            );
-        default:
-            return null;
-    }
-  };
+                );
+            default:
+                return null;
+        }
+    };
 
 
   return (
@@ -131,7 +131,7 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
             {currentStatus.icon}
             {t(currentStatus.labelKey)}
           </Badge>
-          <div>
+          <div className="rtl:text-right">
             <CardTitle className="font-headline text-xl">{order.dish.name}</CardTitle>
             <CardDescription>{dailyOrderNumberText || t('order_#', { id: order.id.slice(-6) })}</CardDescription>
           </div>
@@ -139,7 +139,7 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
       </CardHeader>
       <CardContent className="space-y-3 flex-grow">
         {isChefView ? (
-          <>
+          <div className="space-y-3 rtl:text-right">
             <div className="flex items-center gap-2 justify-end">
               <span className="font-medium">{order.customerName}</span>
               <User className="w-4 h-4 text-muted-foreground" />
@@ -152,7 +152,7 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
                 <span className="text-sm">{order.deliveryAddress}</span>
                 <Home className="w-4 h-4 text-muted-foreground mt-1 flex-shrink-0" />
             </div>
-          </>
+          </div>
         ) : (
             <div className="flex items-center gap-2 justify-start">
                 <User className="w-4 h-4 text-muted-foreground" />
