@@ -1,4 +1,5 @@
 
+
 export type DishStatus = 'available' | 'unavailable' | 'hidden';
 
 export type DishRating = {
@@ -87,4 +88,13 @@ export type Notification = {
   link: string; // URL to navigate to when clicked
   createdAt: string; // ISO date string
   isRead: boolean;
+};
+
+export type ChatMessage = {
+  id: string;
+  userId: string;
+  userName: string;
+  userImageUrl?: string;
+  text: string;
+  createdAt: string; // ISO String
 };
