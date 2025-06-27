@@ -1,7 +1,7 @@
 
 'use client';
 
-import { DialogContent } from '@/components/ui/dialog';
+import { DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import type { User } from '@/lib/types';
@@ -15,18 +15,26 @@ interface StatusViewerProps {
 }
 
 export function StatusViewer({ chef }: StatusViewerProps) {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
 
   if (!chef.status) {
     return null;
   }
 
+  const statusAltText = chef.status.caption || t('status_from_chef', { name: chef.name });
+
   return (
     <DialogContent className="p-0 max-w-lg w-full bg-black border-0">
+      <DialogHeader className="sr-only">
+        <DialogTitle>{statusAltText}</DialogTitle>
+        {chef.status.caption && (
+          <DialogDescription>{chef.status.caption}</DialogDescription>
+        )}
+      </DialogHeader>
       <div className="relative aspect-[9/16] w-full">
         <Image
           src={chef.status.imageUrl}
-          alt={chef.status.caption || `Status from ${chef.name}`}
+          alt={statusAltText}
           layout="fill"
           objectFit="contain"
           className="rounded-lg"
