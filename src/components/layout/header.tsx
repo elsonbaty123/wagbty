@@ -37,16 +37,6 @@ export function Header() {
                 {t('nav_home')}
             </Link>
         </SheetClose>
-        <SheetClose asChild>
-            <Link href="/favorites" className="transition-colors hover:text-primary">
-                {t('nav_favorites')}
-            </Link>
-        </SheetClose>
-        <SheetClose asChild>
-            <Link href="/community" className="transition-colors hover:text-primary">
-                {t('nav_community')}
-            </Link>
-        </SheetClose>
       </>
   );
 
@@ -92,11 +82,13 @@ export function Header() {
                           <div className="h-10 w-full animate-pulse rounded-md bg-muted" />
                       ) : user ? (
                           <>
-                          <SheetClose asChild>
-                              <Button variant="ghost" asChild>
-                                  <Link href={getDashboardLink()}>{user.role === 'chef' ? t('dashboard') : t('my_orders_title')}</Link>
-                              </Button>
-                          </SheetClose>
+                          {user.role === 'chef' && (
+                            <SheetClose asChild>
+                                <Button variant="ghost" asChild>
+                                    <Link href={getDashboardLink()}>{t('dashboard')}</Link>
+                                </Button>
+                            </SheetClose>
+                          )}
                           <SheetClose asChild>
                               <Button variant="ghost" asChild>
                                   <Link href="/settings">{t('settings')}</Link>
