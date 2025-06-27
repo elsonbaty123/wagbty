@@ -119,6 +119,14 @@ export default function ChefDashboardPage() {
   ];
   const renderedOrderTabs = i18n.dir() === 'rtl' ? [...orderTabs].reverse() : orderTabs;
 
+  const mainTabs = [
+    { value: 'dashboard', labelKey: 'overview' },
+    { value: 'orders', labelKey: 'orders' },
+    { value: 'menu', labelKey: 'menu' },
+    { value: 'coupons', labelKey: 'coupons' },
+  ];
+  const renderedMainTabs = i18n.dir() === 'rtl' ? [...mainTabs].reverse() : mainTabs;
+
   if (loading || !user) {
     return (
         <div className="container mx-auto px-4 py-8 md:px-6 md:py-12">
@@ -139,10 +147,9 @@ export default function ChefDashboardPage() {
       <Tabs defaultValue="dashboard" className="w-full">
         <div className="flex justify-start rtl:justify-end">
           <TabsList className="h-auto overflow-x-auto whitespace-nowrap p-1 flex-nowrap gap-2">
-              <TabsTrigger value="dashboard">{t('overview')}</TabsTrigger>
-              <TabsTrigger value="orders">{t('orders')}</TabsTrigger>
-              <TabsTrigger value="menu">{t('menu')}</TabsTrigger>
-              <TabsTrigger value="coupons">{t('coupons')}</TabsTrigger>
+            {renderedMainTabs.map(tab => (
+              <TabsTrigger key={tab.value} value={tab.value}>{t(tab.labelKey)}</TabsTrigger>
+            ))}
           </TabsList>
         </div>
         
@@ -275,7 +282,3 @@ export default function ChefDashboardPage() {
     </div>
   );
 }
-
-    
-
-    
