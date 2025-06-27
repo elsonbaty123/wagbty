@@ -53,6 +53,7 @@ export type Order = {
   quantity: number;
   status: OrderStatus;
   createdAt: string; // ISO date string
+  dailyDishOrderNumber?: number;
   rating?: number;
   review?: string;
   subtotal: number;

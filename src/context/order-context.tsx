@@ -9,7 +9,7 @@ import { initialOrders, allDishes, initialCoupons } from '@/lib/data';
 import localforage from 'localforage';
 
 type OrderStatus = Order['status'];
-type CreateOrderPayload = Omit<Order, 'id' | 'status' | 'createdAt' | 'chef'> & {
+type CreateOrderPayload = Omit<Order, 'id' | 'status' | 'createdAt' | 'chef' | 'dailyDishOrderNumber'> & {
   chef: User;
 };
 
@@ -80,6 +80,18 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
 
   const createOrder = async (orderData: CreateOrderPayload) => {
     const isChefBusy = orderData.chef.availabilityStatus === 'busy';
+
+    // Calculate daily order number
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const todaysOrdersForDishByCustomer = orders.filter(o =>
+        o.customerId === orderData.customerId &&
+        o.dish.id === orderData.dish.id &&
+        new Date(o.createdAt) >= startOfToday
+    );
+
+    const dailyDishOrderNumber = todaysOrdersForDishByCustomer.length + 1;
     
     const newOrder: Order = {
         ...orderData,
@@ -87,6 +99,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
         status: isChefBusy ? 'waiting_for_chef' : 'pending_review',
         createdAt: new Date().toISOString(),
         chef: { id: orderData.chef.id, name: orderData.chef.name },
+        dailyDishOrderNumber,
     };
 
     setOrders(prev => [newOrder, ...prev]);

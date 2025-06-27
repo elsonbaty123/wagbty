@@ -28,7 +28,7 @@ interface OrderCardProps {
 }
 
 export function OrderCard({ order, isChefView = false, updateOrderStatus, addReview }: OrderCardProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { toast } = useToast();
   const [rating, setRating] = useState(order.rating || 0);
   const [hoverRating, setHoverRating] = useState(0);
@@ -65,6 +65,12 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
   const currentStatus = statusMap[order.status];
   const isCustomerView = !isChefView;
 
+  const dailyOrderNumberText = order.dailyDishOrderNumber
+    ? i18n.language === 'ar'
+      ? `طلب اليوم #${order.dailyDishOrderNumber}`
+      : `Daily Order #${order.dailyDishOrderNumber}`
+    : null;
+
   return (
     <Card className="flex flex-col">
       <CardHeader>
@@ -75,7 +81,7 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
           </Badge>
           <div>
             <CardTitle className="font-headline text-xl">{order.dish.name}</CardTitle>
-            <CardDescription>{t('order_#', { id: order.id.slice(-6) })}</CardDescription>
+            <CardDescription>{dailyOrderNumberText || t('order_#', { id: order.id.slice(-6) })}</CardDescription>
           </div>
         </div>
       </CardHeader>
