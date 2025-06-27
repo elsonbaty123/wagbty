@@ -1,7 +1,7 @@
 
 'use client';
 import Image from 'next/image';
-import { Star, X } from 'lucide-react';
+import { Star, X, Camera } from 'lucide-react';
 import { DishCard } from '@/components/dish-card';
 import { notFound, useParams } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
@@ -15,6 +15,8 @@ import { useTranslation } from 'react-i18next';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { StatusViewer } from '@/components/status-viewer';
 import { useStatus } from '@/context/status-context';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 
 export default function ChefProfilePage() {
   const { t, i18n } = useTranslation();
@@ -84,36 +86,34 @@ export default function ChefProfilePage() {
     <div className="container mx-auto px-4 py-8 md:px-6 md:py-12">
       <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
         <div className="md:col-span-1">
-          <div className="sticky top-24">
-            <Dialog>
-              <DialogTrigger asChild disabled={!isStatusActive}>
-                 <div className={cn(
-                  "relative",
-                  isStatusActive && "cursor-pointer"
-                )}>
-                  <div className={cn(hasUnreadStatus && "p-1.5 bg-green-500 rounded-xl")}>
-                     <Image
-                      alt={chef.name}
-                      className="aspect-square w-full rounded-lg object-cover shadow-lg"
-                      height="400"
-                      src={chef.imageUrl || 'https://placehold.co/400x400.png'}
-                      data-ai-hint="chef cooking"
-                      width="400"
-                    />
-                  </div>
-                </div>
-              </DialogTrigger>
-              {isStatusActive && <StatusViewer chef={chef} />}
-            </Dialog>
+          <div className="sticky top-24 flex flex-col items-center text-center md:items-start md:text-start">
+             <Avatar className="h-40 w-40 border-4 border-background shadow-lg">
+                <AvatarImage src={chef.imageUrl || 'https://placehold.co/400x400.png'} data-ai-hint="chef cooking" alt={chef.name}/>
+                <AvatarFallback>{chef.name.charAt(0)}</AvatarFallback>
+            </Avatar>
 
-            <h1 className="font-headline text-3xl font-bold mt-4">{chef.name}</h1>
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-2 mt-4">
+                <h1 className="font-headline text-3xl font-bold">{chef.name}</h1>
+                {isStatusActive && (
+                    <Dialog>
+                        <DialogTrigger asChild>
+                            <Button variant={hasUnreadStatus ? 'default' : 'outline'} className={cn(hasUnreadStatus && 'bg-green-600 hover:bg-green-700 animate-pulse')}>
+                                <Camera className="me-2 h-4 w-4" />
+                                {t('view_status')}
+                            </Button>
+                        </DialogTrigger>
+                        <StatusViewer chef={chef} />
+                    </Dialog>
+                )}
+            </div>
+
             {statusInfo && (
                 <Badge className={cn('mt-2 border-none', statusInfo.className)}>
                     {t(statusInfo.labelKey)}
                 </Badge>
             )}
             <p className="text-lg text-primary font-semibold mt-1">{chef.specialty}</p>
-            <div className="flex items-center justify-start gap-2 mt-2" dir="ltr">
+            <div className="flex items-center justify-center md:justify-start gap-2 mt-2" dir="ltr">
               <Star className={cn("w-5 h-5", totalRatingsCount > 0 ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground")} />
               <span className="font-bold text-lg">{chefAverageRating.toFixed(1)}</span>
               <span className="text-sm text-muted-foreground">({t('review_count_plural', { count: totalRatingsCount })})</span>
