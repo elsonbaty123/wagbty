@@ -68,12 +68,15 @@ export function ChefStatusForm({ onFinished }: ChefStatusFormProps) {
   };
 
   const onSubmit = async (data: StatusFormValues) => {
+    if (!user) return;
     try {
+      const statusId = user.status?.id || `status_${user.id}_${Date.now()}`;
       await updateUser({
         status: {
+          id: statusId,
           imageUrl: data.imageUrl,
           caption: data.caption,
-          createdAt: new Date().toISOString(),
+          createdAt: user.status?.createdAt || new Date().toISOString(), // Preserve original post time on edit
         }
       });
       toast({ title: t('status_posted') });

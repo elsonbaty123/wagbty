@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { DollarSign, Utensils, Star, ArrowUp, ArrowDown, Camera, Trash2 } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { useOrders } from '@/context/order-context';
+import { useStatus } from '@/context/status-context';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -33,12 +34,13 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-
+import { StatusReactionsList } from '@/components/status-reactions-list';
 
 export default function ChefDashboardPage() {
   const { t, i18n } = useTranslation();
   const { user, loading, updateUser } = useAuth();
   const { dishes, getOrdersByChefId, updateOrderStatus } = useOrders();
+  const { getReactionsForStatus, deleteReactionsForStatus } = useStatus();
   const router = useRouter();
   const { toast } = useToast();
   const [isStatusFormOpen, setStatusFormOpen] = useState(false);
@@ -54,6 +56,7 @@ export default function ChefDashboardPage() {
   
   const isStatusActive = user?.status && (new Date().getTime() - new Date(user.status.createdAt).getTime()) < 24 * 60 * 60 * 1000;
   const activeStatus = isStatusActive ? user.status : null;
+  const statusReactions = useMemo(() => activeStatus ? getReactionsForStatus(activeStatus.id) : [], [activeStatus, getReactionsForStatus]);
 
   const {
     pendingOrders,
@@ -150,8 +153,9 @@ export default function ChefDashboardPage() {
   const renderedMainTabs = i18n.dir() === 'rtl' ? [...mainTabs].reverse() : mainTabs;
 
   const handleDeleteStatus = async () => {
-    if (!user) return;
+    if (!user || !user.status) return;
     try {
+        await deleteReactionsForStatus(user.status.id);
         await updateUser({ status: undefined });
         toast({ title: t('status_deleted') });
     } catch (error) {
@@ -178,7 +182,7 @@ export default function ChefDashboardPage() {
 
       <Tabs defaultValue="dashboard" className="w-full">
         <div className={cn("flex", i18n.dir() === 'rtl' ? "justify-end" : "justify-start")}>
-          <TabsList className="h-auto overflow-x-auto whitespace-nowrap p-1 flex-nowrap gap-2">
+          <TabsList className="grid h-auto grid-cols-2 p-1 sm:flex sm:flex-nowrap sm:gap-2 sm:overflow-x-auto sm:whitespace-nowrap">
             {renderedMainTabs.map(tab => (
               <TabsTrigger key={tab.value} value={tab.value}>{t(tab.labelKey)}</TabsTrigger>
             ))}
@@ -367,6 +371,7 @@ export default function ChefDashboardPage() {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+            {activeStatus && <StatusReactionsList reactions={statusReactions} />}
         </TabsContent>
         
         <TabsContent value="coupons">

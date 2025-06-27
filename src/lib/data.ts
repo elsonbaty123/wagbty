@@ -1,5 +1,6 @@
 
-import type { Dish, Order, Coupon, User } from '@/lib/types';
+
+import type { Dish, Order, Coupon, User, StatusReaction } from '@/lib/types';
 
 // The application will now start with pre-defined data for local storage.
 // This data will be used to seed the database if it's empty.
@@ -12,3 +13,5 @@ export const allDishes: Dish[] = [];
 export const initialOrders: Order[] = [];
 
 export const initialCoupons: Coupon[] = [];
+
+export const initialStatusReactions: StatusReaction[] = [];

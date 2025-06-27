@@ -25,6 +25,13 @@ export type Dish = {
 
 export type UserRole = 'customer' | 'chef';
 
+export type StatusObject = {
+  id: string;
+  imageUrl: string;
+  caption?: string;
+  createdAt: string; // ISO String
+};
+
 export interface User {
   id: string;
   name:string;
@@ -38,11 +45,7 @@ export interface User {
   bio?: string;
   rating?: number;
   availabilityStatus?: 'available' | 'busy' | 'closed';
-  status?: {
-    imageUrl: string;
-    caption?: string;
-    createdAt: string; // ISO String
-  };
+  status?: StatusObject;
 }
 
 export type OrderStatus = 'pending_review' | 'preparing' | 'ready_for_delivery' | 'out_for_delivery' | 'delivered' | 'rejected' | 'waiting_for_chef';
@@ -105,4 +108,17 @@ export type ChatMessage = {
   createdAt: string; // ISO String
 };
 
+export type EmojiReaction = '❤️' | '😍' | '👍' | '🔥' | '🤤';
+
+export type StatusReaction = {
+  id: string;
+  statusId: string;
+  chefId: string;
+  userId: string;
+  userName: string;
+  userImageUrl?: string;
+  emoji?: EmojiReaction;
+  message?: string;
+  createdAt: string; // ISO String
+};
     
