@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription, SheetClose } from "@/components/ui/sheet"
-import { Menu, UtensilsCrossed, User, LogOut, BookOpenCheck, Settings, MessageSquare } from "lucide-react"
+import { Menu, UtensilsCrossed, User, LogOut, Settings } from "lucide-react"
 import { useAuth } from "@/context/auth-context"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
