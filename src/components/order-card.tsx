@@ -11,9 +11,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Order, OrderStatus } from '@/lib/types';
-import { Home, Phone, User, ChevronDown, Star, Tag, Clock, Truck } from 'lucide-react';
+import { Home, Phone, User, Star, Tag, Clock, Truck, PackageCheck, Check, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Textarea } from './ui/textarea';
@@ -37,6 +36,7 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
   const statusMap: Record<OrderStatus, { labelKey: string, variant: "default" | "secondary" | "outline" | "destructive" | null | undefined, icon?: React.ReactNode }> = {
     'pending_review': { labelKey: 'order_status_pending_review', variant: 'secondary' },
     'preparing': { labelKey: 'order_status_preparing', variant: 'default' },
+    'ready_for_delivery': { labelKey: 'order_status_ready_for_delivery', variant: 'default', icon: <PackageCheck className="me-2 h-4 w-4" /> },
     'out_for_delivery': { labelKey: 'order_status_out_for_delivery', variant: 'default', icon: <Truck className="me-2 h-4 w-4" /> },
     'delivered': { labelKey: 'order_status_delivered', variant: 'outline' },
     'rejected': { labelKey: 'order_status_rejected', variant: 'destructive' },
@@ -69,6 +69,51 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
       ? `طلب اليوم #${order.dailyDishOrderNumber}`
       : `Daily Order #${order.dailyDishOrderNumber}`
     : null;
+    
+  const renderChefActions = () => {
+    if (!isChefView || !updateOrderStatus) return null;
+
+    switch (order.status) {
+        case 'pending_review':
+        case 'waiting_for_chef':
+            return (
+                <div className="grid grid-cols-2 gap-2 w-full">
+                    <Button variant="destructive" onClick={() => handleStatusChange('rejected')}>
+                        <X className="me-2 h-4 w-4" />
+                        {t('reject_order')}
+                    </Button>
+                    <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={() => handleStatusChange('preparing')}>
+                        <Check className="me-2 h-4 w-4" />
+                        {t('accept_order')}
+                    </Button>
+                </div>
+            );
+        case 'preparing':
+            return (
+                <Button className="w-full" onClick={() => handleStatusChange('ready_for_delivery')}>
+                    <PackageCheck className="me-2 h-4 w-4" />
+                    {t('mark_as_prepared')}
+                </Button>
+            );
+        case 'ready_for_delivery':
+            return (
+                <Button className="w-full" onClick={() => handleStatusChange('out_for_delivery')}>
+                    <Truck className="me-2 h-4 w-4" />
+                    {t('mark_as_out_for_delivery')}
+                </Button>
+            );
+        case 'out_for_delivery':
+            return (
+                <Button className="w-full" onClick={() => handleStatusChange('delivered')}>
+                    <Check className="me-2 h-4 w-4" />
+                    {t('mark_as_delivered')}
+                </Button>
+            );
+        default:
+            return null;
+    }
+  };
+
 
   return (
     <Card className="flex flex-col">
@@ -169,40 +214,13 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
             </div>
         </CardFooter>
       )}
-       {isChefView && order.status !== 'delivered' && order.status !== 'rejected' && (
-        <CardFooter>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="w-full">
-                <ChevronDown className="me-2 h-4 w-4" />
-                {t('update_order_status')}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="center" className="w-56">
-              {(order.status === 'pending_review' || order.status === 'waiting_for_chef') && (
-                <>
-                  <DropdownMenuItem onClick={() => handleStatusChange('preparing')}>
-                    {t('accept_order_preparing')}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleStatusChange('rejected')} className="text-destructive focus:text-destructive">
-                    {t('reject_order')}
-                  </DropdownMenuItem>
-                </>
-              )}
-              {order.status === 'preparing' && (
-                <DropdownMenuItem onClick={() => handleStatusChange('out_for_delivery')}>
-                  {t('out_for_delivery')}
-                </DropdownMenuItem>
-              )}
-              {order.status === 'out_for_delivery' && (
-                <DropdownMenuItem onClick={() => handleStatusChange('delivered')}>
-                  {t('delivered')}
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+      {isChefView && ['pending_review', 'waiting_for_chef', 'preparing', 'ready_for_delivery', 'out_for_delivery'].includes(order.status) && (
+        <CardFooter className="flex">
+            {renderChefActions()}
         </CardFooter>
       )}
     </Card>
   );
 }
+
+    

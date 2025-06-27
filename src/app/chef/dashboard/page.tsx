@@ -43,7 +43,7 @@ export default function ChefDashboardPage() {
     allReviews,
   } = useMemo(() => {
     const pending = chefOrders.filter(o => o.status === 'pending_review' || o.status === 'waiting_for_chef');
-    const ongoing = chefOrders.filter(o => ['preparing', 'ready_for_delivery'].includes(o.status));
+    const ongoing = chefOrders.filter(o => ['preparing', 'ready_for_delivery', 'out_for_delivery'].includes(o.status));
     const completed = chefOrders.filter(o => o.status === 'delivered');
     
     const now = new Date();
@@ -265,3 +265,5 @@ export default function ChefDashboardPage() {
     </div>
   );
 }
+
+    
