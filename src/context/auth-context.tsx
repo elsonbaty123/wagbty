@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -123,7 +122,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         address: details.role === 'customer' ? details.address : undefined,
         specialty: details.specialty,
         bio: details.role === 'chef' ? t('new_chef_bio', { specialty: details.specialty }) : undefined,
-        imageUrl: details.role === 'chef' ? `https://placehold.co/400x400.png` : `https://placehold.co/100x100.png`,
+        imageUrl: details.imageUrl || (details.role === 'chef' ? 'https://placehold.co/400x400.png' : 'https://placehold.co/100x100.png'),
         availabilityStatus: details.role === 'chef' ? 'available' : undefined,
         hashedPassword: hashedPassword
     };
@@ -222,4 +221,3 @@ export const useAuth = () => {
   }
   return context;
 };
-
