@@ -112,6 +112,12 @@ export default function ChefDashboardPage() {
      return i18n.dir() === 'rtl' ? data.reverse() : data;
   }, [completedOrders, i18n.language, i18n.dir]);
 
+  const orderTabs = [
+    { value: 'new', labelKey: 'new_orders', orders: pendingOrders },
+    { value: 'ongoing', labelKey: 'ongoing_orders', orders: ongoingOrders },
+    { value: 'completed', labelKey: 'completed_orders', orders: completedOrders },
+  ];
+  const renderedOrderTabs = i18n.dir() === 'rtl' ? [...orderTabs].reverse() : orderTabs;
 
   if (loading || !user) {
     return (
@@ -227,9 +233,11 @@ export default function ChefDashboardPage() {
         <TabsContent value="orders">
             <Tabs defaultValue="new" className="w-full mt-4">
                  <TabsList className="grid w-full grid-cols-1 gap-2 text-center sm:grid-cols-3">
-                    <TabsTrigger value="new">{t('new_orders')} ({pendingOrders.length})</TabsTrigger>
-                    <TabsTrigger value="ongoing">{t('ongoing_orders')} ({ongoingOrders.length})</TabsTrigger>
-                    <TabsTrigger value="completed">{t('completed_orders')} ({completedOrders.length})</TabsTrigger>
+                    {renderedOrderTabs.map(tab => (
+                        <TabsTrigger key={tab.value} value={tab.value}>
+                            {t(tab.labelKey)} ({tab.orders.length})
+                        </TabsTrigger>
+                    ))}
                 </TabsList>
                 <TabsContent value="new" className="mt-4">
                      {pendingOrders.length > 0 ? (
@@ -267,5 +275,7 @@ export default function ChefDashboardPage() {
     </div>
   );
 }
+
+    
 
     
