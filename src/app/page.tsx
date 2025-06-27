@@ -1,17 +1,15 @@
-
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import { ChefCard } from '@/components/chef-card';
 import { useOrders } from '@/context/order-context';
 import { useAuth } from '@/context/auth-context';
 import { Users, Search } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { User } from '@/lib/types';
 import { useTranslation } from 'react-i18next';
 
-function HomeClient() {
+export default function Home() {
   const { t } = useTranslation();
   const { dishes, loading: dishesLoading } = useOrders();
   const { chefs, loading: authLoading } = useAuth();
@@ -43,6 +41,29 @@ function HomeClient() {
       )
     : chefsWithDishData;
 
+  if (loading) {
+    return (
+        <div className="flex flex-col">
+          <section className="w-full py-12 md:py-20 lg:py-28 bg-card">
+             <div className="container mx-auto px-4 md:px-6">
+                <div className="flex flex-col items-center space-y-4 text-center">
+                    <Skeleton className="h-16 w-3/4" />
+                    <Skeleton className="h-8 w-1/2 mt-2" />
+                    <Skeleton className="h-12 w-full max-w-lg mt-4" />
+                </div>
+             </div>
+          </section>
+          <section id="chefs" className="w-full py-12 md:py-24 lg:py-32">
+            <div className="container mx-auto px-4 md:px-6">
+                 <div className="mx-auto grid grid-cols-1 gap-8 py-12 sm:grid-cols-2 md:grid-cols-3 lg:gap-12">
+                  {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-[450px] w-full" />)}
+                </div>
+            </div>
+          </section>
+        </div>
+    );
+  }
+
   return (
     <div className="flex flex-col">
       <section className="w-full py-12 md:py-20 lg:py-28 bg-card">
@@ -72,11 +93,7 @@ function HomeClient() {
 
       <section id="chefs" className="w-full py-12 md:py-24 lg:py-32">
         <div className="container mx-auto px-4 md:px-6">
-          {loading ? (
-            <div className="mx-auto grid grid-cols-1 gap-8 py-12 sm:grid-cols-2 md:grid-cols-3 lg:gap-12">
-              {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-[450px] w-full" />)}
-            </div>
-          ) : filteredChefs.length > 0 ? (
+          {filteredChefs.length > 0 ? (
             <div className="mx-auto grid grid-cols-1 gap-8 py-12 sm:grid-cols-2 md:grid-cols-3 lg:gap-12">
               {filteredChefs.map((chef) => (
                 <ChefCard key={chef.id} chef={chef} />
@@ -97,37 +114,4 @@ function HomeClient() {
       </section>
     </div>
   );
-}
-
-export default function Home() {
-    const [isClient, setIsClient] = useState(false);
-
-    useEffect(() => {
-        setIsClient(true);
-    }, []);
-
-    if (!isClient) {
-        return (
-            <div className="flex flex-col">
-              <section className="w-full py-12 md:py-20 lg:py-28 bg-card">
-                 <div className="container mx-auto px-4 md:px-6">
-                    <div className="flex flex-col items-center space-y-4 text-center">
-                        <Skeleton className="h-16 w-3/4" />
-                        <Skeleton className="h-8 w-1/2 mt-2" />
-                        <Skeleton className="h-12 w-full max-w-lg mt-4" />
-                    </div>
-                 </div>
-              </section>
-              <section id="chefs" className="w-full py-12 md:py-24 lg:py-32">
-                <div className="container mx-auto px-4 md:px-6">
-                     <div className="mx-auto grid grid-cols-1 gap-8 py-12 sm:grid-cols-2 md:grid-cols-3 lg:gap-12">
-                      {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-[450px] w-full" />)}
-                    </div>
-                </div>
-              </section>
-            </div>
-        );
-    }
-    
-    return <HomeClient />;
 }
