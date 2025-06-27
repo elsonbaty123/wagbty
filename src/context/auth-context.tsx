@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -8,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { initialUsers, DEFAULT_CHEF_AVATAR, DEFAULT_CUSTOMER_AVATAR } from '@/lib/data';
 import localforage from 'localforage';
 import bcrypt from 'bcryptjs';
+import { useToast } from '@/hooks/use-toast';
 
 // Extend User type for local storage to include hashed password
 type StoredUser = User & { hashedPassword?: string };
@@ -22,6 +24,7 @@ interface AuthContextType {
   updateUser: (updatedUserDetails: Partial<User>) => Promise<User>;
   changePassword: (passwordDetails: { newPassword; confirmPassword; }) => Promise<void>;
   sendPasswordResetEmail: (email: string) => Promise<void>; // Mocked
+  toggleFavoriteDish: (dishId: string) => Promise<void>;
   loading: boolean;
 }
 
@@ -39,6 +42,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const { t } = useTranslation();
+  const { toast } = useToast();
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -124,6 +128,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         bio: details.role === 'chef' ? t('new_chef_bio', { specialty: details.specialty }) : undefined,
         imageUrl: details.imageUrl || (details.role === 'chef' ? DEFAULT_CHEF_AVATAR : DEFAULT_CUSTOMER_AVATAR),
         availabilityStatus: details.role === 'chef' ? 'available' : undefined,
+        favoriteDishIds: details.role === 'customer' ? [] : undefined,
         hashedPassword: hashedPassword
     };
     
@@ -196,6 +201,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return Promise.resolve();
   };
 
+  const toggleFavoriteDish = async (dishId: string) => {
+    if (!user || user.role !== 'customer') {
+      toast({
+        variant: 'destructive',
+        title: t('login_required'),
+        description: t('must_be_customer_to_favorite'),
+      });
+      return;
+    }
+
+    const currentFavorites = user.favoriteDishIds || [];
+    const isFavorited = currentFavorites.includes(dishId);
+
+    const newFavorites = isFavorited
+      ? currentFavorites.filter(id => id !== dishId)
+      : [...currentFavorites, dishId];
+
+    await updateUser({ favoriteDishIds: newFavorites });
+    
+    toast({
+      title: isFavorited ? t('removed_from_favorites') : t('added_to_favorites'),
+    });
+  };
+
   const chefs = users.filter(u => u.role === 'chef').map(u => {
     const { hashedPassword, ...rest } = u;
     return rest;
@@ -208,7 +237,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 
   return (
-    <AuthContext.Provider value={{ user, users: publicUsers, chefs, login, signup, logout, updateUser, changePassword, sendPasswordResetEmail, loading }}>
+    <AuthContext.Provider value={{ user, users: publicUsers, chefs, login, signup, logout, updateUser, changePassword, sendPasswordResetEmail, toggleFavoriteDish, loading }}>
       {children}
     </AuthContext.Provider>
   );

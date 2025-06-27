@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Star, ChefHat } from 'lucide-react';
+import { Star, ChefHat, Heart } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
@@ -22,12 +22,20 @@ export default function DishDetailsPage() {
   const { t, i18n } = useTranslation();
   const params = useParams<{ id: string }>();
   const { dishes, loading: dishesLoading } = useOrders();
-  const { users, loading: authLoading } = useAuth();
+  const { users, user, loading: authLoading, toggleFavoriteDish } = useAuth();
   
   const dish = dishes.find(d => d.id === params.id);
   const chef = dish ? users.find(u => u.id === dish.chefId) : null;
   
   const loading = dishesLoading || authLoading;
+
+  const isFavorited = user?.favoriteDishIds?.includes(dish?.id || '');
+
+  const handleFavoriteClick = () => {
+      if (!authLoading && user && dish) {
+          toggleFavoriteDish(dish.id);
+      }
+  };
 
   if (loading) {
     return (
@@ -89,7 +97,20 @@ export default function DishDetailsPage() {
           <div className="mt-6">
             <div className="flex justify-between items-start">
               <h1 className="font-headline text-4xl font-bold text-primary">{dish.name}</h1>
-              <Badge variant="secondary" className="text-lg">{dish.category}</Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary" className="text-lg">{dish.category}</Badge>
+                {user && user.role === 'customer' && (
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-10 w-10 rounded-full"
+                        onClick={handleFavoriteClick}
+                        aria-label={isFavorited ? t('remove_from_favorites') : t('add_to_favorites')}
+                    >
+                        <Heart className={cn("h-6 w-6 transition-all", isFavorited ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
+                    </Button>
+                )}
+              </div>
             </div>
             
             <div className="flex items-center gap-2 mt-3">

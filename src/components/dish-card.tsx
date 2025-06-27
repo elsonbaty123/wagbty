@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import Image from 'next/image';
@@ -6,10 +7,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import type { Dish, User } from '@/lib/types';
 import Link from 'next/link';
-import { Clock, ChefHat, Star } from 'lucide-react';
+import { Clock, ChefHat, Star, Heart } from 'lucide-react';
 import { Badge } from './ui/badge';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/context/auth-context';
 
 interface DishCardProps {
   dish: Dish;
@@ -19,6 +21,8 @@ interface DishCardProps {
 
 export function DishCard({ dish, chefName, chefStatus = 'available' }: DishCardProps) {
   const { t } = useTranslation();
+  const { user, toggleFavoriteDish, loading: authLoading } = useAuth();
+
   const isDishAvailable = dish.status === 'available';
   const canOrder = isDishAvailable && chefStatus !== 'closed';
 
@@ -33,10 +37,20 @@ export function DishCard({ dish, chefName, chefStatus = 'available' }: DishCardP
   const averageRating = ratingsCount > 0
     ? dish.ratings.reduce((sum, r) => sum + r.rating, 0) / ratingsCount
     : 0;
+    
+  const isFavorited = user?.favoriteDishIds?.includes(dish.id);
+
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!authLoading && user) {
+          toggleFavoriteDish(dish.id);
+      }
+  };
 
   return (
     <Card className="flex flex-col overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
-      <CardHeader className="p-0">
+      <CardHeader className="p-0 relative">
         <Link href={`/dishes/${dish.id}`}>
           <Image
             alt={dish.name}
@@ -47,6 +61,17 @@ export function DishCard({ dish, chefName, chefStatus = 'available' }: DishCardP
             width="400"
           />
         </Link>
+        {user && user.role === 'customer' && (
+            <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-2 end-2 h-8 w-8 rounded-full bg-black/30 text-white hover:bg-black/50 hover:text-white"
+                onClick={handleFavoriteClick}
+                aria-label={isFavorited ? t('remove_from_favorites') : t('add_to_favorites')}
+            >
+                <Heart className={cn("h-5 w-5 transition-all", isFavorited && "fill-red-500 text-red-500")} />
+            </Button>
+        )}
       </CardHeader>
       <CardContent className="p-4 flex-grow">
         <div className='flex justify-between items-start'>

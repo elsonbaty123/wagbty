@@ -42,6 +42,7 @@ export interface User {
   phone?: string;
   address?: string;
   imageUrl?: string;
+  favoriteDishIds?: string[];
   // Chef-specific properties
   specialty?: string;
   bio?: string;

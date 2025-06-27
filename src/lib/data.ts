@@ -72,6 +72,7 @@ export const initialUsers: (User & { hashedPassword?: string })[] = [
     phone: '01112223334',
     address: '123 Foodie Lane, Cairo, Egypt',
     imageUrl: DEFAULT_CUSTOMER_AVATAR,
+    favoriteDishIds: ['dish_1', 'dish_3'],
     hashedPassword: bcrypt.hashSync('Password123!', salt),
   },
   {
@@ -82,6 +83,7 @@ export const initialUsers: (User & { hashedPassword?: string })[] = [
     phone: '01112223335',
     address: '456 Culinary Street, Giza, Egypt',
     imageUrl: DEFAULT_CUSTOMER_AVATAR,
+    favoriteDishIds: [],
     hashedPassword: bcrypt.hashSync('Password123!', salt),
   },
   {
@@ -92,6 +94,7 @@ export const initialUsers: (User & { hashedPassword?: string })[] = [
     phone: '01112223336',
     address: '789 Gourmet Avenue, Alexandria, Egypt',
     imageUrl: DEFAULT_CUSTOMER_AVATAR,
+    favoriteDishIds: ['dish_5'],
     hashedPassword: bcrypt.hashSync('Password123!', salt),
   },
   {
@@ -102,6 +105,7 @@ export const initialUsers: (User & { hashedPassword?: string })[] = [
     phone: '01112223337',
     address: '101 Flavor Town, Luxor, Egypt',
     imageUrl: DEFAULT_CUSTOMER_AVATAR,
+    favoriteDishIds: [],
     hashedPassword: bcrypt.hashSync('Password123!', salt),
   },
 ];
