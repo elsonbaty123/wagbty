@@ -30,6 +30,29 @@ export function Header() {
 
   const sheetSide = i18n.dir() === 'rtl' ? 'right' : 'left';
 
+  const customerMobileNavLinks = (
+      <>
+        <SheetClose asChild>
+            <Link href="/" className="transition-colors hover:text-primary">
+                {t('home')}
+            </Link>
+        </SheetClose>
+        <SheetClose asChild>
+            <Link href="/community" className="transition-colors hover:text-primary">
+                {t('community')}
+            </Link>
+        </SheetClose>
+      </>
+  );
+
+  const defaultMobileNavLinks = (
+      <SheetClose asChild>
+        <Link href="/" className="transition-colors hover:text-primary">
+            {t('home')}
+        </Link>
+      </SheetClose>
+  );
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-card shadow-sm">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
@@ -57,18 +80,7 @@ export function Header() {
                         </Link>
                     </SheetClose>
                   <nav className="grid gap-2 text-lg font-medium">
-                      <SheetClose asChild>
-                        <Link href="/" className="transition-colors hover:text-primary">
-                          {t('home')}
-                        </Link>
-                      </SheetClose>
-                      {user?.role === 'customer' && (
-                        <SheetClose asChild>
-                          <Link href="/community" className="transition-colors hover:text-primary">
-                            {t('community')}
-                          </Link>
-                        </SheetClose>
-                      )}
+                      {user?.role === 'customer' ? customerMobileNavLinks : defaultMobileNavLinks}
                   </nav>
                   <div className="flex flex-col gap-2">
                       {loading ? (
@@ -134,8 +146,20 @@ export function Header() {
 
           {!loading && user && (
             <div className="flex items-center gap-2">
-              <NotificationsPopover />
-              <div className="hidden md:flex items-center gap-2">
+              <div className="flex items-center gap-1 md:hidden">
+                {user.role === 'customer' && (
+                  <Button variant="ghost" size="icon" asChild>
+                    <Link href="/community">
+                      <MessageSquare className="h-5 w-5" />
+                      <span className="sr-only">{t('community')}</span>
+                    </Link>
+                  </Button>
+                )}
+                <NotificationsPopover />
+              </div>
+
+              <div className="hidden items-center gap-2 md:flex">
+                <NotificationsPopover />
                 <ThemeToggleButton />
                 <LanguageSwitcher />
               </div>
