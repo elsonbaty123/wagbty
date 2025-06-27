@@ -7,6 +7,7 @@ import { useAuth } from './auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
 import localforage from 'localforage';
+import { containsProfanity } from '@/lib/profanity-filter';
 
 interface ChatContextType {
   messages: ChatMessage[];
@@ -17,7 +18,7 @@ interface ChatContextType {
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const { toast } = useToast();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -46,8 +47,18 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       toast({ variant: 'destructive', title: t('message_empty') });
       return false;
     }
-    const urlRegex = /(https?:\/\/[^\s]+)|(www\.[^\s]+)|(\b[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(\/[^\s]*)?\b)/gi;
-    if (urlRegex.test(text)) {
+
+    if (containsProfanity(text)) {
+      toast({
+        variant: 'destructive',
+        title: i18n.language === 'ar' ? 'تم رصد لغة غير لائقة' : 'Inappropriate Language Detected',
+        description: i18n.language === 'ar' ? 'لم نتمكن من إرسال رسالتك. الرجاء احترام إرشادات المجتمع.' : 'Your message could not be sent. Please respect our community guidelines.',
+      });
+      return false;
+    }
+    
+    const urlRegex = /(https?:\/\/|www\.|\.[a-z]{2,}\/)/i;
+    if (urlRegex.test(text.toLowerCase())) {
       toast({ variant: 'destructive', title: t('no_links_allowed') });
       return false;
     }
