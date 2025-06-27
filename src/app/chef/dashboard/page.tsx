@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
@@ -107,8 +108,9 @@ export default function ChefDashboardPage() {
         }
      });
  
-     return Object.entries(monthlyData).map(([name, total]) => ({ name, total }));
-  }, [completedOrders, i18n.language]);
+     const data = Object.entries(monthlyData).map(([name, total]) => ({ name, total }));
+     return i18n.dir() === 'rtl' ? data.reverse() : data;
+  }, [completedOrders, i18n.language, i18n.dir]);
 
 
   if (loading || !user) {
@@ -129,14 +131,14 @@ export default function ChefDashboardPage() {
       </div>
 
       <Tabs defaultValue="dashboard" className="w-full">
-        <TabsList className="h-auto justify-start overflow-x-auto whitespace-nowrap p-1 flex-nowrap gap-1">
+        <TabsList className="h-auto justify-start overflow-x-auto whitespace-nowrap p-1 flex-nowrap gap-2">
             <TabsTrigger value="dashboard">{t('overview')}</TabsTrigger>
             <TabsTrigger value="orders">{t('orders')}</TabsTrigger>
             <TabsTrigger value="menu">{t('menu')}</TabsTrigger>
             <TabsTrigger value="coupons">{t('coupons')}</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="dashboard" className="mt-6 space-y-6">
+        <TabsContent value="dashboard" className="mt-6 space-y-8">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -184,8 +186,8 @@ export default function ChefDashboardPage() {
                     <CardContent className="ps-2">
                          <ResponsiveContainer width="100%" height={300}>
                             <BarChart data={chartData}>
-                                <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value} ${t('currency_egp')}`} />
+                                <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} reversed={i18n.dir() === 'rtl'} />
+                                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value} ${t('currency_egp')}`} orientation={i18n.dir() === 'rtl' ? 'right' : 'left'} />
                                 <Tooltip cursor={{ fill: 'hsl(var(--muted))' }} contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}/>
                                 <Bar dataKey="total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                             </BarChart>

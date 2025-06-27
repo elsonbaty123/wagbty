@@ -51,7 +51,7 @@ export function DishCard({ dish, chefName, chefStatus = 'available' }: DishCardP
       <CardContent className="p-4 flex-grow">
         <div className='flex justify-between items-start'>
             <Badge variant="secondary">{dish.category}</Badge>
-            <Link href={`/dishes/${dish.id}`} className="hover:text-primary transition-colors text-end">
+            <Link href={`/dishes/${dish.id}`} className="hover:text-primary transition-colors text-start">
                 <CardTitle className="font-headline text-xl">{dish.name}</CardTitle>
             </Link>
         </div>

@@ -148,7 +148,7 @@ export default function DishDetailsPage() {
                                         </div>
                                         <p className="font-semibold">{review.customerName}</p>
                                     </div>
-                                    <p className="text-xs text-muted-foreground mt-0.5 text-end">
+                                    <p className="text-xs text-muted-foreground mt-0.5 text-start">
                                         {formatDistanceToNow(new Date(review.createdAt), { addSuffix: true, locale: dateLocales[i18n.language] })}
                                     </p>
                                     {review.review && <p className="mt-2 text-sm text-muted-foreground italic">"{review.review}"</p>}
