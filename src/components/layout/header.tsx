@@ -55,10 +55,10 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-card shadow-sm">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
+      <div className="container relative mx-auto flex h-16 items-center justify-between px-4 md:px-6">
         
         {/* Left Side */}
-        <div className="flex flex-1 items-center gap-4">
+        <div className="flex items-center gap-4">
           <div className="md:hidden">
             <Sheet>
               <SheetTrigger asChild>
@@ -128,7 +128,10 @@ export function Header() {
             <UtensilsCrossed className="h-6 w-6 text-primary" />
             <span className="hidden sm:inline text-xl font-bold font-headline text-primary">{t('app_name')}</span>
           </Link>
-          <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
+        </div>
+
+        {/* Centered Navigation */}
+        <nav className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 md:flex items-center gap-6 text-sm font-medium">
             <Link href="/" className="transition-colors hover:text-primary">
               {t('home')}
             </Link>
@@ -137,8 +140,7 @@ export function Header() {
                 {t('community')}
               </Link>
             )}
-          </nav>
-        </div>
+        </nav>
 
         {/* Right Side */}
         <div className="flex items-center gap-2">
