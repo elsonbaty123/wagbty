@@ -1,4 +1,3 @@
-
 'use client';
 
 import Image from 'next/image';
@@ -38,7 +37,7 @@ export function ChefCard({ chef }: ChefCardProps) {
     <Card className="flex flex-col overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
       <CardHeader className="p-0 relative">
         <Link href={`/chefs/${chef.id}`}>
-          <div className={cn("bg-card", hasUnreadStatus && "p-1 bg-gradient-to-tr from-yellow-400 via-primary to-accent rounded-t-lg")}>
+          <div className={cn("bg-card", hasUnreadStatus && "p-1 bg-green-500 rounded-t-lg")}>
             <Image
               alt={chef.name}
               className={cn("aspect-[4/3] w-full object-cover", hasUnreadStatus ? "rounded-md" : "rounded-t-lg")}

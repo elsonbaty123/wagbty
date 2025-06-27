@@ -1,7 +1,6 @@
-
 'use client';
 import Image from 'next/image';
-import { Star } from 'lucide-react';
+import { Star, X } from 'lucide-react';
 import { DishCard } from '@/components/dish-card';
 import { notFound, useParams } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
@@ -91,7 +90,7 @@ export default function ChefProfilePage() {
                   "relative",
                   isStatusActive && "cursor-pointer"
                 )}>
-                  <div className={cn(hasUnreadStatus && "p-1.5 bg-gradient-to-tr from-yellow-400 via-primary to-accent rounded-xl")}>
+                  <div className={cn(hasUnreadStatus && "p-1.5 bg-green-500 rounded-xl")}>
                      <Image
                       alt={chef.name}
                       className="aspect-square w-full rounded-lg object-cover shadow-lg"
