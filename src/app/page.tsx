@@ -25,7 +25,7 @@ function HomeClient() {
       const allRatings = chefDishes.flatMap(d => d.ratings?.map(r => r.rating) || []);
       const averageRating = allRatings.length > 0
         ? allRatings.reduce((a, b) => a + b, 0) / allRatings.length
-        : chef.rating || 0; // fallback to chef's base rating
+        : 0;
 
       return {
         ...chef,

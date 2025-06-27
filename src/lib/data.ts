@@ -35,7 +35,6 @@ export const initialUsers: (User & { hashedPassword?: string })[] = [
         specialty: 'المطبخ الفرنسي',
         bio: 'طاهٍ متخصص في المطبخ الفرنسي التقليدي مع لمسة عصرية. خبرة 20 عامًا في أرقى المطاعم.',
         imageUrl: 'https://placehold.co/400x400.png',
-        rating: 4.8,
         availabilityStatus: 'available',
         hashedPassword: '$2a$10$f/O5.Q8sO3/1tE/P.f.yoe.X3.nL.yT7qZ9V6xO3mJ6W.V3.vO1o.'
     },
@@ -48,7 +47,6 @@ export const initialUsers: (User & { hashedPassword?: string })[] = [
         specialty: 'المطبخ المصري الأصيل',
         bio: 'أقدم أشهى الأطباق المصرية البيتية التي نشأنا عليها، محضرة بحب وشغف.',
         imageUrl: 'https://placehold.co/400x400.png',
-        rating: 4.9,
         availabilityStatus: 'busy',
         hashedPassword: '$2a$10$f/O5.Q8sO3/1tE/P.f.yoe.X3.nL.yT7qZ9V6xO3mJ6W.V3.vO1o.'
     },

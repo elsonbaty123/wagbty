@@ -123,7 +123,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         specialty: details.specialty,
         bio: details.role === 'chef' ? t('new_chef_bio', { specialty: details.specialty }) : undefined,
         imageUrl: details.role === 'chef' ? `https://placehold.co/400x400.png` : `https://placehold.co/100x100.png`,
-        rating: details.role === 'chef' ? 4.5 : undefined,
         availabilityStatus: details.role === 'chef' ? 'available' : undefined,
         hashedPassword: hashedPassword
     };

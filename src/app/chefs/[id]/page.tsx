@@ -31,7 +31,7 @@ export default function ChefProfilePage() {
     const allRatings = filteredDishes.flatMap(d => d.ratings?.map(r => r.rating) || []);
     const averageRating = allRatings.length > 0
       ? allRatings.reduce((a, b) => a + b, 0) / allRatings.length
-      : chef.rating || 0;
+      : 0;
     
     return {
       chefDishes: filteredDishes,
@@ -94,7 +94,7 @@ export default function ChefProfilePage() {
             )}
             <p className="text-lg text-primary font-semibold mt-1">{chef.specialty}</p>
             <div className="flex items-center justify-start gap-2 mt-2" dir="ltr">
-              <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+              <Star className={cn("w-5 h-5", totalRatingsCount > 0 ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground")} />
               <span className="font-bold text-lg">{chefAverageRating.toFixed(1)}</span>
               <span className="text-sm text-muted-foreground">({t('review_count_plural', { count: totalRatingsCount })})</span>
             </div>
