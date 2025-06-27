@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { ChefCard } from '@/components/chef-card';
 import { useOrders } from '@/context/order-context';
@@ -11,7 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import type { User } from '@/lib/types';
 import { useTranslation } from 'react-i18next';
 
-export default function Home() {
+function HomeClient() {
   const { t } = useTranslation();
   const { dishes, loading: dishesLoading } = useOrders();
   const { chefs, loading: authLoading } = useAuth();
@@ -21,7 +21,7 @@ export default function Home() {
 
   const chefsWithDishData = useMemo(() => {
     return chefs.map(chef => {
-      const chefDishes = dishes.filter(dish => dish.chefId === chef.id && dish.status !== 'مخفية');
+      const chefDishes = dishes.filter(dish => dish.chefId === chef.id && dish.status !== 'hidden');
       const allRatings = chefDishes.flatMap(d => d.ratings?.map(r => r.rating) || []);
       const averageRating = allRatings.length > 0
         ? allRatings.reduce((a, b) => a + b, 0) / allRatings.length
@@ -97,4 +97,37 @@ export default function Home() {
       </section>
     </div>
   );
+}
+
+export default function Home() {
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
+
+    if (!isClient) {
+        return (
+            <div className="flex flex-col">
+              <section className="w-full py-12 md:py-20 lg:py-28 bg-card">
+                 <div className="container mx-auto px-4 md:px-6">
+                    <div className="flex flex-col items-center space-y-4 text-center">
+                        <Skeleton className="h-16 w-3/4" />
+                        <Skeleton className="h-8 w-1/2 mt-2" />
+                        <Skeleton className="h-12 w-full max-w-lg mt-4" />
+                    </div>
+                 </div>
+              </section>
+              <section id="chefs" className="w-full py-12 md:py-24 lg:py-32">
+                <div className="container mx-auto px-4 md:px-6">
+                     <div className="mx-auto grid grid-cols-1 gap-8 py-12 sm:grid-cols-2 md:grid-cols-3 lg:gap-12">
+                      {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-[450px] w-full" />)}
+                    </div>
+                </div>
+              </section>
+            </div>
+        );
+    }
+    
+    return <HomeClient />;
 }
