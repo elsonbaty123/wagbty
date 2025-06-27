@@ -81,8 +81,9 @@ export type Coupon = {
 export type Notification = {
   id: string;
   recipientId: string; // ID of the user (customer or chef) who should receive this
-  title: string;
-  message: string;
+  titleKey: string;
+  messageKey: string;
+  params?: Record<string, string | number>;
   link: string; // URL to navigate to when clicked
   createdAt: string; // ISO date string
   isRead: boolean;

@@ -5,6 +5,7 @@ import { createContext, useState, useEffect, useContext, type ReactNode } from '
 import type { Order, Dish, DishRating, Coupon, User } from '@/lib/types';
 import { useNotifications } from './notification-context';
 import { useTranslation } from 'react-i18next';
+import { allDishes, initialCoupons, initialOrders } from '@/lib/data';
 
 type OrderStatus = Order['status'];
 type CreateOrderPayload = Omit<Order, 'id' | 'status' | 'createdAt' | 'chef'> & {
@@ -43,13 +44,13 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     try {
       const storedOrders = localStorage.getItem('chefconnect_orders');
-      if (storedOrders) setOrders(JSON.parse(storedOrders));
+      setOrders(storedOrders ? JSON.parse(storedOrders) : initialOrders);
       
       const storedDishes = localStorage.getItem('chefconnect_dishes');
-      if (storedDishes) setDishes(JSON.parse(storedDishes));
+      setDishes(storedDishes ? JSON.parse(storedDishes) : allDishes);
 
       const storedCoupons = localStorage.getItem('chefconnect_coupons');
-      if (storedCoupons) setCoupons(JSON.parse(storedCoupons));
+      setCoupons(storedCoupons ? JSON.parse(storedCoupons) : initialCoupons);
 
     } catch (error) {
       console.error("Failed to parse data from localStorage", error);
@@ -109,21 +110,24 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
     if (isChefBusy) {
         createNotification({
             recipientId: orderData.customerId,
-            title: t('order_waitlisted_notification_title'),
-            message: t('order_waitlisted_notification_desc', { dishName: orderData.dish.name }),
+            titleKey: 'order_waitlisted_notification_title',
+            messageKey: 'order_waitlisted_notification_desc',
+            params: { dishName: orderData.dish.name },
             link: '/profile',
         });
         createNotification({
             recipientId: orderData.chef.id,
-            title: t('new_waitlisted_order_notification_title'),
-            message: t('new_waitlisted_order_notification_desc', { customerName: orderData.customerName }),
+            titleKey: 'new_waitlisted_order_notification_title',
+            messageKey: 'new_waitlisted_order_notification_desc',
+            params: { customerName: orderData.customerName },
             link: '/chef/dashboard',
         });
     } else {
         createNotification({
           recipientId: orderData.chef.id,
-          title: t('new_order_notification_title'),
-          message: t('new_order_notification_desc', { dishName: orderData.dish.name, customerName: orderData.customerName }),
+          titleKey: 'new_order_notification_title',
+          messageKey: 'new_order_notification_desc',
+          params: { dishName: orderData.dish.name, customerName: orderData.customerName },
           link: '/chef/dashboard',
         });
     }
@@ -148,32 +152,36 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
         case 'preparing':
           createNotification({
             recipientId: customerId,
-            title: t('order_confirmed_notification_title'),
-            message: t('order_confirmed_notification_desc', { dishName }),
+            titleKey: 'order_confirmed_notification_title',
+            messageKey: 'order_confirmed_notification_desc',
+            params: { dishName },
             link: '/profile',
           });
           break;
         case 'ready_for_delivery':
           createNotification({
             recipientId: customerId,
-            title: t('order_on_the_way_notification_title'),
-            message: t('order_on_the_way_notification_desc', { dishName }),
+            titleKey: 'order_on_the_way_notification_title',
+            messageKey: 'order_on_the_way_notification_desc',
+            params: { dishName },
             link: '/profile',
           });
           break;
         case 'delivered':
           createNotification({
             recipientId: customerId,
-            title: t('order_delivered_notification_title'),
-            message: t('order_delivered_notification_desc', { dishName }),
+            titleKey: 'order_delivered_notification_title',
+            messageKey: 'order_delivered_notification_desc',
+            params: { dishName },
             link: '/profile',
           });
           break;
         case 'rejected':
           createNotification({
             recipientId: customerId,
-            title: t('order_rejected_notification_title'),
-            message: t('order_rejected_notification_desc', { dishName }),
+            titleKey: 'order_rejected_notification_title',
+            messageKey: 'order_rejected_notification_desc',
+            params: { dishName },
             link: '/profile',
           });
           break;

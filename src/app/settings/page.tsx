@@ -144,17 +144,20 @@ export default function SettingsPage() {
 
     const handleStatusChange = async (newStatus: User['availabilityStatus']) => {
         if (!user) return;
+        
+        const oldStatus = user.availabilityStatus;
         await updateUser({ availabilityStatus: newStatus });
         toast({ title: t("availability_status_updated") });
 
-        if (user.availabilityStatus === 'busy' && newStatus === 'available') {
+        if (oldStatus === 'busy' && newStatus === 'available') {
             const queuedOrders = getOrdersByChefId(user.id).filter(o => o.status === 'waiting_for_chef');
             if (queuedOrders.length > 0) {
                 createNotification({
-                recipientId: user.id,
-                title: t('you_have_pending_orders', { count: queuedOrders.length }),
-                message: t('pending_orders_desc'),
-                link: '/chef/dashboard',
+                    recipientId: user.id,
+                    titleKey: 'you_have_pending_orders',
+                    messageKey: 'pending_orders_desc',
+                    params: { count: queuedOrders.length },
+                    link: '/chef/dashboard',
                 });
             }
         }
@@ -196,22 +199,22 @@ export default function SettingsPage() {
                                 <Label>{t('availability_status')}</Label>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="outline" className="w-full justify-between">
+                                        <Button variant="outline" className="w-full justify-start text-start">
+                                            <Circle className={`me-2 h-3 w-3 flex-shrink-0 fill-current ${statusMap[user.availabilityStatus || 'available'].color}`} />
                                             <span>{t(statusMap[user.availabilityStatus || 'available'].labelKey)}</span>
-                                            <Circle className={`ms-2 h-3 w-3 flex-shrink-0 fill-current ${statusMap[user.availabilityStatus || 'available'].color}`} />
                                         </Button>
                                     </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" className="w-56">
+                                    <DropdownMenuContent align="start" className="w-56">
                                         <DropdownMenuItem onClick={() => handleStatusChange('available')}>
-                                            <Circle className="me-2 h-3 w-3 fill-current bg-green-500" />
+                                            <Circle className="me-2 h-3 w-3 flex-shrink-0 fill-current bg-green-500" />
                                             <span>{t('status_available')}</span>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => handleStatusChange('busy')}>
-                                            <Circle className="me-2 h-3 w-3 fill-current bg-yellow-500" />
+                                            <Circle className="me-2 h-3 w-3 flex-shrink-0 fill-current bg-yellow-500" />
                                             <span>{t('status_busy')}</span>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => handleStatusChange('closed')}>
-                                            <Circle className="me-2 h-3 w-3 fill-current bg-red-500" />
+                                            <Circle className="me-2 h-3 w-3 flex-shrink-0 fill-current bg-red-500" />
                                             <span>{t('status_closed')}</span>
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
