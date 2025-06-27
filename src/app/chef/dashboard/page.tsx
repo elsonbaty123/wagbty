@@ -3,7 +3,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { DollarSign, Utensils, Star, ArrowUp, ArrowDown, Camera, Trash2, Heart } from 'lucide-react';
+import { DollarSign, Utensils, Star, ArrowUp, ArrowDown, Camera, Trash2, Smile } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { useOrders } from '@/context/order-context';
 import { useStatus } from '@/context/status-context';
@@ -34,12 +34,13 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
+import { StatusReactionsList } from '@/components/status-reactions-list';
 
 export default function ChefDashboardPage() {
   const { t, i18n } = useTranslation();
   const { user, loading, updateUser } = useAuth();
   const { dishes, getOrdersByChefId, updateOrderStatus } = useOrders();
-  const { getLikesForStatus } = useStatus();
+  const { getReactionsForStatus } = useStatus();
   const router = useRouter();
   const { toast } = useToast();
   const [isStatusFormOpen, setStatusFormOpen] = useState(false);
@@ -55,7 +56,7 @@ export default function ChefDashboardPage() {
   
   const isStatusActive = user?.status && (new Date().getTime() - new Date(user.status.createdAt).getTime()) < 24 * 60 * 60 * 1000;
   const activeStatus = isStatusActive ? user.status : null;
-  const statusLikes = useMemo(() => activeStatus ? getLikesForStatus(activeStatus.id) : [], [activeStatus, getLikesForStatus]);
+  const statusReactions = useMemo(() => activeStatus ? getReactionsForStatus(activeStatus.id) : [], [activeStatus, getReactionsForStatus]);
 
   const {
     pendingOrders,
@@ -311,58 +312,66 @@ export default function ChefDashboardPage() {
         <TabsContent value="status">
             <AlertDialog>
                 <Dialog open={isStatusFormOpen} onOpenChange={setStatusFormOpen}>
-                    <Card className="mt-4">
-                        <CardHeader>
-                            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                                <div>
-                                    <CardTitle>{t('status_management')}</CardTitle>
-                                    <CardDescription>{t('status_management_desc')}</CardDescription>
-                                </div>
-                                <Button onClick={() => setStatusFormOpen(true)}>
-                                    <Camera className="me-2 h-4 w-4" />
-                                    {activeStatus ? t('update_status') : t('add_status')}
-                                </Button>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            {activeStatus ? (
-                                <div className="relative group w-full max-w-sm mx-auto">
-                                    <p className="text-sm text-muted-foreground mb-2">{t('current_active_status')}</p>
-                                    <div className="aspect-video rounded-lg overflow-hidden relative">
-                                        <Image src={activeStatus.imageUrl} layout="fill" objectFit="cover" alt={t('current_status')} />
-                                        <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center p-4">
-                                            {activeStatus.caption && <p className="text-white text-center font-semibold drop-shadow-md">{activeStatus.caption}</p>}
-                                            <p className="text-xs text-neutral-200 mt-2">
-                                                {t('posted')} {formatDistanceToNow(new Date(activeStatus.createdAt), { addSuffix: true, locale: dateLocales[i18n.language] })}
-                                            </p>
-                                        </div>
+                    <div className="grid lg:grid-cols-2 gap-6 mt-4">
+                        <Card>
+                            <CardHeader>
+                                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                                    <div>
+                                        <CardTitle>{t('status_management')}</CardTitle>
+                                        <CardDescription>{t('status_management_desc')}</CardDescription>
                                     </div>
-                                    <div className="mt-2 flex justify-between items-center bg-muted/50 p-2 rounded-lg">
-                                        <div className="flex items-center gap-2 text-red-500 font-semibold">
-                                            <Heart className="h-5 w-5 fill-current" />
-                                            <span>{t('story_likes', { count: statusLikes.length })}</span>
-                                        </div>
-                                        <AlertDialogTrigger asChild>
-                                            <Button variant="destructive" size="sm">
-                                                <Trash2 className="h-4 w-4 me-2" />
-                                                {t('delete')}
-                                            </Button>
-                                        </AlertDialogTrigger>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="text-center py-24 border-2 border-dashed rounded-lg">
-                                    <Camera className="mx-auto h-16 w-16 text-muted-foreground" />
-                                    <h3 className="mt-4 text-xl font-medium">{t('no_active_status')}</h3>
-                                    <p className="mt-2 text-md text-muted-foreground">{t('no_active_status_desc')}</p>
-                                    <Button onClick={() => setStatusFormOpen(true)} className="mt-6">
+                                    <Button onClick={() => setStatusFormOpen(true)}>
                                         <Camera className="me-2 h-4 w-4" />
-                                        {t('add_your_first_status')}
+                                        {activeStatus ? t('update_status') : t('add_status')}
                                     </Button>
                                 </div>
-                            )}
-                        </CardContent>
-                    </Card>
+                            </CardHeader>
+                            <CardContent>
+                                {activeStatus ? (
+                                    <div className="relative group w-full max-w-sm mx-auto">
+                                        <p className="text-sm text-muted-foreground mb-2">{t('current_active_status')}</p>
+                                        <div className="aspect-video rounded-lg overflow-hidden relative">
+                                            {activeStatus.type === 'video' ? (
+                                                <video src={activeStatus.imageUrl} className="w-full h-full object-cover" controls muted />
+                                            ) : (
+                                                <Image src={activeStatus.imageUrl} layout="fill" objectFit="cover" alt={t('current_status')} />
+                                            )}
+                                            <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center p-4">
+                                                {activeStatus.caption && <p className="text-white text-center font-semibold drop-shadow-md">{activeStatus.caption}</p>}
+                                                <p className="text-xs text-neutral-200 mt-2">
+                                                    {t('posted')} {formatDistanceToNow(new Date(activeStatus.createdAt), { addSuffix: true, locale: dateLocales[i18n.language] })}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="mt-2 flex justify-between items-center bg-muted/50 p-2 rounded-lg">
+                                            <div className="flex items-center gap-2 text-primary font-semibold">
+                                                <Smile className="h-5 w-5" />
+                                                <span>{t('story_reactions', { count: statusReactions.length })}</span>
+                                            </div>
+                                            <AlertDialogTrigger asChild>
+                                                <Button variant="destructive" size="sm">
+                                                    <Trash2 className="h-4 w-4 me-2" />
+                                                    {t('delete')}
+                                                </Button>
+                                            </AlertDialogTrigger>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-24 border-2 border-dashed rounded-lg">
+                                        <Camera className="mx-auto h-16 w-16 text-muted-foreground" />
+                                        <h3 className="mt-4 text-xl font-medium">{t('no_active_status')}</h3>
+                                        <p className="mt-2 text-md text-muted-foreground">{t('no_active_status_desc')}</p>
+                                        <Button onClick={() => setStatusFormOpen(true)} className="mt-6">
+                                            <Camera className="me-2 h-4 w-4" />
+                                            {t('add_your_first_status')}
+                                        </Button>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+
+                        {activeStatus && <StatusReactionsList reactions={statusReactions} />}
+                    </div>
                     <ChefStatusForm onFinished={() => setStatusFormOpen(false)} />
                 </Dialog>
                 <AlertDialogContent>

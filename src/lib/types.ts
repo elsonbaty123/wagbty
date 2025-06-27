@@ -27,7 +27,8 @@ export type UserRole = 'customer' | 'chef';
 
 export type StatusObject = {
   id: string;
-  imageUrl: string;
+  type: 'image' | 'video';
+  imageUrl: string; // Will store image data URI or video data URI
   caption?: string;
   createdAt: string; // ISO String
 };
@@ -108,10 +109,14 @@ export type ChatMessage = {
   createdAt: string; // ISO String
 };
 
-export type StatusLike = {
+export type StatusReaction = {
   id: string;
   statusId: string;
   userId: string;
+  userName: string;
+  userImageUrl?: string;
+  emoji?: string;
+  message?: string;
   createdAt: string; // ISO String
 };
 

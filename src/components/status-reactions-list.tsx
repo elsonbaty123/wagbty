@@ -15,7 +15,7 @@ export function StatusReactionsList({ reactions }: StatusReactionsListProps) {
   const { t } = useTranslation();
 
   return (
-    <Card className="mt-6">
+    <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
             <Smile className="text-primary" />
@@ -30,7 +30,7 @@ export function StatusReactionsList({ reactions }: StatusReactionsListProps) {
               {reactions.map((reaction) => (
                 <div key={reaction.id} className="flex items-start gap-3 p-2 rounded-md bg-muted/50">
                   <Avatar>
-                    <AvatarImage src={reaction.userImageUrl} alt={reaction.userName} />
+                    <AvatarImage src={reaction.userImageUrl} alt={reaction.userName} data-ai-hint="person avatar" />
                     <AvatarFallback>{reaction.userName.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
@@ -38,7 +38,7 @@ export function StatusReactionsList({ reactions }: StatusReactionsListProps) {
                     <div className="flex items-center gap-2 mt-1">
                       {reaction.emoji && <span className="text-2xl">{reaction.emoji}</span>}
                       {reaction.message && (
-                        <p className="text-sm text-muted-foreground italic bg-background p-2 rounded-md">
+                        <p className="text-sm text-foreground italic bg-background p-2 rounded-md shadow-sm">
                           "{reaction.message}"
                         </p>
                       )}

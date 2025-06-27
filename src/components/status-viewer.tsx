@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -10,20 +10,29 @@ import type { User } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import { dateLocales } from './language-manager';
-import { Clock, Heart, X } from 'lucide-react';
+import { Clock, Send, X, Loader2 } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { useStatus } from '@/context/status-context';
 import { cn } from '@/lib/utils';
-
+import { Input } from './ui/input';
+import { useToast } from '@/hooks/use-toast';
+import { containsProfanity } from '@/lib/profanity-filter';
 
 interface StatusViewerProps {
   chef: User;
 }
 
+const EMOJI_REACTIONS = ['❤️', '🔥', '👍', '😋', '😍'];
+
 export function StatusViewer({ chef }: StatusViewerProps) {
   const { i18n, t } = useTranslation();
   const { user } = useAuth();
-  const { isStoryLiked, toggleLike, markAsViewed } = useStatus();
+  const { markAsViewed, addReaction, getUserReactionForStatus } = useStatus();
+  const { toast } = useToast();
+  
+  const [reply, setReply] = useState('');
+  const [selectedEmoji, setSelectedEmoji] = useState<string | undefined>(undefined);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (user && chef.status) {
@@ -36,31 +45,101 @@ export function StatusViewer({ chef }: StatusViewerProps) {
     return null;
   }
   
-  const isLiked = user ? isStoryLiked(chef.status.id, user.id) : false;
+  const userReaction = user ? getUserReactionForStatus(chef.status.id, user.id) : undefined;
   const isStatusActive = chef.status && (new Date().getTime() - new Date(chef.status.createdAt).getTime()) < 24 * 60 * 60 * 1000;
+  const canInteract = isStatusActive && user && user.role === 'customer' && !userReaction;
 
-  const handleLikeClick = () => {
-    if (!user || !chef.status || !isStatusActive) return;
-    toggleLike(chef.status.id, chef.id);
+  const handleSendReaction = async () => {
+    if (!canInteract || (!selectedEmoji && !reply.trim())) return;
+
+    if (reply.trim() && containsProfanity(reply)) {
+        toast({ variant: 'destructive', title: t('inappropriate_language_detected'), description: t('inappropriate_language_detected_desc') });
+        return;
+    }
+
+    setIsSubmitting(true);
+    try {
+        await addReaction({
+            statusId: chef.status!.id,
+            chefId: chef.id,
+            emoji: selectedEmoji,
+            message: reply.trim() || undefined,
+        });
+        toast({ title: t('reaction_sent') });
+    } catch (error) {
+        toast({ variant: 'destructive', title: t('error'), description: t('failed_to_send_reaction') });
+    } finally {
+        setIsSubmitting(false);
+    }
   };
   
+  const handleEmojiClick = (emoji: string) => {
+    if (!canInteract) return;
+    // If only emoji is selected, send immediately
+    if (!reply.trim()) {
+        setSelectedEmoji(emoji);
+        addReaction({ statusId: chef.status!.id, chefId: chef.id, emoji });
+        toast({ title: t('reaction_sent') });
+    } else {
+        setSelectedEmoji(emoji);
+    }
+  };
+
   const statusAltText = chef.status.caption || t('status_from_chef', { name: chef.name });
 
   const renderInteractionUI = () => {
-    if (user?.role !== 'customer') return null;
+    if (!user || user.role !== 'customer') return null;
+    
+    if (!isStatusActive) {
+      return (
+        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent flex justify-center items-center">
+            <p className="text-sm text-white/80">{t('status_expired')}</p>
+        </div>
+      );
+    }
+    
+    if (userReaction) {
+        return (
+             <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent flex justify-center items-center">
+                <div className="flex items-center gap-2 bg-black/30 text-white px-4 py-2 rounded-full">
+                    {userReaction.emoji && <span className="text-2xl">{userReaction.emoji}</span>}
+                    {userReaction.message && <p className="italic">"{userReaction.message}"</p>}
+                    {!userReaction.emoji && !userReaction.message && <p>{t('you_reacted')}</p>}
+                </div>
+            </div>
+        );
+    }
 
     return (
-      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent flex justify-center">
-        <Button 
-            onClick={handleLikeClick}
-            variant="ghost" 
-            size="icon" 
-            className="rounded-full h-14 w-14 bg-black/30 hover:bg-black/50 hover:scale-110 transition-transform transform"
-            disabled={!isStatusActive}
-            aria-label={t('like')}
-        >
-            <Heart className={cn("h-7 w-7 text-white transition-all", isLiked && "fill-red-500 text-red-500")} />
-        </Button>
+      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent flex flex-col gap-3">
+        <div className="flex justify-center gap-2">
+            {EMOJI_REACTIONS.map((emoji) => (
+                <Button 
+                    key={emoji}
+                    onClick={() => handleEmojiClick(emoji)}
+                    variant="ghost" 
+                    size="icon" 
+                    className={cn("rounded-full h-12 w-12 bg-black/30 hover:bg-black/50 text-2xl hover:scale-110 transition-transform transform", selectedEmoji === emoji && "bg-primary/50 ring-2 ring-primary")}
+                    aria-label={emoji}
+                    disabled={isSubmitting}
+                >
+                    {emoji}
+                </Button>
+            ))}
+        </div>
+        <div className="flex gap-2">
+            <Input 
+                placeholder={t('send_a_reply')} 
+                className="bg-black/30 text-white border-white/30 placeholder:text-white/60" 
+                value={reply}
+                onChange={(e) => setReply(e.target.value)}
+                disabled={isSubmitting}
+            />
+            <Button size="icon" onClick={handleSendReaction} disabled={isSubmitting || (!selectedEmoji && !reply.trim())}>
+                {isSubmitting ? <Loader2 className="animate-spin" /> : <Send />}
+                <span className="sr-only">{t('send_reaction')}</span>
+            </Button>
+        </div>
       </div>
     );
   };
@@ -72,13 +151,24 @@ export function StatusViewer({ chef }: StatusViewerProps) {
          {chef.status.caption && <DialogDescription>{chef.status.caption}</DialogDescription>}
       </DialogHeader>
       <div className="relative aspect-[9/16] w-full">
-        <Image
-          src={chef.status.imageUrl}
-          alt={statusAltText}
-          layout="fill"
-          objectFit="contain"
-          className="rounded-lg"
-        />
+         {chef.status.type === 'video' ? (
+          <video
+            src={chef.status.imageUrl}
+            className="w-full h-full object-contain rounded-lg"
+            controls
+            autoPlay
+            muted
+            playsInline
+          />
+        ) : (
+          <Image
+            src={chef.status.imageUrl}
+            alt={statusAltText}
+            layout="fill"
+            objectFit="contain"
+            className="rounded-lg"
+          />
+        )}
         <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/60 to-transparent flex justify-between items-center">
             <div className="flex items-center gap-3">
                 <Avatar>
