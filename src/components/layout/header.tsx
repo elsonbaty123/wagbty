@@ -30,23 +30,6 @@ export function Header() {
 
   const sheetSide = i18n.dir() === 'rtl' ? 'right' : 'left';
 
-  const commonNavLinks = (
-    <>
-      <SheetClose asChild>
-        <Link href="/" className="transition-colors hover:text-primary">
-          {t('home')}
-        </Link>
-      </SheetClose>
-      {user?.role === 'customer' && (
-        <SheetClose asChild>
-          <Link href="/community" className="transition-colors hover:text-primary">
-            {t('community')}
-          </Link>
-        </SheetClose>
-      )}
-    </>
-  )
-
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-card shadow-sm">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
@@ -74,7 +57,18 @@ export function Header() {
                         </Link>
                     </SheetClose>
                   <nav className="grid gap-2 text-lg font-medium">
-                      {commonNavLinks}
+                      <SheetClose asChild>
+                        <Link href="/" className="transition-colors hover:text-primary">
+                          {t('home')}
+                        </Link>
+                      </SheetClose>
+                      {user?.role === 'customer' && (
+                        <SheetClose asChild>
+                          <Link href="/community" className="transition-colors hover:text-primary">
+                            {t('community')}
+                          </Link>
+                        </SheetClose>
+                      )}
                   </nav>
                   <div className="flex flex-col gap-2">
                       {loading ? (
@@ -123,7 +117,14 @@ export function Header() {
             <span className="hidden sm:inline text-xl font-bold font-headline text-primary">{t('app_name')}</span>
           </Link>
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
-            {commonNavLinks}
+            <Link href="/" className="transition-colors hover:text-primary">
+              {t('home')}
+            </Link>
+            {user?.role === 'customer' && (
+              <Link href="/community" className="transition-colors hover:text-primary">
+                {t('community')}
+              </Link>
+            )}
           </nav>
         </div>
 
