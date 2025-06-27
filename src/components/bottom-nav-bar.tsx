@@ -3,13 +3,13 @@
 
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { Home, Heart, Package, User as UserIcon } from 'lucide-react';
+import { Home, Heart, MessageSquare, User as UserIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/auth-context';
 import { useTranslation } from 'react-i18next';
 
 export function BottomNavBar() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user, loading } = useAuth();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -18,14 +18,15 @@ export function BottomNavBar() {
     return null;
   }
   
-  const isFavoritesActive = pathname === '/profile' && searchParams.get('tab') === 'favorites';
-  const isOrdersActive = pathname === '/profile' && searchParams.get('tab') !== 'favorites';
+  const isProfilePage = pathname === '/profile';
+  const isFavoritesTab = searchParams.get('tab') === 'favorites';
+  const isProfileActive = isProfilePage && !isFavoritesTab;
 
   const navItems = [
     { href: '/', icon: Home, labelKey: 'home', isActive: pathname === '/' },
-    { href: '/profile?tab=favorites', icon: Heart, labelKey: 'my_favorites', isActive: isFavoritesActive },
-    { href: '/profile', icon: Package, labelKey: 'my_orders', isActive: isOrdersActive },
-    { href: '/settings', icon: UserIcon, labelKey: 'account_settings', isActive: pathname === '/settings' },
+    { href: '/profile?tab=favorites', icon: Heart, labelKey: 'my_favorites', isActive: isProfilePage && isFavoritesTab },
+    { href: '/community', icon: MessageSquare, labelKey: 'community', isActive: pathname === '/community' },
+    { href: '/profile', icon: UserIcon, labelKey: 'my_profile', isActive: isProfileActive },
   ];
 
   return (
@@ -41,7 +42,9 @@ export function BottomNavBar() {
             )}
           >
             <item.icon className="h-5 w-5" />
-            <span>{t(item.labelKey)}</span>
+            <span>{
+                item.labelKey === 'my_favorites' && i18n.language === 'ar' ? 'مفضلتي' : t(item.labelKey)
+            }</span>
           </Link>
         ))}
       </div>
