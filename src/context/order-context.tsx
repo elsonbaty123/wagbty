@@ -145,7 +145,6 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
       const { customerId, dish: { name: dishName } } = updatedOrder;
       const notifications: {[key: string]: {titleKey: string, messageKey: string}} = {
         preparing: { titleKey: 'order_confirmed_notification_title', messageKey: 'order_confirmed_notification_desc' },
-        ready_for_delivery: { titleKey: 'order_ready_notification_title', messageKey: 'order_ready_notification_desc' },
         out_for_delivery: { titleKey: 'order_on_the_way_notification_title', messageKey: 'order_on_the_way_notification_desc' },
         delivered: { titleKey: 'order_delivered_notification_title', messageKey: 'order_delivered_notification_desc' },
         rejected: { titleKey: 'order_rejected_notification_title', messageKey: 'order_rejected_notification_desc' }

@@ -37,7 +37,6 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
   const statusMap: Record<OrderStatus, { labelKey: string, variant: "default" | "secondary" | "outline" | "destructive" | null | undefined, icon?: React.ReactNode }> = {
     'pending_review': { labelKey: 'order_status_pending_review', variant: 'secondary' },
     'preparing': { labelKey: 'order_status_preparing', variant: 'default' },
-    'ready_for_delivery': { labelKey: 'order_status_ready_for_delivery', variant: 'default' },
     'out_for_delivery': { labelKey: 'order_status_out_for_delivery', variant: 'default', icon: <Truck className="me-2 h-4 w-4" /> },
     'delivered': { labelKey: 'order_status_delivered', variant: 'outline' },
     'rejected': { labelKey: 'order_status_rejected', variant: 'destructive' },
@@ -191,11 +190,6 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
                 </>
               )}
               {order.status === 'preparing' && (
-                <DropdownMenuItem onClick={() => handleStatusChange('ready_for_delivery')}>
-                  {t('ready_for_delivery')}
-                </DropdownMenuItem>
-              )}
-              {order.status === 'ready_for_delivery' && (
                 <DropdownMenuItem onClick={() => handleStatusChange('out_for_delivery')}>
                   {t('out_for_delivery')}
                 </DropdownMenuItem>
