@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -34,12 +34,46 @@ export function StatusViewer({ chef }: StatusViewerProps) {
   const [selectedEmoji, setSelectedEmoji] = useState<string | undefined>(undefined);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // New state for video control
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [progress, setProgress] = useState(0);
+
   useEffect(() => {
     if (user && chef.status) {
         markAsViewed(chef.status.id);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chef.status?.id, user?.id]);
+
+
+  // Effect for video event listeners
+  useEffect(() => {
+      const video = videoRef.current;
+      if (!video) return;
+
+      const handleTimeUpdate = () => {
+          if (video.duration > 0) {
+              setProgress((video.currentTime / video.duration) * 100);
+          }
+      };
+      const handlePlay = () => setIsPlaying(true);
+      const handlePause = () => setIsPlaying(false);
+      
+      // Auto-play when component mounts
+      video.play().catch(console.error);
+      setIsPlaying(true);
+
+      video.addEventListener('timeupdate', handleTimeUpdate);
+      video.addEventListener('play', handlePlay);
+      video.addEventListener('pause', handlePause);
+
+      return () => {
+          video.removeEventListener('timeupdate', handleTimeUpdate);
+          video.removeEventListener('play', handlePlay);
+          video.removeEventListener('pause', handlePause);
+      };
+  }, []);
 
   if (!chef.status) {
     return null;
@@ -82,6 +116,17 @@ export function StatusViewer({ chef }: StatusViewerProps) {
         toast({ title: t('reaction_sent') });
     } else {
         setSelectedEmoji(emoji);
+    }
+  };
+
+  const handleTogglePlay = () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (video.paused) {
+        video.play();
+    } else {
+        video.pause();
     }
   };
 
@@ -153,12 +198,14 @@ export function StatusViewer({ chef }: StatusViewerProps) {
       <div className="relative aspect-[9/16] w-full">
          {chef.status.type === 'video' ? (
           <video
+            ref={videoRef}
             src={chef.status.imageUrl}
-            className="w-full h-full object-contain rounded-lg"
-            controls
+            className="w-full h-full object-contain rounded-lg cursor-pointer"
             autoPlay
             muted
             playsInline
+            loop
+            onClick={handleTogglePlay}
           />
         ) : (
           <Image
@@ -169,23 +216,32 @@ export function StatusViewer({ chef }: StatusViewerProps) {
             className="rounded-lg"
           />
         )}
-        <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/60 to-transparent flex justify-between items-center">
-            <div className="flex items-center gap-3">
-                <Avatar>
-                    <AvatarImage src={chef.imageUrl} alt={chef.name} />
-                    <AvatarFallback>{chef.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div>
-                    <p className="font-bold text-white">{chef.name}</p>
-                    <p className="text-xs text-neutral-300 flex items-center gap-1">
-                        <Clock className="w-3 h-3"/>
-                        {formatDistanceToNow(new Date(chef.status.createdAt), { addSuffix: true, locale: dateLocales[i18n.language] })}
-                    </p>
+        <div className="absolute top-0 left-0 right-0 p-4 pt-6 bg-gradient-to-b from-black/60 to-transparent z-10">
+            {chef.status.type === 'video' && (
+                <div className="absolute top-2.5 left-4 right-4">
+                    <div className="h-1 rounded-full bg-white/30 overflow-hidden">
+                        <div className="h-full bg-white transition-all duration-100 ease-linear" style={{ width: `${progress}%` }} />
+                    </div>
                 </div>
+            )}
+            <div className="flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                    <Avatar>
+                        <AvatarImage src={chef.imageUrl} alt={chef.name} />
+                        <AvatarFallback>{chef.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                        <p className="font-bold text-white">{chef.name}</p>
+                        <p className="text-xs text-neutral-300 flex items-center gap-1">
+                            <Clock className="w-3 h-3"/>
+                            {formatDistanceToNow(new Date(chef.status.createdAt), { addSuffix: true, locale: dateLocales[i18n.language] })}
+                        </p>
+                    </div>
+                </div>
+                <DialogClose className="text-white/70 hover:text-white transition-colors">
+                    <X className="w-6 h-6"/>
+                </DialogClose>
             </div>
-            <DialogClose className="text-white/70 hover:text-white transition-colors">
-                <X className="w-6 h-6"/>
-            </DialogClose>
         </div>
         
         {chef.status.caption && (
