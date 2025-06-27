@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createContext, useState, useEffect, useContext, type ReactNode } from 'react';
 import type { User, UserRole } from '@/lib/types';
 import { useTranslation } from 'react-i18next';
-import { initialUsers } from '@/lib/data';
+import { initialUsers, DEFAULT_CHEF_AVATAR } from '@/lib/data';
 import localforage from 'localforage';
 import bcrypt from 'bcryptjs';
 
@@ -122,7 +122,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         address: details.role === 'customer' ? details.address : undefined,
         specialty: details.specialty,
         bio: details.role === 'chef' ? t('new_chef_bio', { specialty: details.specialty }) : undefined,
-        imageUrl: details.imageUrl || (details.role === 'chef' ? 'https://placehold.co/400x400.png' : 'https://placehold.co/100x100.png'),
+        imageUrl: details.imageUrl || (details.role === 'chef' ? DEFAULT_CHEF_AVATAR : 'https://placehold.co/100x100.png'),
         availabilityStatus: details.role === 'chef' ? 'available' : undefined,
         hashedPassword: hashedPassword
     };

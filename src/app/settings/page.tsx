@@ -20,6 +20,7 @@ import type { User } from '@/lib/types';
 import { useNotifications } from '@/context/notification-context';
 import { useOrders } from '@/context/order-context';
 import { useTranslation } from 'react-i18next';
+import { DEFAULT_CHEF_AVATAR } from '@/lib/data';
 
 export default function SettingsPage() {
     const { t } = useTranslation();
@@ -169,7 +170,7 @@ export default function SettingsPage() {
         closed: { labelKey: 'status_closed', color: 'bg-red-500' },
     };
     
-    const defaultAvatar = user.role === 'chef' ? 'https://placehold.co/400x400.png' : 'https://placehold.co/100x100.png';
+    const defaultAvatar = user.role === 'chef' ? DEFAULT_CHEF_AVATAR : 'https://placehold.co/100x100.png';
 
     return (
         <div className="container mx-auto px-4 py-8 md:px-6 md:py-12">
