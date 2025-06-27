@@ -99,6 +99,10 @@ export default function SignupPage() {
     
     try {
       const signedUpUser = await signup(userDetails);
+      toast({
+        title: t('signup_successful'),
+        description: t('welcome_to_chefconnect'),
+      });
       if (signedUpUser.role === 'chef') {
         router.push('/chef/dashboard');
       } else {

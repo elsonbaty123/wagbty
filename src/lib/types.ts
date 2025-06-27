@@ -20,7 +20,7 @@ export type Dish = {
   prepTime: number; // in minutes
   category: string;
   status: DishStatus;
-  ratings: DishRating[];
+  ratings?: DishRating[];
 };
 
 export type UserRole = 'customer' | 'chef';

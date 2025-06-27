@@ -10,7 +10,6 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
-import { isWhitelistedEmail } from '@/lib/whitelisted-emails';
 import { useTranslation } from 'react-i18next';
 
 export default function ForgotPasswordPage() {
@@ -18,74 +17,35 @@ export default function ForgotPasswordPage() {
     const [email, setEmail] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
-    const { users } = useAuth();
+    const { sendPasswordResetEmail } = useAuth();
     const { toast } = useToast();
 
-    const validateEmail = (email: string): string => {
-        if (!email.trim()) return t('validation_email_required');
-    
-        if (!/^[a-zA-Z]/.test(email)) {
-          return t('validation_email_must_start_with_letter');
-        }
-    
-        if (!email.includes('@')) {
-            return t('validation_email_must_contain_at');
-        }
-    
-        if (/[^a-zA-Z0-9@._-]/.test(email)) {
-          return t('validation_email_contains_invalid_chars');
-        }
-        
-        const emailRegex = /^[a-zA-Z][a-zA-Z0-9._-]*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-        if (!emailRegex.test(email)) {
-          return t('validation_email_invalid_format');
-        }
-        
-        return '';
-    };
-
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         
-        const error = validateEmail(email);
-        if (error) {
+        if (!email) {
             toast({
                 variant: 'destructive',
                 title: t('error_in_email'),
-                description: error,
+                description: t('validation_email_required'),
             });
             return;
         }
-
-        if (!isWhitelistedEmail(email)) {
-            toast({
-                variant: 'destructive',
-                title: t('unauthorized_email'),
-                description: t('unauthorized_email_desc'),
-            });
-            return;
-        }
-
+        
         setIsLoading(true);
 
-        const userExists = users.some(u => u.email.toLowerCase() === email.toLowerCase());
-
-        setTimeout(() => {
-            setIsLoading(false);
+        try {
+            await sendPasswordResetEmail(email);
             setIsSubmitted(true);
-            
-            if (userExists) {
-                console.log(`Password reset link for ${email}: /reset-password?email=${encodeURIComponent(email)}`);
-            } else {
-                 console.log(`Email ${email} not found, but showing success message for security. No reset link generated.`);
-            }
-
-            toast({
-                title: t('request_sent'),
-                description: t('reset_link_sent_desc'),
+        } catch (error: any) {
+             toast({
+                variant: 'destructive',
+                title: t('error'),
+                description: t('password_reset_failed'),
             });
-
-        }, 1500);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -107,7 +67,6 @@ export default function ForgotPasswordPage() {
                         <p className="text-muted-foreground">
                             {t('password_reset_link_sent')}
                         </p>
-                        <p className="text-xs text-muted-foreground mt-2">{t('demo_link_in_console')}</p>
                         <Button asChild variant="outline" className="mt-6">
                             <Link href="/login">
                                 {t('back_to_login')}

@@ -2,10 +2,13 @@
 'use client';
 
 import { createContext, useState, useEffect, useContext, type ReactNode } from 'react';
-import type { ChatMessage, User } from '@/lib/types';
+import type { ChatMessage } from '@/lib/types';
 import { useAuth } from './auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
+import { db } from '@/lib/firebase';
+import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
+
 
 interface ChatContextType {
   messages: ChatMessage[];
@@ -23,29 +26,37 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    try {
-      const storedMessages = localStorage.getItem('chefconnect_chat_messages');
-      if (storedMessages) {
-        setMessages(JSON.parse(storedMessages));
-      }
-    } catch (error) {
-      console.error("Failed to parse chat messages from localStorage", error);
-    } finally {
+    if (!db) {
       setLoading(false);
+      return;
     }
-  }, []);
 
-  const persistMessages = (newMessages: ChatMessage[]) => {
-    setMessages(newMessages);
-    localStorage.setItem('chefconnect_chat_messages', JSON.stringify(newMessages));
-  };
+    const q = query(collection(db, "chat_messages"), orderBy("createdAt", "asc"));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const msgs: ChatMessage[] = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        msgs.push({
+            id: doc.id,
+            ...data,
+            createdAt: (data.createdAt as Timestamp)?.toDate().toISOString() || new Date().toISOString()
+        } as ChatMessage);
+      });
+      setMessages(msgs);
+      setLoading(false);
+    }, (error) => {
+      console.error("Error fetching chat messages: ", error);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
   
   const validateMessage = (text: string): boolean => {
     if (!text.trim()) {
       toast({ variant: 'destructive', title: t('message_empty') });
       return false;
     }
-    // Regex to detect URLs
     const urlRegex = /(https?:\/\/[^\s]+)|(www\.[^\s]+)|(\b[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(\/[^\s]*)?\b)/gi;
     if (urlRegex.test(text)) {
       toast({ variant: 'destructive', title: t('no_links_allowed') });
@@ -54,20 +65,25 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     return true;
   };
 
-  const sendMessage = (text: string) => {
+  const sendMessage = async (text: string) => {
     if (!user || user.role !== 'customer') return;
+    if (!db) return; // Firebase not configured
     if (!validateMessage(text)) return;
     
-    const newMessage: ChatMessage = {
-      id: `MSG-${Date.now()}`,
+    const newMessage = {
       userId: user.id,
       userName: user.name,
       userImageUrl: user.imageUrl,
       text: text,
-      createdAt: new Date().toISOString(),
+      createdAt: serverTimestamp(),
     };
     
-    persistMessages([ ...messages, newMessage]);
+    try {
+        await addDoc(collection(db, "chat_messages"), newMessage);
+    } catch(error) {
+        console.error("Error sending message: ", error);
+        toast({ variant: 'destructive', title: t('error'), description: t('failed_to_send_message') });
+    }
   };
 
   return (

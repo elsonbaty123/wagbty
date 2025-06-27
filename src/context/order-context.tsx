@@ -5,7 +5,8 @@ import { createContext, useState, useEffect, useContext, type ReactNode } from '
 import type { Order, Dish, DishRating, Coupon, User } from '@/lib/types';
 import { useNotifications } from './notification-context';
 import { useTranslation } from 'react-i18next';
-import { allDishes, initialCoupons, initialOrders } from '@/lib/data';
+import { db } from '@/lib/firebase';
+import { collection, getDocs, addDoc, updateDoc, doc, deleteDoc, serverTimestamp, Timestamp, query, where } from 'firebase/firestore';
 
 type OrderStatus = Order['status'];
 type CreateOrderPayload = Omit<Order, 'id' | 'status' | 'createdAt' | 'chef'> & {
@@ -19,19 +20,34 @@ interface OrderContextType {
   loading: boolean;
   getOrdersByCustomerId: (customerId: string) => Order[];
   getOrdersByChefId: (chefId: string) => Order[];
-  createOrder: (orderData: CreateOrderPayload) => void;
-  updateOrderStatus: (orderId: string, status: OrderStatus) => void;
-  addDish: (dishData: Omit<Dish, 'id' | 'ratings'>) => void;
-  updateDish: (dishData: Dish) => void;
-  deleteDish: (dishId: string) => void;
-  addReviewToOrder: (orderId: string, rating: number, review: string) => void;
+  createOrder: (orderData: CreateOrderPayload) => Promise<void>;
+  updateOrderStatus: (orderId: string, status: OrderStatus) => Promise<void>;
+  addDish: (dishData: Omit<Dish, 'id' | 'ratings'>) => Promise<void>;
+  updateDish: (dishData: Dish) => Promise<void>;
+  deleteDish: (dishId: string) => Promise<void>;
+  addReviewToOrder: (orderId: string, rating: number, review: string) => Promise<void>;
   getCouponsByChefId: (chefId: string) => Coupon[];
-  createCoupon: (couponData: Omit<Coupon, 'id' | 'timesUsed'>) => void;
-  updateCoupon: (couponData: Coupon) => void;
+  createCoupon: (couponData: Omit<Coupon, 'id' | 'timesUsed'>) => Promise<void>;
+  updateCoupon: (couponData: Coupon) => Promise<void>;
   validateAndApplyCoupon: (code: string, chefId: string, dishId: string, subtotal: number) => { discount: number; error?: string };
 }
 
 const OrderContext = createContext<OrderContextType | undefined>(undefined);
+
+const parseDoc = (doc: any) => {
+    const data = doc.data();
+    return {
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate().toISOString() : data.createdAt,
+        startDate: data.startDate instanceof Timestamp ? data.startDate.toDate().toISOString() : data.startDate,
+        endDate: data.endDate instanceof Timestamp ? data.endDate.toDate().toISOString() : data.endDate,
+        ratings: data.ratings?.map((r: any) => ({
+            ...r,
+            createdAt: r.createdAt instanceof Timestamp ? r.createdAt.toDate().toISOString() : r.createdAt,
+        }))
+    };
+};
 
 export const OrderProvider = ({ children }: { children: ReactNode }) => {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -42,37 +58,35 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
   const { t } = useTranslation();
 
   useEffect(() => {
-    try {
-      const storedOrders = localStorage.getItem('chefconnect_orders');
-      setOrders(storedOrders ? JSON.parse(storedOrders) : initialOrders);
-      
-      const storedDishes = localStorage.getItem('chefconnect_dishes');
-      setDishes(storedDishes ? JSON.parse(storedDishes) : allDishes);
-
-      const storedCoupons = localStorage.getItem('chefconnect_coupons');
-      setCoupons(storedCoupons ? JSON.parse(storedCoupons) : initialCoupons);
-
-    } catch (error) {
-      console.error("Failed to parse data from localStorage", error);
-    } finally {
-      setLoading(false);
+    if (!db) {
+        setLoading(false);
+        return;
     }
+
+    const fetchData = async () => {
+      try {
+        const ordersQuery = query(collection(db, 'orders'));
+        const dishesQuery = query(collection(db, 'dishes'));
+        const couponsQuery = query(collection(db, 'coupons'));
+
+        const [ordersSnapshot, dishesSnapshot, couponsSnapshot] = await Promise.all([
+          getDocs(ordersQuery),
+          getDocs(dishesQuery),
+          getDocs(couponsQuery),
+        ]);
+
+        setOrders(ordersSnapshot.docs.map(parseDoc));
+        setDishes(dishesSnapshot.docs.map(parseDoc));
+        setCoupons(couponsSnapshot.docs.map(parseDoc));
+
+      } catch (error) {
+        console.error("Failed to fetch data from Firestore", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, []);
-
-  const persistOrders = (newOrders: Order[]) => {
-    setOrders(newOrders);
-    localStorage.setItem('chefconnect_orders', JSON.stringify(newOrders));
-  }
-
-  const persistDishes = (newDishes: Dish[]) => {
-    setDishes(newDishes);
-    localStorage.setItem('chefconnect_dishes', JSON.stringify(newDishes));
-  }
-  
-  const persistCoupons = (newCoupons: Coupon[]) => {
-    setCoupons(newCoupons);
-    localStorage.setItem('chefconnect_coupons', JSON.stringify(newCoupons));
-  }
 
   const getOrdersByCustomerId = (customerId: string) => {
     return orders.filter((order) => order.customerId === customerId);
@@ -82,31 +96,31 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
     return orders.filter((order) => order.chef.id === chefId);
   };
 
-  const createOrder = (orderData: CreateOrderPayload) => {
+  const createOrder = async (orderData: CreateOrderPayload) => {
+    if (!db) throw new Error("Firebase is not configured.");
     const isChefBusy = orderData.chef.availabilityStatus === 'busy';
-
-    const newOrder: Order = {
-      ...orderData,
-      id: `ORD${Date.now()}`,
-      status: isChefBusy ? 'waiting_for_chef' : 'pending_review',
-      createdAt: new Date().toISOString(),
-      chef: { id: orderData.chef.id, name: orderData.chef.name },
+    const newOrderData = {
+        ...orderData,
+        status: isChefBusy ? 'waiting_for_chef' : 'pending_review',
+        createdAt: serverTimestamp(),
+        chef: { id: orderData.chef.id, name: orderData.chef.name },
     };
-    
+
+    const docRef = await addDoc(collection(db, 'orders'), newOrderData);
+    const newOrder = { ...newOrderData, id: docRef.id, createdAt: new Date().toISOString() } as Order;
+    setOrders(prev => [newOrder, ...prev]);
+
     if (orderData.appliedCouponCode) {
-        const couponIndex = coupons.findIndex(c => c.code.toLowerCase() === orderData.appliedCouponCode!.toLowerCase());
-        if (couponIndex !== -1) {
-            const newCoupons = [...coupons];
-            newCoupons[couponIndex] = {
-                ...newCoupons[couponIndex],
-                timesUsed: newCoupons[couponIndex].timesUsed + 1
-            };
-            persistCoupons(newCoupons);
+        const coupon = coupons.find(c => c.code.toLowerCase() === orderData.appliedCouponCode!.toLowerCase());
+        if (coupon) {
+            const couponDocRef = doc(db, 'coupons', coupon.id);
+            await updateDoc(couponDocRef, {
+                timesUsed: coupon.timesUsed + 1
+            });
+            setCoupons(prev => prev.map(c => c.id === coupon.id ? {...c, timesUsed: c.timesUsed + 1} : c));
         }
     }
-    
-    persistOrders([newOrder, ...orders]);
-    
+
     if (isChefBusy) {
         createNotification({
             recipientId: orderData.customerId,
@@ -133,120 +147,80 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const updateOrderStatus = (orderId: string, status: OrderStatus) => {
-    let updatedOrder: Order | undefined;
-    const newOrders = orders.map((order) => {
-      if (order.id === orderId) {
-        updatedOrder = { ...order, status };
-        return updatedOrder;
-      }
-      return order;
-    });
+  const updateOrderStatus = async (orderId: string, status: OrderStatus) => {
+    if (!db) throw new Error("Firebase is not configured.");
+    const orderDocRef = doc(db, 'orders', orderId);
+    await updateDoc(orderDocRef, { status });
 
+    const updatedOrder = orders.find(o => o.id === orderId);
     if (updatedOrder) {
-      persistOrders(newOrders);
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o));
 
       const { customerId, dish: { name: dishName } } = updatedOrder;
-      
-      switch (status) {
-        case 'preparing':
+      const notifications: {[key: string]: {titleKey: string, messageKey: string}} = {
+        preparing: { titleKey: 'order_confirmed_notification_title', messageKey: 'order_confirmed_notification_desc' },
+        ready_for_delivery: { titleKey: 'order_ready_notification_title', messageKey: 'order_ready_notification_desc' },
+        out_for_delivery: { titleKey: 'order_on_the_way_notification_title', messageKey: 'order_on_the_way_notification_desc' },
+        delivered: { titleKey: 'order_delivered_notification_title', messageKey: 'order_delivered_notification_desc' },
+        rejected: { titleKey: 'order_rejected_notification_title', messageKey: 'order_rejected_notification_desc' }
+      };
+
+      if (notifications[status]) {
           createNotification({
-            recipientId: customerId,
-            titleKey: 'order_confirmed_notification_title',
-            messageKey: 'order_confirmed_notification_desc',
-            params: { dishName },
-            link: '/profile',
+              recipientId: customerId,
+              titleKey: notifications[status].titleKey,
+              messageKey: notifications[status].messageKey,
+              params: { dishName },
+              link: '/profile',
           });
-          break;
-        case 'ready_for_delivery':
-          createNotification({
-            recipientId: customerId,
-            titleKey: 'order_ready_notification_title',
-            messageKey: 'order_ready_notification_desc',
-            params: { dishName },
-            link: '/profile',
-          });
-          break;
-        case 'out_for_delivery':
-           createNotification({
-            recipientId: customerId,
-            titleKey: 'order_on_the_way_notification_title',
-            messageKey: 'order_on_the_way_notification_desc',
-            params: { dishName },
-            link: '/profile',
-          });
-          break;
-        case 'delivered':
-          createNotification({
-            recipientId: customerId,
-            titleKey: 'order_delivered_notification_title',
-            messageKey: 'order_delivered_notification_desc',
-            params: { dishName },
-            link: '/profile',
-          });
-          break;
-        case 'rejected':
-          createNotification({
-            recipientId: customerId,
-            titleKey: 'order_rejected_notification_title',
-            messageKey: 'order_rejected_notification_desc',
-            params: { dishName },
-            link: '/profile',
-          });
-          break;
       }
     }
   };
     
-  const addDish = (dishData: Omit<Dish, 'id' | 'ratings'>) => {
-    const newDish: Dish = {
-      ...dishData,
-      id: `d${Date.now()}`,
-      ratings: [],
-    };
-    persistDishes([newDish, ...dishes]);
+  const addDish = async (dishData: Omit<Dish, 'id' | 'ratings'>) => {
+    if (!db) throw new Error("Firebase is not configured.");
+    const newDishData = { ...dishData, ratings: [] };
+    const docRef = await addDoc(collection(db, 'dishes'), newDishData);
+    setDishes(prev => [{ ...newDishData, id: docRef.id }, ...prev]);
   };
 
-  const updateDish = (updatedDish: Dish) => {
-    const newDishes = dishes.map((dish) =>
-        dish.id === updatedDish.id ? updatedDish : dish
-      );
-    persistDishes(newDishes);
+  const updateDish = async (updatedDish: Dish) => {
+    if (!db) throw new Error("Firebase is not configured.");
+    const { id, ...dishData } = updatedDish;
+    const dishDocRef = doc(db, 'dishes', id);
+    await updateDoc(dishDocRef, dishData);
+    setDishes(prev => prev.map(d => d.id === id ? updatedDish : d));
   };
 
-  const deleteDish = (dishId: string) => {
-    const newDishes = dishes.filter((dish) => dish.id !== dishId);
-    persistDishes(newDishes);
+  const deleteDish = async (dishId: string) => {
+    if (!db) throw new Error("Firebase is not configured.");
+    const dishDocRef = doc(db, 'dishes', dishId);
+    await deleteDoc(dishDocRef);
+    setDishes(prev => prev.filter(d => d.id !== dishId));
   };
   
-  const addReviewToOrder = (orderId: string, rating: number, review: string) => {
-    let orderToUpdate: Order | undefined;
+  const addReviewToOrder = async (orderId: string, rating: number, review: string) => {
+    if (!db) throw new Error("Firebase is not configured.");
+    const orderToUpdate = orders.find(o => o.id === orderId);
+    if (!orderToUpdate) return;
 
-    const newOrders = orders.map(o => {
-      if (o.id === orderId) {
-        orderToUpdate = { ...o, rating, review };
-        return orderToUpdate;
-      }
-      return o;
-    });
+    const orderDocRef = doc(db, 'orders', orderId);
+    await updateDoc(orderDocRef, { rating, review });
+    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, rating, review } : o));
 
-    if (orderToUpdate) {
-      const newRating: DishRating = {
+    const newRating: DishRating = {
         customerName: orderToUpdate.customerName,
         rating,
         review,
         createdAt: new Date().toISOString(),
-      };
-      
-      const newDishes = dishes.map(d => {
-        if (d.id === orderToUpdate!.dish.id) {
-          return { ...d, ratings: [...(d.ratings || []), newRating] };
-        }
-        return d;
-      });
+    };
 
-      persistDishes(newDishes);
-      persistOrders(newOrders);
+    const dishToUpdate = dishes.find(d => d.id === orderToUpdate.dish.id);
+    if(dishToUpdate) {
+        const dishDocRef = doc(db, 'dishes', dishToUpdate.id);
+        const updatedRatings = [...(dishToUpdate.ratings || []), newRating];
+        await updateDoc(dishDocRef, { ratings: updatedRatings });
+        setDishes(prev => prev.map(d => d.id === dishToUpdate.id ? { ...d, ratings: updatedRatings } : d));
     }
   };
 
@@ -254,77 +228,37 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
     return coupons.filter(c => c.chefId === chefId).sort((a,b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
   };
 
-  const createCoupon = (couponData: Omit<Coupon, 'id' | 'timesUsed'>) => {
-    const newCoupon: Coupon = {
-      ...couponData,
-      id: `COUP${Date.now()}`,
-      timesUsed: 0,
-    };
-    persistCoupons([newCoupon, ...coupons]);
+  const createCoupon = async (couponData: Omit<Coupon, 'id' | 'timesUsed'>) => {
+    if (!db) throw new Error("Firebase is not configured.");
+    const newCouponData = { ...couponData, timesUsed: 0 };
+    const docRef = await addDoc(collection(db, 'coupons'), newCouponData);
+    setCoupons(prev => [{ ...newCouponData, id: docRef.id }, ...prev]);
   };
 
-  const updateCoupon = (updatedCoupon: Coupon) => {
-    const newCoupons = coupons.map(c => c.id === updatedCoupon.id ? updatedCoupon : c);
-    persistCoupons(newCoupons);
+  const updateCoupon = async (updatedCoupon: Coupon) => {
+    if (!db) throw new Error("Firebase is not configured.");
+    const { id, ...couponData } = updatedCoupon;
+    const couponDocRef = doc(db, 'coupons', id);
+    await updateDoc(couponDocRef, couponData);
+    setCoupons(prev => prev.map(c => c.id === id ? updatedCoupon : c));
   };
 
   const validateAndApplyCoupon = (code: string, chefId: string, dishId: string, subtotal: number): { discount: number; error?: string } => {
     const coupon = coupons.find(c => c.code.toLowerCase() === code.toLowerCase() && c.chefId === chefId);
 
-    if (!coupon) {
-      return { discount: 0, error: t('coupon_invalid_error') };
-    }
-    if (!coupon.isActive) {
-      return { discount: 0, error: t('coupon_inactive_error') };
-    }
+    if (!coupon) return { discount: 0, error: t('coupon_invalid_error') };
+    if (!coupon.isActive) return { discount: 0, error: t('coupon_inactive_error') };
     const now = new Date();
-    if (now < new Date(coupon.startDate) || now > new Date(coupon.endDate)) {
-      return { discount: 0, error: t('coupon_expired_error') };
-    }
-    if (coupon.timesUsed >= coupon.usageLimit) {
-      return { discount: 0, error: t('coupon_limit_reached_error') };
-    }
-    
-    if (coupon.appliesTo === 'specific') {
-      if (!coupon.applicableDishIds || !coupon.applicableDishIds.includes(dishId)) {
-        return { discount: 0, error: t('coupon_not_applicable_error') };
-      }
-    }
+    if (now < new Date(coupon.startDate) || now > new Date(coupon.endDate)) return { discount: 0, error: t('coupon_expired_error') };
+    if (coupon.timesUsed >= coupon.usageLimit) return { discount: 0, error: t('coupon_limit_reached_error') };
+    if (coupon.appliesTo === 'specific' && (!coupon.applicableDishIds || !coupon.applicableDishIds.includes(dishId))) return { discount: 0, error: t('coupon_not_applicable_error') };
 
-
-    let discount = 0;
-    if (coupon.discountType === 'fixed') {
-      discount = coupon.discountValue;
-    } else { // percentage
-      discount = subtotal * (coupon.discountValue / 100);
-    }
-    
-    discount = Math.min(discount, subtotal);
-
-    return { discount };
-  };
-
-  const value = {
-    orders,
-    dishes,
-    coupons,
-    loading,
-    getOrdersByCustomerId,
-    getOrdersByChefId,
-    createOrder,
-    updateOrderStatus,
-    addDish,
-    updateDish,
-    deleteDish,
-    addReviewToOrder,
-    getCouponsByChefId,
-    createCoupon,
-    updateCoupon,
-    validateAndApplyCoupon,
+    let discount = coupon.discountType === 'fixed' ? coupon.discountValue : subtotal * (coupon.discountValue / 100);
+    return { discount: Math.min(discount, subtotal) };
   };
 
   return (
-    <OrderContext.Provider value={value}>
+    <OrderContext.Provider value={{ orders, dishes, coupons, loading, getOrdersByCustomerId, getOrdersByChefId, createOrder, updateOrderStatus, addDish, updateDish, deleteDish, addReviewToOrder, getCouponsByChefId, createCoupon, updateCoupon, validateAndApplyCoupon }}>
       {children}
     </OrderContext.Provider>
   );

@@ -16,7 +16,6 @@ export function PasswordChangeForm() {
     const { changePassword } = useAuth();
     const { toast } = useToast();
 
-    const [oldPassword, setOldPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [isSaving, setIsSaving] = useState(false);
@@ -26,12 +25,11 @@ export function PasswordChangeForm() {
         
         setIsSaving(true);
         try {
-            await changePassword({ oldPassword, newPassword, confirmPassword });
+            await changePassword({ newPassword, confirmPassword });
             toast({
                 title: t('password_changed_toast'),
                 description: t('password_changed_toast_desc'),
             });
-            setOldPassword('');
             setNewPassword('');
             setConfirmPassword('');
         } catch (error: any) {
@@ -55,16 +53,6 @@ export function PasswordChangeForm() {
             </CardHeader>
             <form onSubmit={handleSubmit}>
                 <CardContent className="space-y-4">
-                    <div className="space-y-2 text-start">
-                        <Label htmlFor="old-password">{t('old_password')}</Label>
-                        <PasswordInput 
-                            id="old-password" 
-                            value={oldPassword} 
-                            onChange={(e) => setOldPassword(e.target.value)} 
-                            required 
-                            placeholder="********"
-                        />
-                    </div>
                     <div className="space-y-2 text-start">
                         <Label htmlFor="new-password">{t('new_password_label')}</Label>
                         <PasswordInput 

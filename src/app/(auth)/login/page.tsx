@@ -68,6 +68,10 @@ export default function LoginPage() {
 
     try {
       const loggedInUser = await login(email, password, role);
+      toast({
+        title: t('login_successful'),
+        description: t('welcome_back', { name: loggedInUser.name }),
+      });
       if (loggedInUser.role === 'chef') {
         router.push('/chef/dashboard');
       } else {
@@ -77,7 +81,7 @@ export default function LoginPage() {
       toast({
         variant: "destructive",
         title: t('login_failed'),
-        description: error.message || t('something_went_wrong'),
+        description: t('auth_incorrect_credentials'),
       });
     } finally {
       setIsLoading(false);
