@@ -108,17 +108,17 @@ export type ChatMessage = {
   createdAt: string; // ISO String
 };
 
-export type EmojiReaction = '❤️' | '😍' | '👍' | '🔥' | '🤤';
-
-export type StatusReaction = {
+export type StatusLike = {
   id: string;
   statusId: string;
-  chefId: string;
   userId: string;
-  userName: string;
-  userImageUrl?: string;
-  emoji?: EmojiReaction;
-  message?: string;
   createdAt: string; // ISO String
 };
+
+export type ViewedStatus = {
+    id: string;
+    statusId: string;
+    userId: string;
+    createdAt: string; // ISO String
+}
     

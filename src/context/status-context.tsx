@@ -2,16 +2,19 @@
 'use client';
 
 import { createContext, useState, useEffect, useContext, type ReactNode } from 'react';
-import type { StatusReaction, EmojiReaction } from '@/lib/types';
+import type { StatusLike, ViewedStatus } from '@/lib/types';
 import localforage from 'localforage';
 import { useAuth } from './auth-context';
+import { useNotifications } from './notification-context';
 
 interface StatusContextType {
-  reactions: StatusReaction[];
-  addReaction: (payload: { statusId: string; chefId: string; emoji?: EmojiReaction; message?: string }) => Promise<void>;
-  getReactionsForStatus: (statusId: string) => StatusReaction[];
-  getReactionForUser: (statusId: string, userId: string) => StatusReaction | undefined;
-  deleteReactionsForStatus: (statusId: string) => Promise<void>;
+  likes: StatusLike[];
+  viewedStatuses: ViewedStatus[];
+  toggleLike: (statusId: string, chefId: string) => Promise<void>;
+  getLikesForStatus: (statusId: string) => StatusLike[];
+  isStoryLiked: (statusId: string, userId: string) => boolean;
+  markAsViewed: (statusId: string) => Promise<void>;
+  isStoryViewed: (statusId: string, userId: string) => boolean;
   loading: boolean;
 }
 
@@ -19,14 +22,20 @@ const StatusContext = createContext<StatusContextType | undefined>(undefined);
 
 export const StatusProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
-  const [reactions, setReactions] = useState<StatusReaction[]>([]);
+  const { createNotification } = useNotifications();
+  const [likes, setLikes] = useState<StatusLike[]>([]);
+  const [viewedStatuses, setViewedStatuses] = useState<ViewedStatus[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-      const storedReactions: StatusReaction[] | null = await localforage.getItem('status_reactions');
-      setReactions(storedReactions || []);
+      const [storedLikes, storedViews] = await Promise.all([
+          localforage.getItem<StatusLike[]>('status_likes'),
+          localforage.getItem<ViewedStatus[]>('viewed_statuses')
+      ]);
+      setLikes(storedLikes || []);
+      setViewedStatuses(storedViews || []);
       setLoading(false);
     };
     loadData();
@@ -34,42 +43,85 @@ export const StatusProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     if (!loading) {
-      localforage.setItem('status_reactions', reactions);
+      localforage.setItem('status_likes', likes);
     }
-  }, [reactions, loading]);
+  }, [likes, loading]);
 
-  const addReaction = async (payload: { statusId: string; chefId: string; emoji?: EmojiReaction; message?: string }) => {
+  useEffect(() => {
+    if (!loading) {
+      localforage.setItem('viewed_statuses', viewedStatuses);
+    }
+  }, [viewedStatuses, loading]);
+
+  const toggleLike = async (statusId: string, chefId: string) => {
     if (!user) throw new Error("User not logged in");
-    if (!payload.emoji && !payload.message) return;
+    
+    const existingLike = likes.find(l => l.statusId === statusId && l.userId === user.id);
 
-    const newReaction: StatusReaction = {
-      id: `reaction_${Date.now()}`,
-      statusId: payload.statusId,
-      chefId: payload.chefId,
-      userId: user.id,
-      userName: user.name,
-      userImageUrl: user.imageUrl,
-      emoji: payload.emoji,
-      message: payload.message,
-      createdAt: new Date().toISOString(),
-    };
-    setReactions(prev => [newReaction, ...prev]);
-  };
+    if (existingLike) {
+      // Unlike
+      setLikes(prev => prev.filter(l => l.id !== existingLike.id));
+    } else {
+      // Like
+      const newLike: StatusLike = {
+        id: `like_${Date.now()}`,
+        statusId,
+        userId: user.id,
+        createdAt: new Date().toISOString(),
+      };
+      setLikes(prev => [newLike, ...prev]);
 
-  const getReactionsForStatus = (statusId: string) => {
-    return reactions.filter(r => r.statusId === statusId).sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  };
-
-  const getReactionForUser = (statusId: string, userId: string) => {
-    return reactions.find(r => r.statusId === statusId && r.userId === userId);
+      // Notify the chef, but only if it's not the chef liking their own status
+      if (user.id !== chefId) {
+        createNotification({
+            recipientId: chefId,
+            titleKey: 'new_like_on_status_title',
+            messageKey: 'new_like_on_status_desc',
+            params: { userName: user.name },
+            link: '/chef/dashboard?tab=status',
+        })
+      }
+    }
   };
   
-  const deleteReactionsForStatus = async (statusId: string) => {
-      setReactions(prev => prev.filter(r => r.statusId !== statusId));
+  const getLikesForStatus = (statusId: string) => {
+      return likes.filter(l => l.statusId === statusId);
+  }
+
+  const isStoryLiked = (statusId: string, userId: string) => {
+      return likes.some(l => l.statusId === statusId && l.userId === userId);
+  }
+
+  const markAsViewed = async (statusId: string) => {
+      if (!user) return;
+      const alreadyViewed = viewedStatuses.some(v => v.statusId === statusId && v.userId === user.id);
+      if (alreadyViewed) return;
+
+      const newView: ViewedStatus = {
+          id: `view_${Date.now()}`,
+          statusId,
+          userId: user.id,
+          createdAt: new Date().toISOString(),
+      };
+      setViewedStatuses(prev => [...prev, newView]);
+  }
+
+  const isStoryViewed = (statusId: string, userId: string): boolean => {
+      if (!userId) return false;
+      return viewedStatuses.some(v => v.statusId === statusId && v.userId === userId);
   }
 
   return (
-    <StatusContext.Provider value={{ reactions, addReaction, getReactionsForStatus, getReactionForUser, deleteReactionsForStatus, loading }}>
+    <StatusContext.Provider value={{ 
+        likes, 
+        viewedStatuses,
+        toggleLike,
+        getLikesForStatus,
+        isStoryLiked,
+        markAsViewed,
+        isStoryViewed,
+        loading 
+    }}>
       {children}
     </StatusContext.Provider>
   );

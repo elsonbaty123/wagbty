@@ -3,7 +3,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { DollarSign, Utensils, Star, ArrowUp, ArrowDown, Camera, Trash2 } from 'lucide-react';
+import { DollarSign, Utensils, Star, ArrowUp, ArrowDown, Camera, Trash2, Heart } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { useOrders } from '@/context/order-context';
 import { useStatus } from '@/context/status-context';
@@ -34,13 +34,12 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { StatusReactionsList } from '@/components/status-reactions-list';
 
 export default function ChefDashboardPage() {
   const { t, i18n } = useTranslation();
   const { user, loading, updateUser } = useAuth();
   const { dishes, getOrdersByChefId, updateOrderStatus } = useOrders();
-  const { getReactionsForStatus, deleteReactionsForStatus } = useStatus();
+  const { getLikesForStatus } = useStatus();
   const router = useRouter();
   const { toast } = useToast();
   const [isStatusFormOpen, setStatusFormOpen] = useState(false);
@@ -56,7 +55,7 @@ export default function ChefDashboardPage() {
   
   const isStatusActive = user?.status && (new Date().getTime() - new Date(user.status.createdAt).getTime()) < 24 * 60 * 60 * 1000;
   const activeStatus = isStatusActive ? user.status : null;
-  const statusReactions = useMemo(() => activeStatus ? getReactionsForStatus(activeStatus.id) : [], [activeStatus, getReactionsForStatus]);
+  const statusLikes = useMemo(() => activeStatus ? getLikesForStatus(activeStatus.id) : [], [activeStatus, getLikesForStatus]);
 
   const {
     pendingOrders,
@@ -155,7 +154,6 @@ export default function ChefDashboardPage() {
   const handleDeleteStatus = async () => {
     if (!user || !user.status) return;
     try {
-        await deleteReactionsForStatus(user.status.id);
         await updateUser({ status: undefined });
         toast({ title: t('status_deleted') });
     } catch (error) {
@@ -339,11 +337,18 @@ export default function ChefDashboardPage() {
                                             </p>
                                         </div>
                                     </div>
-                                    <AlertDialogTrigger asChild>
-                                        <Button variant="destructive" size="icon" className="absolute top-4 end-4 opacity-80 group-hover:opacity-100 transition-opacity">
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    </AlertDialogTrigger>
+                                    <div className="mt-2 flex justify-between items-center bg-muted/50 p-2 rounded-lg">
+                                        <div className="flex items-center gap-2 text-red-500 font-semibold">
+                                            <Heart className="h-5 w-5 fill-current" />
+                                            <span>{t('story_likes', { count: statusLikes.length })}</span>
+                                        </div>
+                                        <AlertDialogTrigger asChild>
+                                            <Button variant="destructive" size="sm">
+                                                <Trash2 className="h-4 w-4 me-2" />
+                                                {t('delete')}
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                    </div>
                                 </div>
                             ) : (
                                 <div className="text-center py-24 border-2 border-dashed rounded-lg">
@@ -371,7 +376,6 @@ export default function ChefDashboardPage() {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-            {activeStatus && <StatusReactionsList reactions={statusReactions} />}
         </TabsContent>
         
         <TabsContent value="coupons">

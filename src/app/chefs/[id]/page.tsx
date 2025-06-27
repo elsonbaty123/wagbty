@@ -14,12 +14,14 @@ import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { StatusViewer } from '@/components/status-viewer';
+import { useStatus } from '@/context/status-context';
 
 export default function ChefProfilePage() {
   const { t, i18n } = useTranslation();
   const params = useParams<{ id: string }>();
-  const { users, loading: authLoading } = useAuth();
+  const { users, user, loading: authLoading } = useAuth();
   const { dishes, loading: ordersLoading } = useOrders();
+  const { isStoryViewed } = useStatus();
   
   const chef = users.find(u => u.id === params.id && u.role === 'chef');
   
@@ -69,7 +71,7 @@ export default function ChefProfilePage() {
   }
 
   const isStatusActive = chef.status && (new Date().getTime() - new Date(chef.status.createdAt).getTime()) < 24 * 60 * 60 * 1000;
-  const activeStatus = isStatusActive ? chef.status : null;
+  const hasUnreadStatus = isStatusActive && user && !isStoryViewed(chef.status.id!, user.id);
   
   const statusMap: { [key: string]: { labelKey: string; className: string; } } = {
     available: { labelKey: 'status_available', className: 'bg-green-500 text-white hover:bg-green-500/90' },
@@ -84,12 +86,12 @@ export default function ChefProfilePage() {
         <div className="md:col-span-1">
           <div className="sticky top-24">
             <Dialog>
-              <DialogTrigger asChild disabled={!activeStatus}>
+              <DialogTrigger asChild disabled={!isStatusActive}>
                  <div className={cn(
                   "relative",
-                  activeStatus && "cursor-pointer"
+                  isStatusActive && "cursor-pointer"
                 )}>
-                  <div className={cn(activeStatus && "p-1.5 bg-gradient-to-tr from-yellow-400 via-primary to-accent rounded-xl")}>
+                  <div className={cn(hasUnreadStatus && "p-1.5 bg-gradient-to-tr from-yellow-400 via-primary to-accent rounded-xl")}>
                      <Image
                       alt={chef.name}
                       className="aspect-square w-full rounded-lg object-cover shadow-lg"
@@ -101,7 +103,7 @@ export default function ChefProfilePage() {
                   </div>
                 </div>
               </DialogTrigger>
-              {activeStatus && <StatusViewer chef={chef} />}
+              {isStatusActive && <StatusViewer chef={chef} />}
             </Dialog>
 
             <h1 className="font-headline text-3xl font-bold mt-4">{chef.name}</h1>

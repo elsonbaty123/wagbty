@@ -9,6 +9,8 @@ import { Star, Utensils } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/context/auth-context';
+import { useStatus } from '@/context/status-context';
 
 // The chef object passed here will be augmented with dishCount and averageRating
 interface ChefCardProps {
@@ -17,8 +19,13 @@ interface ChefCardProps {
 
 export function ChefCard({ chef }: ChefCardProps) {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const { isStoryViewed } = useStatus();
 
   const isStatusActive = chef.status && (new Date().getTime() - new Date(chef.status.createdAt).getTime()) < 24 * 60 * 60 * 1000;
+  
+  // Show ring if status is active AND (user is not logged in OR user has not viewed it)
+  const hasUnreadStatus = isStatusActive && (!user || !isStoryViewed(chef.status.id!, user.id));
 
   const statusMap: { [key: string]: { labelKey: string; className: string; } } = {
     available: { labelKey: 'status_available', className: 'bg-green-500 text-white hover:bg-green-500/90' },
@@ -31,10 +38,10 @@ export function ChefCard({ chef }: ChefCardProps) {
     <Card className="flex flex-col overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
       <CardHeader className="p-0 relative">
         <Link href={`/chefs/${chef.id}`}>
-          <div className={cn("bg-card", isStatusActive && "p-1 bg-gradient-to-tr from-yellow-400 via-primary to-accent rounded-t-lg")}>
+          <div className={cn("bg-card", hasUnreadStatus && "p-1 bg-gradient-to-tr from-yellow-400 via-primary to-accent rounded-t-lg")}>
             <Image
               alt={chef.name}
-              className={cn("aspect-[4/3] w-full object-cover", isStatusActive ? "rounded-md" : "rounded-t-lg")}
+              className={cn("aspect-[4/3] w-full object-cover", hasUnreadStatus ? "rounded-md" : "rounded-t-lg")}
               height="300"
               src={chef.imageUrl!}
               data-ai-hint="chef portrait"
