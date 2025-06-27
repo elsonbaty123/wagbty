@@ -57,14 +57,14 @@ export default function ChefDashboardPage() {
             if (!o.createdAt || isNaN(new Date(o.createdAt).getTime())) return false;
             return isWithinInterval(new Date(o.createdAt), { start: startOfCurrentMonth, end: endOfCurrentMonth });
         })
-        .reduce((acc, order) => acc + order.total, 0);
+        .reduce((acc, order) => acc + (order.subtotal - order.discount), 0);
 
     const revenueLastMonth = completed
         .filter(o => {
             if (!o.createdAt || isNaN(new Date(o.createdAt).getTime())) return false;
             return isWithinInterval(new Date(o.createdAt), { start: startOfLastMonth, end: endOfLastMonth });
         })
-        .reduce((acc, order) => acc + order.total, 0);
+        .reduce((acc, order) => acc + (order.subtotal - order.discount), 0);
 
     let percentageChange = 0;
     if (revenueLastMonth > 0) {
@@ -102,7 +102,7 @@ export default function ChefDashboardPage() {
           if (orderDate.getFullYear() === now.getFullYear()) {
              const month = format(orderDate, 'MMM', { locale: dateLocales[i18n.language] });
              if (monthlyData.hasOwnProperty(month)) {
-                 monthlyData[month] += order.total;
+                 monthlyData[month] += (order.subtotal - order.discount);
              }
           }
         }
