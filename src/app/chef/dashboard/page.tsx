@@ -140,12 +140,12 @@ export default function ChefDashboardPage() {
   return (
     <div className="container mx-auto px-4 py-8 md:px-6 md:py-12">
       <div className="flex flex-col md:flex-row justify-between md:items-center mb-8 gap-4">
-        <h1 className="font-headline text-3xl md:text-4xl font-bold text-primary">{t('chef_dashboard_title')}</h1>
-        <p className="font-semibold text-lg">{t('welcome_back', {name: user.name})}</p>
+        <h1 className="font-headline text-3xl md:text-4xl font-bold text-primary rtl:text-right">{t('chef_dashboard_title')}</h1>
+        <p className="font-semibold text-lg rtl:text-right">{t('welcome_back', {name: user.name})}</p>
       </div>
 
       <Tabs defaultValue="dashboard" className="w-full">
-        <div className="flex justify-start rtl:justify-end">
+        <div className={cn("flex", i18n.dir() === 'rtl' ? "justify-end" : "justify-start")}>
           <TabsList className="h-auto overflow-x-auto whitespace-nowrap p-1 flex-nowrap gap-2">
             {renderedMainTabs.map(tab => (
               <TabsTrigger key={tab.value} value={tab.value}>{t(tab.labelKey)}</TabsTrigger>
