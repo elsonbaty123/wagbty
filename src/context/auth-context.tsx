@@ -6,8 +6,9 @@ import { createContext, useState, useEffect, useContext, type ReactNode } from '
 import type { User, UserRole } from '@/lib/types';
 import { isWhitelistedEmail } from '@/lib/whitelisted-emails';
 import { useTranslation } from 'react-i18next';
+import * as bcrypt from 'bcryptjs';
 
-type StoredUser = User & { password: string };
+type StoredUser = User & { hashedPassword: string };
 
 interface AuthContextType {
   user: User | null;
@@ -84,13 +85,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       u => u.email.toLowerCase() === email.toLowerCase() && u.role === role
     );
 
-    if (potentialUser && potentialUser.password === password) {
-      const { password: _, ...userToLogin } = potentialUser;
-      persistUser(userToLogin);
-      return userToLogin;
-    } else {
-      throw new Error(t('auth_incorrect_credentials'));
+    if (potentialUser) {
+        const isHash = potentialUser.hashedPassword.startsWith('$2a$') || potentialUser.hashedPassword.startsWith('$2b$');
+        const isMatch = isHash
+            ? await bcrypt.compare(password, potentialUser.hashedPassword)
+            : potentialUser.hashedPassword === password;
+        
+        if (isMatch) {
+            const { hashedPassword: _, ...userToLogin } = potentialUser;
+            persistUser(userToLogin);
+            
+            // If the password was plain text, hash it now for future logins
+            if(!isHash) {
+                const saltRounds = 10;
+                const newHashedPassword = await bcrypt.hash(password, saltRounds);
+                const updatedUsers = allUsers.map(u => u.id === potentialUser.id ? { ...potentialUser, hashedPassword: newHashedPassword } : u);
+                persistAllUsers(updatedUsers);
+            }
+
+            return userToLogin;
+        }
     }
+
+    throw new Error(t('auth_incorrect_credentials'));
   };
 
   const signup = async (details: Partial<User> & { password: string, role: UserRole }): Promise<User> => {
@@ -103,6 +120,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
     
     validatePassword(details.password);
+
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(details.password, saltRounds);
 
     const newUser: User = {
         id: `${details.role}-${Date.now()}`,
@@ -118,7 +138,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         availabilityStatus: details.role === 'chef' ? 'available' : undefined,
     };
     
-    persistAllUsers([...allUsers, { ...newUser, password: details.password }]);
+    persistAllUsers([...allUsers, { ...newUser, hashedPassword }]);
     persistUser(newUser);
     return newUser;
   };
@@ -139,7 +159,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const updatedUsers = allUsers.map(u => {
       if (u.id === user.id) {
-        userToUpdate = { ...u, ...updatedUserDetails };
+        // Create a temporary object to find the user, but don't include password details in the update from this function
+        const tempUser = { ...u, ...updatedUserDetails };
+        // Exclude password from the public user details object
+        const { hashedPassword, ...publicDetails } = tempUser;
+        userToUpdate = { ...u, ...publicDetails };
         return userToUpdate;
       }
       return u;
@@ -151,7 +175,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     
     persistAllUsers(updatedUsers);
     
-    const { password, ...publicUser } = userToUpdate;
+    const { hashedPassword, ...publicUser } = userToUpdate;
     persistUser(publicUser);
     
     return publicUser;
@@ -161,16 +185,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user) throw new Error(t("auth_must_be_logged_in_to_change_password"));
     if (newPassword !== confirmPassword) throw new Error(t("auth_passwords_do_not_match"));
   
-    validatePassword(newPassword);
-    
     const userInDb = allUsers.find(u => u.id === user.id);
   
     if (!userInDb) throw new Error(t("auth_user_not_found"));
-    if (userInDb.password !== oldPassword) throw new Error(t("auth_old_password_incorrect"));
+    
+    const isHash = userInDb.hashedPassword.startsWith('$2a$') || userInDb.hashedPassword.startsWith('$2b$');
+    const isOldPasswordMatch = isHash
+        ? await bcrypt.compare(oldPassword, userInDb.hashedPassword)
+        : userInDb.hashedPassword === oldPassword;
+
+    if (!isOldPasswordMatch) throw new Error(t("auth_old_password_incorrect"));
+  
+    validatePassword(newPassword);
+
+    const saltRounds = 10;
+    const newHashedPassword = await bcrypt.hash(newPassword, saltRounds);
   
     const updatedUsers = allUsers.map(u => {
       if (u.id === user.id) {
-        return { ...u, password: newPassword };
+        return { ...u, hashedPassword: newHashedPassword };
       }
       return u;
     });
@@ -185,6 +218,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     validatePassword(newPassword);
     
+    const saltRounds = 10;
+    const newHashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
     const userIndex = allUsers.findIndex(u => u.email.toLowerCase() === email.toLowerCase());
 
     if (userIndex === -1) {
@@ -192,12 +228,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
     
     const updatedUsers = [...allUsers];
-    updatedUsers[userIndex] = { ...updatedUsers[userIndex], password: newPassword };
+    updatedUsers[userIndex] = { ...updatedUsers[userIndex], hashedPassword: newHashedPassword };
     
     persistAllUsers(updatedUsers);
   };
 
-  const publicUsers = allUsers.map(({ password, ...user }) => user);
+  const publicUsers = allUsers.map(({ hashedPassword, ...user }) => user);
   const chefs = publicUsers.filter(u => u.role === 'chef');
 
   return (
