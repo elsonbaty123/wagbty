@@ -30,7 +30,7 @@ export function StatusReactionsList({ reactions }: StatusReactionsListProps) {
               {reactions.map((reaction) => (
                 <div key={reaction.id} className="flex items-start gap-3 p-2 rounded-md bg-muted/50">
                   <Avatar>
-                    <AvatarImage src={reaction.userImageUrl} alt={reaction.userName} data-ai-hint="person avatar" />
+                    <AvatarImage src={reaction.userImageUrl || 'https://placehold.co/100x100.png'} alt={reaction.userName} data-ai-hint="person avatar" />
                     <AvatarFallback>{reaction.userName.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1">

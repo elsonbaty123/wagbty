@@ -227,7 +227,7 @@ export function StatusViewer({ chef }: StatusViewerProps) {
             <div className="flex justify-between items-center">
                 <div className="flex items-center gap-3">
                     <Avatar>
-                        <AvatarImage src={chef.imageUrl} alt={chef.name} />
+                        <AvatarImage src={chef.imageUrl || 'https://placehold.co/400x400.png'} alt={chef.name} data-ai-hint="chef portrait"/>
                         <AvatarFallback>{chef.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div>

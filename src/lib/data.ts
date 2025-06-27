@@ -1,17 +1,267 @@
 
 
-import type { Dish, Order, Coupon, User, StatusReaction } from '@/lib/types';
+import type { Dish, Order, Coupon, User, StatusReaction, ViewedStatus } from '@/lib/types';
+import bcrypt from 'bcryptjs';
 
 // The application will now start with pre-defined data for local storage.
 // This data will be used to seed the database if it's empty.
 
 // Note: All initial passwords are 'Password123!'
-export const initialUsers: (User & { hashedPassword?: string })[] = [];
+const salt = bcrypt.genSaltSync(10);
 
-export const allDishes: Dish[] = [];
+export const initialUsers: (User & { hashedPassword?: string })[] = [
+  // Chefs
+  {
+    id: 'chef_1',
+    name: 'Gordon Ramsay',
+    email: 'gordon@chef.com',
+    role: 'chef',
+    phone: '01234567890',
+    specialty: 'Fine Dining',
+    bio: 'World-renowned chef known for his exquisite dishes and fiery passion for cooking. Expect nothing but perfection.',
+    availabilityStatus: 'available',
+    imageUrl: 'https://placehold.co/400x400.png',
+    hashedPassword: bcrypt.hashSync('Password123!', salt),
+  },
+  {
+    id: 'chef_2',
+    name: 'Nigella Lawson',
+    email: 'nigella@chef.com',
+    role: 'chef',
+    phone: '01234567891',
+    specialty: 'Comfort Food',
+    bio: 'Home-style cooking with a touch of elegance. My dishes are a warm hug on a plate.',
+    availabilityStatus: 'busy',
+    imageUrl: 'https://placehold.co/400x400.png',
+    hashedPassword: bcrypt.hashSync('Password123!', salt),
+  },
+  {
+    id: 'chef_3',
+    name: 'Jamie Oliver',
+    email: 'jamie@chef.com',
+    role: 'chef',
+    phone: '01234567892',
+    specialty: 'Italian Cuisine',
+    bio: 'Simple, fresh, and honest food that brings people together. Pucka!',
+    availabilityStatus: 'available',
+    imageUrl: 'https://placehold.co/400x400.png',
+    hashedPassword: bcrypt.hashSync('Password123!', salt),
+  },
+  {
+    id: 'chef_4',
+    name: 'Massimo Bottura',
+    email: 'massimo@chef.com',
+    role: 'chef',
+    phone: '01234567893',
+    specialty: 'Modern Italian',
+    bio: 'Tradition seen from ten kilometers away. Reimagining Italian classics with a contemporary twist.',
+    availabilityStatus: 'closed',
+    imageUrl: 'https://placehold.co/400x400.png',
+    hashedPassword: bcrypt.hashSync('Password123!', salt),
+  },
+  // Customers
+  {
+    id: 'customer_1',
+    name: 'John Doe',
+    email: 'john@customer.com',
+    role: 'customer',
+    phone: '01112223334',
+    address: '123 Foodie Lane, Cairo, Egypt',
+    imageUrl: 'https://placehold.co/100x100.png',
+    hashedPassword: bcrypt.hashSync('Password123!', salt),
+  },
+  {
+    id: 'customer_2',
+    name: 'Jane Smith',
+    email: 'jane@customer.com',
+    role: 'customer',
+    phone: '01112223335',
+    address: '456 Culinary Street, Giza, Egypt',
+    imageUrl: 'https://placehold.co/100x100.png',
+    hashedPassword: bcrypt.hashSync('Password123!', salt),
+  },
+  {
+    id: 'customer_3',
+    name: 'Ahmed Khan',
+    email: 'ahmed@customer.com',
+    role: 'customer',
+    phone: '01112223336',
+    address: '789 Gourmet Avenue, Alexandria, Egypt',
+    imageUrl: 'https://placehold.co/100x100.png',
+    hashedPassword: bcrypt.hashSync('Password123!', salt),
+  },
+  {
+    id: 'customer_4',
+    name: 'Fatima Al-Ali',
+    email: 'fatima@customer.com',
+    role: 'customer',
+    phone: '01112223337',
+    address: '101 Flavor Town, Luxor, Egypt',
+    imageUrl: 'https://placehold.co/100x100.png',
+    hashedPassword: bcrypt.hashSync('Password123!', salt),
+  },
+];
 
-export const initialOrders: Order[] = [];
+export const allDishes: Dish[] = [
+  {
+    id: 'dish_1',
+    chefId: 'chef_1',
+    name: 'Beef Wellington',
+    description: 'A stunning centerpiece dish of tender beef fillet coated in pâté and duxelles, wrapped in puff pastry.',
+    price: 350.00,
+    imageUrl: 'https://placehold.co/800x450.png',
+    ingredients: ['Beef Fillet', 'Puff Pastry', 'Mushroom Duxelles', 'Prosciutto', 'English Mustard'],
+    prepTime: 90,
+    category: 'Main Course',
+    status: 'available',
+    ratings: [
+      { customerId: 'customer_1', customerName: 'John Doe', rating: 5, review: 'Absolutely divine! The best Wellington I have ever had.', createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
+      { customerId: 'customer_2', customerName: 'Jane Smith', rating: 4, review: 'Very good, though the pastry could have been a bit crispier.', createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
+    ]
+  },
+  {
+    id: 'dish_2',
+    chefId: 'chef_2',
+    name: 'Chocolate Lava Cakes',
+    description: 'Indulgent and decadent individual chocolate cakes with a molten, gooey center.',
+    price: 120.00,
+    imageUrl: 'https://placehold.co/800x450.png',
+    ingredients: ['Dark Chocolate', 'Butter', 'Eggs', 'Sugar', 'Flour'],
+    prepTime: 25,
+    category: 'Dessert',
+    status: 'available',
+    ratings: [
+       { customerId: 'customer_3', customerName: 'Ahmed Khan', rating: 5, review: 'Perfectly executed, a chocolate lover\'s dream!', createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() },
+    ]
+  },
+  {
+    id: 'dish_3',
+    chefId: 'chef_3',
+    name: 'Pukka Pasta Carbonara',
+    description: 'A classic Roman pasta dish made with eggs, hard cheese, cured pork, and black pepper. Simple and delicious.',
+    price: 180.00,
+    imageUrl: 'https://placehold.co/800x450.png',
+    ingredients: ['Spaghetti', 'Guanciale', 'Pecorino Romano', 'Eggs', 'Black Pepper'],
+    prepTime: 20,
+    category: 'Pasta',
+    status: 'available',
+    ratings: [
+       { customerId: 'customer_4', customerName: 'Fatima Al-Ali', rating: 5, review: 'Authentic and incredibly flavorful. Jamie never disappoints!', createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() },
+       { customerId: 'customer_1', customerName: 'John Doe', rating: 4, review: 'Really tasty and quick!', createdAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString() },
+    ]
+  },
+  {
+    id: 'dish_4',
+    chefId: 'chef_4',
+    name: 'The Five Ages of Parmigiano Reggiano',
+    description: 'A unique tasting experience showcasing Parmigiano Reggiano at five different stages of maturation, each with a different texture and temperature.',
+    price: 450.00,
+    imageUrl: 'https://placehold.co/800x450.png',
+    ingredients: ['Parmigiano Reggiano (24, 30, 36, 40, 50 months)', 'Demi-soufflé', 'Galette', 'Air', 'Foam'],
+    prepTime: 45,
+    category: 'Appetizer',
+    status: 'unavailable',
+    ratings: []
+  },
+   {
+    id: 'dish_5',
+    chefId: 'chef_1',
+    name: 'Scallop Risotto',
+    description: 'Creamy Arborio rice risotto with perfectly seared scallops and a hint of lemon and parsley.',
+    price: 280.00,
+    imageUrl: 'https://placehold.co/800x450.png',
+    ingredients: ['Arborio Rice', 'Scallops', 'White Wine', 'Parmesan', 'Lemon'],
+    prepTime: 40,
+    category: 'Main Course',
+    status: 'available',
+    ratings: [
+      { customerId: 'customer_3', customerName: 'Ahmed Khan', rating: 5, review: 'The scallops were cooked to perfection. A truly masterful dish.', createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString() },
+    ]
+  },
+  {
+    id: 'dish_6',
+    chefId: 'chef_3',
+    name: '15-Minute Veggie Gnocchi',
+    description: 'Soft potato gnocchi with a vibrant green pesto, cherry tomatoes, and fresh mozzarella. Quick, easy, and full of flavour.',
+    price: 150.00,
+    imageUrl: 'https://placehold.co/800x450.png',
+    ingredients: ['Potato Gnocchi', 'Pesto', 'Cherry Tomatoes', 'Mozzarella', 'Basil'],
+    prepTime: 15,
+    category: 'Vegetarian',
+    status: 'hidden',
+    ratings: [
+      { customerId: 'customer_2', customerName: 'Jane Smith', rating: 4, review: 'A fantastic vegetarian option. So quick and satisfying!', createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString() },
+    ]
+  }
+];
 
-export const initialCoupons: Coupon[] = [];
+export const initialOrders: Order[] = [
+  {
+    id: 'order_1',
+    customerId: 'customer_1',
+    customerName: 'John Doe',
+    customerPhone: '01112223334',
+    deliveryAddress: '123 Foodie Lane, Cairo, Egypt',
+    dish: allDishes[2],
+    chef: { id: 'chef_3', name: 'Jamie Oliver' },
+    quantity: 2,
+    status: 'delivered',
+    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+    rating: 5,
+    review: 'Super fast delivery and the pasta was amazing!',
+    subtotal: 360.00,
+    deliveryFee: 50.00,
+    discount: 0,
+    total: 410.00,
+  },
+  {
+    id: 'order_2',
+    customerId: 'customer_2',
+    customerName: 'Jane Smith',
+    customerPhone: '01112223335',
+    deliveryAddress: '456 Culinary Street, Giza, Egypt',
+    dish: allDishes[0],
+    chef: { id: 'chef_1', name: 'Gordon Ramsay' },
+    quantity: 1,
+    status: 'preparing',
+    createdAt: new Date().toISOString(),
+    subtotal: 350.00,
+    deliveryFee: 50.00,
+    discount: 35.00,
+    appliedCouponCode: 'SAVE10',
+    total: 365.00,
+  },
+];
+
+export const initialCoupons: Coupon[] = [
+  {
+    id: 'coupon_1',
+    chefId: 'chef_1',
+    code: 'SAVE10',
+    discountType: 'percentage',
+    discountValue: 10,
+    startDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+    endDate: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString(),
+    usageLimit: 100,
+    timesUsed: 5,
+    isActive: true,
+    appliesTo: 'all',
+  },
+  {
+    id: 'coupon_2',
+    chefId: 'chef_3',
+    code: 'PASTA50',
+    discountType: 'fixed',
+    discountValue: 50,
+    startDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    endDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+    usageLimit: 20,
+    timesUsed: 15,
+    isActive: true,
+    appliesTo: 'specific',
+    applicableDishIds: ['dish_3'],
+  },
+];
 
 export const initialStatusReactions: StatusReaction[] = [];
+export const initialViewedStatuses: ViewedStatus[] = [];

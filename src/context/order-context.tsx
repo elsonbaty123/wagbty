@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { createContext, useState, useEffect, useContext, type ReactNode } from 'react';
@@ -183,6 +184,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
     setOrders(prev => prev.map(o => o.id === orderId ? { ...o, rating, review } : o));
 
     const newRating: DishRating = {
+        customerId: orderToUpdate.customerId,
         customerName: orderToUpdate.customerName,
         rating,
         review,

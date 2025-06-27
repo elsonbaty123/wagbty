@@ -169,7 +169,7 @@ export function Header() {
                 <DropdownMenuTrigger asChild className="hidden md:inline-flex">
                   <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src={user.imageUrl || ''} alt={user.name} />
+                      <AvatarImage src={user.imageUrl || `https://placehold.co/100x100.png`} alt={user.name} data-ai-hint="person avatar" />
                       <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
                     </Avatar>
                   </Button>

@@ -3,6 +3,7 @@
 export type DishStatus = 'available' | 'unavailable' | 'hidden';
 
 export type DishRating = {
+  customerId: string;
   customerName: string;
   rating: number; // 1-5
   review?: string;

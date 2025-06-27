@@ -168,6 +168,8 @@ export default function SettingsPage() {
         busy: { labelKey: 'status_busy', color: 'bg-yellow-500' },
         closed: { labelKey: 'status_closed', color: 'bg-red-500' },
     };
+    
+    const defaultAvatar = user.role === 'chef' ? 'https://placehold.co/400x400.png' : 'https://placehold.co/100x100.png';
 
     return (
         <div className="container mx-auto px-4 py-8 md:px-6 md:py-12">
@@ -183,7 +185,7 @@ export default function SettingsPage() {
                             <Label>{t('profile_picture')}</Label>
                             <div className="flex items-center gap-4">
                                 <Avatar className="h-20 w-20">
-                                    <AvatarImage src={imagePreview || ''} alt={user.name} />
+                                    <AvatarImage src={imagePreview || defaultAvatar} alt={user.name} data-ai-hint="person avatar" />
                                     <AvatarFallback><UserIcon className="h-8 w-8" /></AvatarFallback>
                                 </Avatar>
                                 <Input id="image-upload" type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />

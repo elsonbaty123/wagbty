@@ -21,7 +21,7 @@ export function ChatMessageCard({ message, isOwnMessage }: ChatMessageCardProps)
     return (
         <div className={cn("flex items-start gap-3", isOwnMessage ? "flex-row-reverse" : "flex-row")}>
             <Avatar className="h-8 w-8">
-                <AvatarImage src={message.userImageUrl} alt={message.userName} data-ai-hint="person avatar"/>
+                <AvatarImage src={message.userImageUrl || 'https://placehold.co/100x100.png'} alt={message.userName} data-ai-hint="person avatar"/>
                 <AvatarFallback>{message.userName.charAt(0)}</AvatarFallback>
             </Avatar>
             <div className={cn("flex flex-col gap-1 max-w-[75%]", isOwnMessage ? "items-end" : "items-start")}>

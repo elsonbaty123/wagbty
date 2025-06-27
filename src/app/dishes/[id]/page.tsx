@@ -137,7 +137,9 @@ export default function DishDetailsPage() {
             <CardContent>
                 {sortedRatings.length > 0 ? (
                     <div className="space-y-6 max-h-[60vh] overflow-y-auto pe-2">
-                        {sortedRatings.map((review, index) => (
+                        {sortedRatings.map((review, index) => {
+                          const reviewAuthor = users.find(u => u.id === review.customerId);
+                          return (
                             <div key={index} className="flex gap-4">
                                 <div>
                                     <div className="flex justify-between items-center">
@@ -154,11 +156,11 @@ export default function DishDetailsPage() {
                                     {review.review && <p className="mt-2 text-sm text-muted-foreground italic">"{review.review}"</p>}
                                 </div>
                                  <Avatar>
-                                    <AvatarImage src={`https://placehold.co/40x40.png`} data-ai-hint="person avatar"/>
+                                    <AvatarImage src={reviewAuthor?.imageUrl || 'https://placehold.co/40x40.png'} data-ai-hint="person avatar"/>
                                     <AvatarFallback>{review.customerName.charAt(0)}</AvatarFallback>
                                 </Avatar>
                             </div>
-                        ))}
+                        )})}
                     </div>
                 ) : (
                     <div className="text-center py-10">
