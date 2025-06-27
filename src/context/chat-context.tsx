@@ -6,9 +6,7 @@ import type { ChatMessage } from '@/lib/types';
 import { useAuth } from './auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
-import { db } from '@/lib/firebase';
-import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
-
+import localforage from 'localforage';
 
 interface ChatContextType {
   messages: ChatMessage[];
@@ -25,32 +23,23 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Load messages from local storage on initial render
   useEffect(() => {
-    if (!db) {
+    const loadMessages = async () => {
+      setLoading(true);
+      const storedMessages: ChatMessage[] | null = await localforage.getItem('chat_messages');
+      setMessages(storedMessages || []);
       setLoading(false);
-      return;
-    }
-
-    const q = query(collection(db, "chat_messages"), orderBy("createdAt", "asc"));
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const msgs: ChatMessage[] = [];
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        msgs.push({
-            id: doc.id,
-            ...data,
-            createdAt: (data.createdAt as Timestamp)?.toDate().toISOString() || new Date().toISOString()
-        } as ChatMessage);
-      });
-      setMessages(msgs);
-      setLoading(false);
-    }, (error) => {
-      console.error("Error fetching chat messages: ", error);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
+    };
+    loadMessages();
   }, []);
+
+  // Persist messages to local storage whenever they change
+  useEffect(() => {
+    if (!loading) {
+      localforage.setItem('chat_messages', messages);
+    }
+  }, [messages, loading]);
   
   const validateMessage = (text: string): boolean => {
     if (!text.trim()) {
@@ -67,18 +56,18 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
   const sendMessage = async (text: string) => {
     if (!user || user.role !== 'customer') return;
-    if (!db) throw new Error("Firebase is not configured. Please add your credentials to a .env.local file and restart the server.");
     if (!validateMessage(text)) return;
     
-    const newMessage = {
+    const newMessage: ChatMessage = {
+      id: `msg_${Date.now()}`,
       userId: user.id,
       userName: user.name,
       userImageUrl: user.imageUrl,
       text: text,
-      createdAt: serverTimestamp(),
+      createdAt: new Date().toISOString(),
     };
     
-    await addDoc(collection(db, "chat_messages"), newMessage);
+    setMessages(prevMessages => [...prevMessages, newMessage]);
   };
 
   return (

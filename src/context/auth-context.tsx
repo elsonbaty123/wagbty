@@ -5,17 +5,12 @@ import { useRouter } from 'next/navigation';
 import { createContext, useState, useEffect, useContext, type ReactNode } from 'react';
 import type { User, UserRole } from '@/lib/types';
 import { useTranslation } from 'react-i18next';
-import { auth, db } from '@/lib/firebase';
-import { 
-  onAuthStateChanged, 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  signOut,
-  updatePassword,
-  sendPasswordResetEmail as firebaseSendPasswordResetEmail,
-  type User as FirebaseUser
-} from 'firebase/auth';
-import { doc, getDoc, setDoc, updateDoc, collection, getDocs, query, where } from 'firebase/firestore';
+import { initialUsers } from '@/lib/data';
+import localforage from 'localforage';
+import bcrypt from 'bcryptjs';
+
+// Extend User type for local storage to include hashed password
+type StoredUser = User & { hashedPassword?: string };
 
 interface AuthContextType {
   user: User | null;
@@ -26,54 +21,55 @@ interface AuthContextType {
   logout: () => void;
   updateUser: (updatedUserDetails: Partial<User>) => Promise<User>;
   changePassword: (passwordDetails: { newPassword; confirmPassword; }) => Promise<void>;
-  sendPasswordResetEmail: (email: string) => Promise<void>;
+  sendPasswordResetEmail: (email: string) => Promise<void>; // Mocked
   loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Configure localforage
+localforage.config({
+    name: 'chefConnect',
+    storeName: 'app_data',
+});
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [users, setAllUsers] = useState<User[]>([]);
+  const [users, setAllUsers] = useState<StoredUser[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const { t } = useTranslation();
 
   useEffect(() => {
-    // If firebase is not configured, do nothing.
-    if (!auth || !db) {
-        setUser(null);
-        setAllUsers([]);
-        setLoading(false);
-        return;
-    }
-
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
-      if (firebaseUser) {
-        const userDocRef = doc(db, 'users', firebaseUser.uid);
-        const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists()) {
-          setUser({ id: userDoc.id, ...userDoc.data() } as User);
-        } else {
-          setUser(null); 
+    const initializeAuth = async () => {
+      setLoading(true);
+      try {
+        // 1. Fetch users from local storage or seed if empty
+        let storedUsers: StoredUser[] | null = await localforage.getItem('users');
+        if (!storedUsers || storedUsers.length === 0) {
+            storedUsers = initialUsers;
+            await localforage.setItem('users', storedUsers);
         }
-      } else {
-        setUser(null);
+        setAllUsers(storedUsers);
+
+        // 2. Check for a logged-in user session
+        const currentUserId = localStorage.getItem('currentUserId');
+        if (currentUserId) {
+            const currentUser = storedUsers.find(u => u.id === currentUserId);
+            if(currentUser) {
+                const { hashedPassword, ...userToSet } = currentUser;
+                setUser(userToSet);
+            } else {
+                localStorage.removeItem('currentUserId');
+            }
+        }
+      } catch (error) {
+        console.error("Failed to initialize auth:", error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    });
-    
-    const fetchUsers = async () => {
-        const usersCol = collection(db, "users");
-        const userSnapshot = await getDocs(usersCol);
-        const userList = userSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
-        setAllUsers(userList);
     };
-
-    fetchUsers();
-
-
-    return () => unsubscribe();
+    initializeAuth();
   }, []);
 
   const validatePassword = (password: string) => {
@@ -88,36 +84,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }
 
   const login = async (email: string, password: string, role: UserRole): Promise<User> => {
-    if (!auth || !db) throw new Error("Firebase is not configured. Please add your credentials to .env.local");
-    const usersRef = collection(db, 'users');
-    const q = query(usersRef, where('email', '==', email.toLowerCase()), where('role', '==', role));
-    const querySnapshot = await getDocs(q);
+    const targetUser = users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.role === role);
 
-    if (querySnapshot.empty) {
-        throw new Error(t('auth_incorrect_credentials'));
+    if (!targetUser || !targetUser.hashedPassword) {
+      throw new Error(t('auth_incorrect_credentials'));
     }
 
-    await signInWithEmailAndPassword(auth, email, password);
-    const userDoc = querySnapshot.docs[0];
-    return { id: userDoc.id, ...userDoc.data() } as User;
+    const isMatch = await bcrypt.compare(password, targetUser.hashedPassword);
+    if (!isMatch) {
+      throw new Error(t('auth_incorrect_credentials'));
+    }
+    
+    const { hashedPassword, ...userToSet } = targetUser;
+    setUser(userToSet);
+    localStorage.setItem('currentUserId', userToSet.id);
+    return userToSet;
   };
 
   const signup = async (details: Partial<User> & { password: string, role: UserRole }): Promise<User> => {
-    if (!auth || !db) throw new Error("Firebase is not configured. Please add your credentials to .env.local");
-    const usersRef = collection(db, 'users');
-    const q = query(usersRef, where('email', '==', details.email!.toLowerCase()));
-    const querySnapshot = await getDocs(q);
-
-    if (!querySnapshot.empty) {
-      throw new Error(t('auth_email_in_use'));
+    const emailExists = users.some(u => u.email.toLowerCase() === details.email!.toLowerCase());
+    if (emailExists) {
+        throw new Error(t('auth_email_in_use'));
     }
     
     validatePassword(details.password);
 
-    const userCredential = await createUserWithEmailAndPassword(auth, details.email!, details.password);
-    const firebaseUser = userCredential.user;
-
-    const newUser: Omit<User, 'id'> = {
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(details.password, salt);
+    
+    const newUserId = `user_${Date.now()}`;
+    const newUser: StoredUser = {
+        id: newUserId,
         name: details.name!,
         email: details.email!,
         role: details.role,
@@ -128,59 +125,82 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         imageUrl: details.role === 'chef' ? `https://placehold.co/400x400.png` : `https://placehold.co/100x100.png`,
         rating: details.role === 'chef' ? 4.5 : undefined,
         availabilityStatus: details.role === 'chef' ? 'available' : undefined,
+        hashedPassword: hashedPassword
     };
     
-    await setDoc(doc(db, "users", firebaseUser.uid), newUser);
-    const userWithId = { ...newUser, id: firebaseUser.uid };
-    setUser(userWithId);
+    const updatedUsers = [...users, newUser];
+    setAllUsers(updatedUsers);
+    await localforage.setItem('users', updatedUsers);
+
+    const { hashedPassword: _, ...userToSet } = newUser;
+    setUser(userToSet);
+    localStorage.setItem('currentUserId', userToSet.id);
     
-    return userWithId;
+    return userToSet;
   };
 
   const logout = async () => {
-    if (auth) {
-      await signOut(auth);
-    }
     setUser(null);
+    localStorage.removeItem('currentUserId');
     router.push('/');
   };
   
   const updateUser = async (updatedUserDetails: Partial<User>): Promise<User> => {
-    if (!auth || !db) throw new Error("Firebase is not configured. Please add your credentials to .env.local");
     if (!user) throw new Error(t("auth_must_be_logged_in_to_update"));
 
-    const userDocRef = doc(db, 'users', user.id);
-    await updateDoc(userDocRef, updatedUserDetails);
+    const updatedUser: User = { ...user, ...updatedUserDetails };
+    const updatedStoredUser: StoredUser = { 
+        ...users.find(u => u.id === user.id)!, 
+        ...updatedUserDetails 
+    };
+
+    const updatedUsers = users.map(u => u.id === user.id ? updatedStoredUser : u);
+    setAllUsers(updatedUsers);
+    await localforage.setItem('users', updatedUsers);
     
-    const updatedUser = { ...user, ...updatedUserDetails };
     setUser(updatedUser);
     
     return updatedUser;
   };
 
   const changePassword = async ({ newPassword, confirmPassword }: { newPassword: string; confirmPassword: string; }) => {
-    if (!auth?.currentUser) throw new Error(t("auth_must_be_logged_in_to_change_password"));
+    if (!user) throw new Error(t("auth_must_be_logged_in_to_change_password"));
     if (newPassword !== confirmPassword) throw new Error(t("auth_passwords_do_not_match"));
   
     validatePassword(newPassword);
 
-    try {
-        await updatePassword(auth.currentUser, newPassword);
-    } catch(error: any) {
-        console.error(error);
-        throw new Error(t('password_change_failed_toast_desc'));
-    }
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+    
+    const userToUpdate = users.find(u => u.id === user.id);
+    if (!userToUpdate) throw new Error("User not found");
+
+    const updatedStoredUser = { ...userToUpdate, hashedPassword };
+    const updatedUsers = users.map(u => u.id === user.id ? updatedStoredUser : u);
+
+    setAllUsers(updatedUsers);
+    await localforage.setItem('users', updatedUsers);
   };
   
   const sendPasswordResetEmail = async (email: string) => {
-    if (!auth) throw new Error("Firebase is not configured. Please add your credentials to .env.local");
-    await firebaseSendPasswordResetEmail(auth, email);
+    // This is a mock implementation for local storage mode.
+    console.warn(`Password reset for ${email} is not available in local storage mode.`);
+    return Promise.resolve();
   };
 
-  const chefs = users.filter(u => u.role === 'chef');
+  const chefs = users.filter(u => u.role === 'chef').map(u => {
+    const { hashedPassword, ...rest } = u;
+    return rest;
+  });
+  
+  const publicUsers = users.map(u => {
+    const { hashedPassword, ...rest } = u;
+    return rest;
+  });
+
 
   return (
-    <AuthContext.Provider value={{ user, users, chefs, login, signup, logout, updateUser, changePassword, sendPasswordResetEmail, loading }}>
+    <AuthContext.Provider value={{ user, users: publicUsers, chefs, login, signup, logout, updateUser, changePassword, sendPasswordResetEmail, loading }}>
       {children}
     </AuthContext.Provider>
   );

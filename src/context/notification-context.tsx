@@ -3,22 +3,8 @@
 
 import { createContext, useState, useEffect, useContext, type ReactNode } from 'react';
 import type { Notification } from '@/lib/types';
-import { db } from '@/lib/firebase';
-import { 
-  collection, 
-  query, 
-  where, 
-  orderBy, 
-  onSnapshot,
-  addDoc, 
-  updateDoc, 
-  doc,
-  writeBatch,
-  serverTimestamp, 
-  Timestamp 
-} from 'firebase/firestore';
+import localforage from 'localforage';
 import { useAuth } from './auth-context';
-
 
 interface NotificationContextType {
   notifications: Notification[];
@@ -33,57 +19,41 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 
 export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
+  // Load notifications from local storage on initial render
   useEffect(() => {
-    if (!user || !db) {
-        setNotifications([]);
-        return;
+    const loadNotifications = async () => {
+      setLoading(true);
+      const storedNotifications: Notification[] | null = await localforage.getItem('notifications');
+      setNotifications(storedNotifications || []);
+      setLoading(false);
     };
+    loadNotifications();
+  }, []);
 
-    const q = query(
-        collection(db, "notifications"), 
-        where("recipientId", "==", user.id),
-        orderBy("createdAt", "desc")
-    );
-
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const notifs: Notification[] = [];
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        notifs.push({
-            id: doc.id,
-            ...data,
-            createdAt: (data.createdAt as Timestamp)?.toDate().toISOString() || new Date().toISOString()
-        } as Notification);
-      });
-      setNotifications(notifs);
-    }, (error) => {
-        console.error("Error fetching notifications: ", error);
-    });
-
-    return () => unsubscribe();
-  }, [user]);
+  // Persist notifications to local storage whenever they change
+  useEffect(() => {
+    if (!loading) {
+      localforage.setItem('notifications', notifications);
+    }
+  }, [notifications, loading]);
 
   const createNotification = async (notificationData: Omit<Notification, 'id' | 'createdAt' | 'isRead'>) => {
-    if (!db) {
-      console.warn("Firebase not configured, cannot create notification.", notificationData);
-      return;
-    }
-    const newNotificationData = {
+    const newNotification: Notification = {
       ...notificationData,
-      createdAt: serverTimestamp(),
+      id: `notif_${Date.now()}`,
+      createdAt: new Date().toISOString(),
       isRead: false,
     };
-    try {
-        await addDoc(collection(db, 'notifications'), newNotificationData);
-    } catch (error) {
-        console.error("Failed to create notification:", error);
-    }
+    setNotifications(prev => [newNotification, ...prev]);
   };
   
   const notificationsForUser = (userId: string) => {
-    return notifications.filter(n => n.recipientId === userId);
+    return notifications
+      .filter(n => n.recipientId === userId)
+      .sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }
   
   const unreadCount = (userId: string) => {
@@ -91,24 +61,10 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   }
 
   const markAsRead = async (notificationId: string) => {
-    if (!db) return; // Firebase not configured
-    const notifDocRef = doc(db, 'notifications', notificationId);
-    await updateDoc(notifDocRef, { isRead: true });
     setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n));
   };
   
   const markAllAsRead = async (userId: string) => {
-    if (!db) return; // Firebase not configured
-    const batch = writeBatch(db);
-    const unreadNotifs = notifications.filter(n => n.recipientId === userId && !n.isRead);
-    
-    unreadNotifs.forEach(notification => {
-        const notifDocRef = doc(db, 'notifications', notification.id);
-        batch.update(notifDocRef, { isRead: true });
-    });
-
-    await batch.commit();
-
     setNotifications(prev => prev.map(n => n.recipientId === userId ? { ...n, isRead: true } : n));
   }
 

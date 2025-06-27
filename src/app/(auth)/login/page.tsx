@@ -81,7 +81,7 @@ export default function LoginPage() {
       toast({
         variant: "destructive",
         title: t('login_failed'),
-        description: t('auth_incorrect_credentials'),
+        description: error.message || t('auth_incorrect_credentials'),
       });
     } finally {
       setIsLoading(false);
@@ -128,9 +128,6 @@ export default function LoginPage() {
                 {t('login')}
               </Button>
                <div className="mt-4 flex flex-col items-center gap-2 text-sm">
-                  <Link href="/forgot-password" className="underline text-accent">
-                      {t('forgot_password')}
-                  </Link>
                   <div>
                     {t('no_account_yet')}{' '}
                     <Link href="/signup" className="underline text-accent">
@@ -176,9 +173,6 @@ export default function LoginPage() {
                 {t('login')}
               </Button>
                <div className="mt-4 flex flex-col items-center gap-2 text-sm">
-                  <Link href="/forgot-password" className="underline text-accent">
-                      {t('forgot_password')}
-                  </Link>
                   <div>
                     {t('not_a_chef_yet')}{' '}
                     <Link href="/signup" className="underline text-accent">

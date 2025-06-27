@@ -5,8 +5,8 @@ import { createContext, useState, useEffect, useContext, type ReactNode } from '
 import type { Order, Dish, DishRating, Coupon, User } from '@/lib/types';
 import { useNotifications } from './notification-context';
 import { useTranslation } from 'react-i18next';
-import { db } from '@/lib/firebase';
-import { collection, getDocs, addDoc, updateDoc, doc, deleteDoc, serverTimestamp, Timestamp, query, where } from 'firebase/firestore';
+import { initialOrders, allDishes, initialCoupons } from '@/lib/data';
+import localforage from 'localforage';
 
 type OrderStatus = Order['status'];
 type CreateOrderPayload = Omit<Order, 'id' | 'status' | 'createdAt' | 'chef'> & {
@@ -34,21 +34,6 @@ interface OrderContextType {
 
 const OrderContext = createContext<OrderContextType | undefined>(undefined);
 
-const parseDoc = (doc: any) => {
-    const data = doc.data();
-    return {
-        id: doc.id,
-        ...data,
-        createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate().toISOString() : data.createdAt,
-        startDate: data.startDate instanceof Timestamp ? data.startDate.toDate().toISOString() : data.startDate,
-        endDate: data.endDate instanceof Timestamp ? data.endDate.toDate().toISOString() : data.endDate,
-        ratings: data.ratings?.map((r: any) => ({
-            ...r,
-            createdAt: r.createdAt instanceof Timestamp ? r.createdAt.toDate().toISOString() : r.createdAt,
-        }))
-    };
-};
-
 export const OrderProvider = ({ children }: { children: ReactNode }) => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [dishes, setDishes] = useState<Dish[]>([]);
@@ -58,35 +43,32 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
   const { t } = useTranslation();
 
   useEffect(() => {
-    if (!db) {
-        setLoading(false);
-        return;
-    }
-
-    const fetchData = async () => {
+    const loadData = async () => {
+      setLoading(true);
       try {
-        const ordersQuery = query(collection(db, 'orders'));
-        const dishesQuery = query(collection(db, 'dishes'));
-        const couponsQuery = query(collection(db, 'coupons'));
-
-        const [ordersSnapshot, dishesSnapshot, couponsSnapshot] = await Promise.all([
-          getDocs(ordersQuery),
-          getDocs(dishesQuery),
-          getDocs(couponsQuery),
+        const [storedOrders, storedDishes, storedCoupons] = await Promise.all([
+          localforage.getItem<Order[]>('orders'),
+          localforage.getItem<Dish[]>('dishes'),
+          localforage.getItem<Coupon[]>('coupons'),
         ]);
 
-        setOrders(ordersSnapshot.docs.map(parseDoc));
-        setDishes(dishesSnapshot.docs.map(parseDoc));
-        setCoupons(couponsSnapshot.docs.map(parseDoc));
+        setOrders(storedOrders || initialOrders);
+        setDishes(storedDishes || allDishes);
+        setCoupons(storedCoupons || initialCoupons);
 
       } catch (error) {
-        console.error("Failed to fetch data from Firestore", error);
+        console.error("Failed to load data from localforage", error);
       } finally {
         setLoading(false);
       }
     };
-    fetchData();
+    loadData();
   }, []);
+
+  // Persist data to localforage whenever it changes
+  useEffect(() => { if (!loading) localforage.setItem('orders', orders); }, [orders, loading]);
+  useEffect(() => { if (!loading) localforage.setItem('dishes', dishes); }, [dishes, loading]);
+  useEffect(() => { if (!loading) localforage.setItem('coupons', coupons); }, [coupons, loading]);
 
   const getOrdersByCustomerId = (customerId: string) => {
     return orders.filter((order) => order.customerId === customerId);
@@ -97,26 +79,21 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const createOrder = async (orderData: CreateOrderPayload) => {
-    if (!db) throw new Error("Firebase is not configured.");
     const isChefBusy = orderData.chef.availabilityStatus === 'busy';
-    const newOrderData = {
+    
+    const newOrder: Order = {
         ...orderData,
+        id: `order_${Date.now()}`,
         status: isChefBusy ? 'waiting_for_chef' : 'pending_review',
-        createdAt: serverTimestamp(),
+        createdAt: new Date().toISOString(),
         chef: { id: orderData.chef.id, name: orderData.chef.name },
     };
 
-    const docRef = await addDoc(collection(db, 'orders'), newOrderData);
-    const newOrder = { ...newOrderData, id: docRef.id, createdAt: new Date().toISOString() } as Order;
     setOrders(prev => [newOrder, ...prev]);
 
     if (orderData.appliedCouponCode) {
         const coupon = coupons.find(c => c.code.toLowerCase() === orderData.appliedCouponCode!.toLowerCase());
         if (coupon) {
-            const couponDocRef = doc(db, 'coupons', coupon.id);
-            await updateDoc(couponDocRef, {
-                timesUsed: coupon.timesUsed + 1
-            });
             setCoupons(prev => prev.map(c => c.id === coupon.id ? {...c, timesUsed: c.timesUsed + 1} : c));
         }
     }
@@ -148,10 +125,6 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateOrderStatus = async (orderId: string, status: OrderStatus) => {
-    if (!db) throw new Error("Firebase is not configured.");
-    const orderDocRef = doc(db, 'orders', orderId);
-    await updateDoc(orderDocRef, { status });
-
     const updatedOrder = orders.find(o => o.id === orderId);
     if (updatedOrder) {
       setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o));
@@ -178,34 +151,22 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
   };
     
   const addDish = async (dishData: Omit<Dish, 'id' | 'ratings'>) => {
-    if (!db) throw new Error("Firebase is not configured.");
-    const newDishData = { ...dishData, ratings: [] };
-    const docRef = await addDoc(collection(db, 'dishes'), newDishData);
-    setDishes(prev => [{ ...newDishData, id: docRef.id }, ...prev]);
+    const newDish: Dish = { ...dishData, id: `dish_${Date.now()}`, ratings: [] };
+    setDishes(prev => [newDish, ...prev]);
   };
 
   const updateDish = async (updatedDish: Dish) => {
-    if (!db) throw new Error("Firebase is not configured.");
-    const { id, ...dishData } = updatedDish;
-    const dishDocRef = doc(db, 'dishes', id);
-    await updateDoc(dishDocRef, dishData);
-    setDishes(prev => prev.map(d => d.id === id ? updatedDish : d));
+    setDishes(prev => prev.map(d => d.id === updatedDish.id ? updatedDish : d));
   };
 
   const deleteDish = async (dishId: string) => {
-    if (!db) throw new Error("Firebase is not configured.");
-    const dishDocRef = doc(db, 'dishes', dishId);
-    await deleteDoc(dishDocRef);
     setDishes(prev => prev.filter(d => d.id !== dishId));
   };
   
   const addReviewToOrder = async (orderId: string, rating: number, review: string) => {
-    if (!db) throw new Error("Firebase is not configured.");
     const orderToUpdate = orders.find(o => o.id === orderId);
     if (!orderToUpdate) return;
 
-    const orderDocRef = doc(db, 'orders', orderId);
-    await updateDoc(orderDocRef, { rating, review });
     setOrders(prev => prev.map(o => o.id === orderId ? { ...o, rating, review } : o));
 
     const newRating: DishRating = {
@@ -217,9 +178,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
 
     const dishToUpdate = dishes.find(d => d.id === orderToUpdate.dish.id);
     if(dishToUpdate) {
-        const dishDocRef = doc(db, 'dishes', dishToUpdate.id);
         const updatedRatings = [...(dishToUpdate.ratings || []), newRating];
-        await updateDoc(dishDocRef, { ratings: updatedRatings });
         setDishes(prev => prev.map(d => d.id === dishToUpdate.id ? { ...d, ratings: updatedRatings } : d));
     }
   };
@@ -229,18 +188,12 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const createCoupon = async (couponData: Omit<Coupon, 'id' | 'timesUsed'>) => {
-    if (!db) throw new Error("Firebase is not configured.");
-    const newCouponData = { ...couponData, timesUsed: 0 };
-    const docRef = await addDoc(collection(db, 'coupons'), newCouponData);
-    setCoupons(prev => [{ ...newCouponData, id: docRef.id }, ...prev]);
+    const newCoupon: Coupon = { ...couponData, id: `coupon_${Date.now()}`, timesUsed: 0 };
+    setCoupons(prev => [newCoupon, ...prev]);
   };
 
   const updateCoupon = async (updatedCoupon: Coupon) => {
-    if (!db) throw new Error("Firebase is not configured.");
-    const { id, ...couponData } = updatedCoupon;
-    const couponDocRef = doc(db, 'coupons', id);
-    await updateDoc(couponDocRef, couponData);
-    setCoupons(prev => prev.map(c => c.id === id ? updatedCoupon : c));
+    setCoupons(prev => prev.map(c => c.id === updatedCoupon.id ? updatedCoupon : c));
   };
 
   const validateAndApplyCoupon = (code: string, chefId: string, dishId: string, subtotal: number): { discount: number; error?: string } => {
