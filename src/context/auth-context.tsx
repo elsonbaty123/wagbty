@@ -22,7 +22,7 @@ interface AuthContextType {
   signup: (details: Partial<User> & { password: string, role: UserRole }) => Promise<User>;
   logout: () => void;
   updateUser: (updatedUserDetails: Partial<User>) => Promise<User>;
-  changePassword: (passwordDetails: { newPassword; confirmPassword; }) => Promise<void>;
+  changePassword: (passwordDetails: { currentPassword; newPassword; confirmPassword; }) => Promise<void>;
   sendPasswordResetEmail: (email: string) => Promise<void>; // Mocked
   toggleFavoriteDish: (dishId: string) => Promise<void>;
   loading: boolean;
@@ -176,8 +176,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return userToSet;
   };
 
-  const changePassword = async ({ newPassword, confirmPassword }: { newPassword: string; confirmPassword: string; }) => {
+  const changePassword = async ({ currentPassword, newPassword, confirmPassword }: { currentPassword: string; newPassword: string; confirmPassword: string; }) => {
     if (!user) throw new Error(t("auth_must_be_logged_in_to_change_password"));
+
+    const storedUser = users.find(u => u.id === user.id);
+    if (!storedUser || !storedUser.hashedPassword) {
+      throw new Error(t("user_not_found"));
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, storedUser.hashedPassword);
+    if (!isMatch) {
+      throw new Error(t('auth_incorrect_current_password'));
+    }
+
     if (newPassword !== confirmPassword) throw new Error(t("auth_passwords_do_not_match"));
   
     validatePassword(newPassword);
@@ -185,10 +196,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(newPassword, salt);
     
-    const userToUpdate = users.find(u => u.id === user.id);
-    if (!userToUpdate) throw new Error("User not found");
-
-    const updatedStoredUser = { ...userToUpdate, hashedPassword };
+    const updatedStoredUser = { ...storedUser, hashedPassword };
     const updatedUsers = users.map(u => u.id === user.id ? updatedStoredUser : u);
 
     setAllUsers(updatedUsers);
