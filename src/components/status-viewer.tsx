@@ -9,7 +9,7 @@ import type { User } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import { dateLocales } from './language-manager';
-import { Clock, Send, X, Loader2, Heart } from 'lucide-react';
+import { Clock, Send, X, Loader2, Heart, Volume2, VolumeX } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { useStatus } from '@/context/status-context';
 import { cn } from '@/lib/utils';
@@ -27,6 +27,7 @@ export function StatusViewer({ chef }: StatusViewerProps) {
   const { toast } = useToast();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
 
   // New state for video control
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -102,6 +103,14 @@ export function StatusViewer({ chef }: StatusViewerProps) {
     } else {
         video.pause();
     }
+  };
+  
+  const handleToggleMute = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevents click from bubbling up to other handlers like play/pause or closing the dialog
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = !video.muted;
+    setIsMuted(video.muted);
   };
 
   const statusAltText = chef.status.caption || t('status_from_chef', { name: chef.name });
@@ -194,9 +203,17 @@ export function StatusViewer({ chef }: StatusViewerProps) {
                         </p>
                     </div>
                 </div>
-                <DialogClose className="text-white/70 hover:text-white transition-colors">
-                    <X className="w-6 h-6"/>
-                </DialogClose>
+                <div className="flex items-center gap-2">
+                    {chef.status.type === 'video' && (
+                        <button onClick={handleToggleMute} className="text-white/70 hover:text-white transition-colors p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-white">
+                            {isMuted ? <VolumeX className="w-5 h-5"/> : <Volume2 className="w-5 h-5"/>}
+                            <span className="sr-only">{isMuted ? "Unmute" : "Mute"}</span>
+                        </button>
+                    )}
+                    <DialogClose className="text-white/70 hover:text-white transition-colors">
+                        <X className="w-6 h-6"/>
+                    </DialogClose>
+                </div>
             </div>
         </div>
         

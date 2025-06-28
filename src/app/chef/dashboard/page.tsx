@@ -326,7 +326,7 @@ export default function ChefDashboardPage() {
                                         <p className="text-sm text-muted-foreground mb-2">{t('current_active_status')}</p>
                                         <div className="aspect-video rounded-lg overflow-hidden relative">
                                             {activeStatus.type === 'video' ? (
-                                                <video src={activeStatus.imageUrl} className="w-full h-full object-cover" controls muted />
+                                                <video src={activeStatus.imageUrl} className="w-full h-full object-cover" controls />
                                             ) : (
                                                 <Image src={activeStatus.imageUrl} layout="fill" objectFit="cover" alt={t('current_status')} />
                                             )}
