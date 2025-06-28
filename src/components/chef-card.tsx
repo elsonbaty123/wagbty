@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import type { User } from '@/lib/types';
-import { Star, Utensils, Camera } from 'lucide-react';
+import { Star, Utensils } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
@@ -14,7 +14,6 @@ import { useStatus } from '@/context/status-context';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Dialog, DialogTrigger } from './ui/dialog';
 import { StatusViewer } from './status-viewer';
-import { Button } from './ui/button';
 
 // The chef object passed here will be augmented with dishCount and averageRating
 interface ChefCardProps {
@@ -41,29 +40,33 @@ export function ChefCard({ chef }: ChefCardProps) {
   return (
     <Card className="flex flex-col overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
       <CardHeader className="p-4 flex-row items-center gap-4 bg-muted/30">
-        <Link href={`/chefs/${chef.id}`}>
-            <Avatar className="h-16 w-16 shadow-sm">
-              <AvatarImage src={chef.imageUrl || 'https://placehold.co/100x100.png'} alt={chef.name} />
-              <AvatarFallback>{chef.name.charAt(0)}</AvatarFallback>
-            </Avatar>
-        </Link>
+        {isStatusActive ? (
+          <Dialog>
+            <DialogTrigger asChild>
+              <Avatar className={cn(
+                "h-16 w-16 shadow-sm cursor-pointer ring-2 ring-offset-2 ring-offset-background",
+                hasUnreadStatus ? "ring-green-500" : "ring-gray-400"
+              )}>
+                <AvatarImage src={chef.imageUrl || 'https://placehold.co/100x100.png'} alt={chef.name} />
+                <AvatarFallback>{chef.name.charAt(0)}</AvatarFallback>
+              </Avatar>
+            </DialogTrigger>
+            <StatusViewer chef={chef} />
+          </Dialog>
+        ) : (
+          <Link href={`/chefs/${chef.id}`}>
+              <Avatar className="h-16 w-16 shadow-sm">
+                <AvatarImage src={chef.imageUrl || 'https://placehold.co/100x100.png'} alt={chef.name} />
+                <AvatarFallback>{chef.name.charAt(0)}</AvatarFallback>
+              </Avatar>
+          </Link>
+        )}
         <div className="flex-1">
           <Link href={`/chefs/${chef.id}`} className="hover:text-primary transition-colors">
             <CardTitle className="font-headline text-xl">{chef.name}</CardTitle>
           </Link>
           <CardDescription className="text-primary font-semibold text-sm">{chef.specialty}</CardDescription>
         </div>
-        {isStatusActive && (
-            <Dialog>
-                <DialogTrigger asChild>
-                    <Button variant="ghost" size="icon" className={cn(hasUnreadStatus && "text-green-500 animate-pulse")}>
-                        <Camera className="h-5 w-5" />
-                        <span className="sr-only">{t('view_status')}</span>
-                    </Button>
-                </DialogTrigger>
-                <StatusViewer chef={chef} />
-            </Dialog>
-        )}
       </CardHeader>
       <CardContent className="p-4 flex-grow">
         {statusInfo && (
@@ -88,4 +91,3 @@ export function ChefCard({ chef }: ChefCardProps) {
     </Card>
   );
 }
-

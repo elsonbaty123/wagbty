@@ -1,7 +1,7 @@
 
 'use client';
 import Image from 'next/image';
-import { Star, X, Camera } from 'lucide-react';
+import { Star, X } from 'lucide-react';
 import { DishCard } from '@/components/dish-card';
 import { notFound, useParams } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
@@ -16,7 +16,6 @@ import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { StatusViewer } from '@/components/status-viewer';
 import { useStatus } from '@/context/status-context';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
 
 export default function ChefProfilePage() {
   const { t, i18n } = useTranslation();
@@ -87,24 +86,28 @@ export default function ChefProfilePage() {
       <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
         <div className="md:col-span-1">
           <div className="sticky top-24 flex flex-col items-center text-center md:items-start md:text-start">
-             <Avatar className="h-40 w-40 border-4 border-background shadow-lg">
-                <AvatarImage src={chef.imageUrl || 'https://placehold.co/400x400.png'} data-ai-hint="chef cooking" alt={chef.name}/>
-                <AvatarFallback>{chef.name.charAt(0)}</AvatarFallback>
-            </Avatar>
+            {isStatusActive ? (
+                <Dialog>
+                    <DialogTrigger asChild>
+                        <Avatar className={cn(
+                            "h-40 w-40 border-4 border-background shadow-lg cursor-pointer",
+                            hasUnreadStatus ? "ring-4 ring-green-500" : "ring-4 ring-gray-400"
+                        )}>
+                            <AvatarImage src={chef.imageUrl || 'https://placehold.co/400x400.png'} data-ai-hint="chef cooking" alt={chef.name}/>
+                            <AvatarFallback>{chef.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                    </DialogTrigger>
+                    <StatusViewer chef={chef} />
+                </Dialog>
+            ) : (
+                <Avatar className="h-40 w-40 border-4 border-background shadow-lg">
+                    <AvatarImage src={chef.imageUrl || 'https://placehold.co/400x400.png'} data-ai-hint="chef cooking" alt={chef.name}/>
+                    <AvatarFallback>{chef.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+            )}
 
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-2 mt-4">
                 <h1 className="font-headline text-3xl font-bold">{chef.name}</h1>
-                {isStatusActive && (
-                    <Dialog>
-                        <DialogTrigger asChild>
-                            <Button variant={hasUnreadStatus ? 'default' : 'outline'} className={cn(hasUnreadStatus && 'bg-green-600 hover:bg-green-700 animate-pulse')}>
-                                <Camera className="me-2 h-4 w-4" />
-                                {t('view_status')}
-                            </Button>
-                        </DialogTrigger>
-                        <StatusViewer chef={chef} />
-                    </Dialog>
-                )}
             </div>
 
             {statusInfo && (
