@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -27,7 +28,8 @@ export function StatusViewer({ chef }: StatusViewerProps) {
   const { toast } = useToast();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
+  const [isMuted, setIsMuted] = useState(false); // Start unmuted
+  const [comment, setComment] = useState('');
 
   // New state for video control
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -56,7 +58,12 @@ export function StatusViewer({ chef }: StatusViewerProps) {
       const handlePause = () => setIsPlaying(false);
       
       // Auto-play when component mounts
-      video.play().catch(console.error);
+      video.play().catch(() => {
+        // If autoplay with sound fails, switch to muted and try again
+        setIsMuted(true);
+        video.muted = true;
+        video.play().catch(console.error);
+      });
       setIsPlaying(true);
 
       video.addEventListener('timeupdate', handleTimeUpdate);
@@ -78,17 +85,37 @@ export function StatusViewer({ chef }: StatusViewerProps) {
   const isStatusActive = chef.status && (new Date().getTime() - new Date(chef.status.createdAt).getTime()) < 24 * 60 * 60 * 1000;
   const canInteract = isStatusActive && user && user.role === 'customer' && !userReaction;
 
-  const handleSendReaction = async () => {
+  const handleSendEmoji = async (emoji: string) => {
     if (!canInteract) return;
     setIsSubmitting(true);
     try {
         await addReaction({
             statusId: chef.status!.id,
-            chefId: chef.id
+            chefId: chef.id,
+            emoji: emoji
         });
         toast({ title: t('reaction_sent') });
-    } catch (error) {
-        toast({ variant: 'destructive', title: t('error'), description: t('failed_to_send_reaction') });
+    } catch (error: any) {
+        toast({ variant: 'destructive', title: t('error'), description: error.message || t('failed_to_send_reaction') });
+    } finally {
+        setIsSubmitting(false);
+    }
+  };
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!canInteract || !comment.trim()) return;
+    setIsSubmitting(true);
+    try {
+        await addReaction({
+            statusId: chef.status!.id,
+            chefId: chef.id,
+            message: comment
+        });
+        toast({ title: t('reaction_sent') });
+        setComment('');
+    } catch (error: any) {
+        toast({ variant: 'destructive', title: t('error'), description: error.message || t('failed_to_send_reaction') });
     } finally {
         setIsSubmitting(false);
     }
@@ -128,28 +155,49 @@ export function StatusViewer({ chef }: StatusViewerProps) {
     
     if (userReaction) {
         return (
-             <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent flex justify-center items-center">
-                <div className="flex items-center gap-2 bg-black/30 text-white px-4 py-2 rounded-full">
-                    <Heart className="h-5 w-5 fill-red-500 text-red-500"/>
-                    <p>{t('you_loved_this')}</p>
+            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent flex justify-center items-center">
+                <div className="flex items-center gap-2 bg-black/30 text-white px-4 py-2 rounded-full text-center">
+                    {userReaction.emoji && <span className="text-2xl">{userReaction.emoji}</span>}
+                    {userReaction.message ? (
+                        <p className="italic">"{userReaction.message}"</p>
+                    ) : userReaction.emoji ? (
+                         <p>{t('you_reacted')}</p>
+                    ) : null}
                 </div>
             </div>
         );
     }
+    
+    const quickEmojis = ['❤️', '😂', '👍', '🎉', '😢'];
 
     return (
-      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent flex justify-center gap-3">
-        <Button 
-            onClick={handleSendReaction}
-            variant="ghost" 
-            size="lg" 
-            className={cn("rounded-full h-14 w-auto px-6 bg-black/30 hover:bg-black/50 text-xl hover:scale-105 transition-transform transform text-white")}
-            aria-label={t('love_reaction')}
-            disabled={isSubmitting}
-        >
-            {isSubmitting ? <Loader2 className="animate-spin h-6 w-6" /> : <Heart className="me-2 h-6 w-6" />}
-            {t('love_reaction')}
-        </Button>
+      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent flex flex-col gap-3">
+        <div className="flex justify-center gap-2">
+            {quickEmojis.map(emoji => (
+                <Button
+                    key={emoji}
+                    onClick={() => handleSendEmoji(emoji)}
+                    variant="ghost"
+                    size="icon"
+                    className="rounded-full h-10 w-10 text-2xl bg-black/30 hover:bg-black/50 hover:scale-110 transition-transform"
+                    disabled={isSubmitting}
+                >
+                    {emoji}
+                </Button>
+            ))}
+        </div>
+        <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+            <Input
+                placeholder={t('reply_to_status')}
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                className="bg-white/20 text-white border-white/30 placeholder:text-white/70 focus:border-white h-11"
+                disabled={isSubmitting}
+            />
+            <Button type="submit" size="icon" className="h-11 w-11" disabled={isSubmitting || !comment.trim()}>
+                {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+            </Button>
+        </form>
       </div>
     );
   };
@@ -167,7 +215,7 @@ export function StatusViewer({ chef }: StatusViewerProps) {
             src={chef.status.imageUrl}
             className="w-full h-full object-cover rounded-lg cursor-pointer"
             autoPlay
-            muted
+            muted={isMuted}
             playsInline
             loop
             onClick={handleTogglePlay}

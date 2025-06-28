@@ -6,6 +6,9 @@ import type { StatusReaction, ViewedStatus } from '@/lib/types';
 import localforage from 'localforage';
 import { useAuth } from './auth-context';
 import { useNotifications } from './notification-context';
+import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from 'react-i18next';
+import { containsProfanity } from '@/lib/profanity-filter';
 
 interface StatusContextType {
   reactions: StatusReaction[];
@@ -23,6 +26,8 @@ const StatusContext = createContext<StatusContextType | undefined>(undefined);
 export const StatusProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
   const { createNotification } = useNotifications();
+  const { toast } = useToast();
+  const { t } = useTranslation();
   const [reactions, setReactions] = useState<StatusReaction[]>([]);
   const [viewedStatuses, setViewedStatuses] = useState<ViewedStatus[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,7 +61,15 @@ export const StatusProvider = ({ children }: { children: ReactNode }) => {
   const addReaction = async (reaction: { statusId: string; chefId: string; emoji?: string; message?: string }) => {
     if (!user) throw new Error("User not logged in");
     
-    // User can only react once.
+    if (reaction.message && containsProfanity(reaction.message)) {
+        toast({
+            variant: 'destructive',
+            title: t('inappropriate_language_detected'),
+            description: t('your_comment_could_not_be_sent'),
+        });
+        throw new Error('Profanity detected in comment');
+    }
+
     const existingReaction = reactions.find(r => r.statusId === reaction.statusId && r.userId === user.id);
     if (existingReaction) {
         console.warn("User has already reacted to this status.");
