@@ -185,7 +185,7 @@ export default function SignupPage() {
                             htmlFor="customer-female"
                             className="flex flex-col items-center justify-center rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
                         >
-                            <Image src="https://cdn-icons-png.flaticon.com/512/147/147142.png" alt={t('female', 'أنثى')} width={48} height={48} className="mb-2 h-12 w-12" data-ai-hint="female avatar" />
+                            <Image src="https://cdn-icons-png.flaticon.com/512/6997/6997662.png" alt={t('female', 'أنثى')} width={48} height={48} className="mb-2 h-12 w-12" data-ai-hint="female avatar" />
                             <span className="font-normal">{t('female', 'أنثى')}</span>
                         </Label>
                     </div>
@@ -271,7 +271,7 @@ export default function SignupPage() {
                             htmlFor="chef-female"
                             className="flex flex-col items-center justify-center rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
                         >
-                            <Image src="https://cdn-icons-png.flaticon.com/512/147/147142.png" alt={t('female', 'أنثى')} width={48} height={48} className="mb-2 h-12 w-12" data-ai-hint="female avatar" />
+                            <Image src="https://cdn-icons-png.flaticon.com/512/6997/6997662.png" alt={t('female', 'أنثى')} width={48} height={48} className="mb-2 h-12 w-12" data-ai-hint="female avatar" />
                             <span className="font-normal">{t('female', 'أنثى')}</span>
                         </Label>
                     </div>
