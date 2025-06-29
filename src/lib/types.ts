@@ -39,6 +39,7 @@ export interface User {
   name:string;
   email: string;
   role: UserRole;
+  gender?: 'male' | 'female';
   phone?: string;
   address?: string;
   imageUrl?: string;

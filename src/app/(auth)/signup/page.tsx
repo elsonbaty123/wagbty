@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import type { User } from '@/lib/types';
 import { useTranslation } from 'react-i18next';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 
 export default function SignupPage() {
@@ -23,12 +24,14 @@ export default function SignupPage() {
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerAddress, setCustomerAddress] = useState('');
   const [customerPassword, setCustomerPassword] = useState('');
+  const [customerGender, setCustomerGender] = useState<'male' | 'female'>();
 
   const [chefName, setChefName] = useState('');
   const [chefEmail, setChefEmail] = useState('');
   const [chefSpecialty, setChefSpecialty] = useState('');
   const [chefPhone, setChefPhone] = useState('');
   const [chefPassword, setChefPassword] = useState('');
+  const [chefGender, setChefGender] = useState<'male' | 'female'>();
   
   const [isLoading, setIsLoading] = useState(false);
 
@@ -65,6 +68,15 @@ export default function SignupPage() {
     let email: string;
     
     if (role === 'customer') {
+        if (!customerGender) {
+            toast({
+                variant: 'destructive',
+                title: t('input_error'),
+                description: t('gender_required', 'الرجاء تحديد النوع'),
+            });
+            setIsLoading(false);
+            return;
+        }
         email = customerEmail;
         userDetails = {
             name: customerName,
@@ -72,9 +84,19 @@ export default function SignupPage() {
             phone: customerPhone,
             address: customerAddress,
             password: customerPassword,
+            gender: customerGender,
             role: 'customer'
         }
     } else {
+        if (!chefGender) {
+            toast({
+                variant: 'destructive',
+                title: t('input_error'),
+                description: t('gender_required', 'الرجاء تحديد النوع'),
+            });
+            setIsLoading(false);
+            return;
+        }
         email = chefEmail;
         userDetails = {
             name: chefName,
@@ -82,6 +104,7 @@ export default function SignupPage() {
             phone: chefPhone,
             specialty: chefSpecialty,
             password: chefPassword,
+            gender: chefGender,
             role: 'chef'
         }
     }
@@ -138,6 +161,24 @@ export default function SignupPage() {
                 <Input id="customer-name" required value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder={t('full_name_placeholder')} />
               </div>
               <div className="space-y-2 text-left rtl:text-right">
+                  <Label>{t('gender', 'النوع')}</Label>
+                  <RadioGroup
+                      required
+                      onValueChange={(value: 'male' | 'female') => setCustomerGender(value)}
+                      value={customerGender}
+                      className="flex gap-4"
+                  >
+                      <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                          <RadioGroupItem value="male" id="customer-male" />
+                          <Label htmlFor="customer-male" className="font-normal">{t('male', 'ذكر')}</Label>
+                      </div>
+                      <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                          <RadioGroupItem value="female" id="customer-female" />
+                          <Label htmlFor="customer-female" className="font-normal">{t('female', 'أنثى')}</Label>
+                      </div>
+                  </RadioGroup>
+              </div>
+              <div className="space-y-2 text-left rtl:text-right">
                 <Label htmlFor="customer-email">{t('email')}</Label>
                 <Input 
                     id="customer-email" 
@@ -192,6 +233,24 @@ export default function SignupPage() {
                <div className="space-y-2 text-left rtl:text-right">
                 <Label htmlFor="chef-name">{t('full_name')}</Label>
                 <Input id="chef-name" required value={chefName} onChange={(e) => setChefName(e.target.value)} placeholder={t('full_name_placeholder_chef')}/>
+              </div>
+              <div className="space-y-2 text-left rtl:text-right">
+                  <Label>{t('gender', 'النوع')}</Label>
+                  <RadioGroup
+                      required
+                      onValueChange={(value: 'male' | 'female') => setChefGender(value)}
+                      value={chefGender}
+                      className="flex gap-4"
+                  >
+                      <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                          <RadioGroupItem value="male" id="chef-male" />
+                          <Label htmlFor="chef-male" className="font-normal">{t('male', 'ذكر')}</Label>
+                      </div>
+                      <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                          <RadioGroupItem value="female" id="chef-female" />
+                          <Label htmlFor="chef-female" className="font-normal">{t('female', 'أنثى')}</Label>
+                      </div>
+                  </RadioGroup>
               </div>
               <div className="space-y-2 text-left rtl:text-right">
                 <Label htmlFor="chef-specialty">{t('kitchen_specialty')}</Label>

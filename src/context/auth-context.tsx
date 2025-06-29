@@ -132,6 +132,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         name: details.name!,
         email: details.email!,
         role: details.role,
+        gender: details.gender,
         phone: details.phone,
         address: details.role === 'customer' ? details.address : undefined,
         specialty: details.specialty,
