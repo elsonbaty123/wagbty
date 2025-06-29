@@ -17,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useTranslation } from 'react-i18next';
+import { Textarea } from '@/components/ui/textarea';
 
 export default function OrderPage() {
   const { t } = useTranslation();
@@ -37,6 +38,7 @@ export default function OrderPage() {
   const [appliedCouponCode, setAppliedCouponCode] = useState('');
   const [couponError, setCouponError] = useState('');
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+  const [customerNotes, setCustomerNotes] = useState('');
 
   if (authLoading || dishesLoading) {
       return (
@@ -111,6 +113,7 @@ export default function OrderPage() {
       deliveryFee: deliveryFee,
       total: total,
       appliedCouponCode: appliedDiscount > 0 ? appliedCouponCode : undefined,
+      customerNotes: customerNotes.trim(),
     });
 
     toast({
@@ -223,6 +226,20 @@ export default function OrderPage() {
                     </div>
                     <span className="font-medium">{t('quantity:')}</span>
                 </CardFooter>
+            </Card>
+             <Card>
+                <CardHeader>
+                    <CardTitle>{t('additional_notes_title', 'Additional Notes for the Chef (optional)')}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <Textarea
+                        placeholder={t('additional_notes_placeholder', 'e.g., extra spicy, no onions...')}
+                        value={customerNotes}
+                        onChange={(e) => setCustomerNotes(e.target.value)}
+                        disabled={!user || isChefClosed}
+                        rows={3}
+                    />
+                </CardContent>
             </Card>
             <Card>
                  <CardHeader>

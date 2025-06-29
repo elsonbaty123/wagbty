@@ -11,7 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Order, OrderStatus } from '@/lib/types';
-import { Home, Phone, User, Star, Tag, Clock, PackageCheck, Check, X, Truck, Utensils, XCircle } from 'lucide-react';
+import { Home, Phone, User, Star, Tag, Clock, PackageCheck, Check, X, Truck, Utensils, XCircle, MessageSquare } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -203,6 +203,15 @@ export function OrderCard({ order, isChefView = false, updateOrderStatus, addRev
                 <span className="text-primary">{t('total:')}</span>
             </div>
         </div>
+         {order.customerNotes && (
+            <div className="mt-3 pt-3 border-t text-sm space-y-1">
+                <h4 className="font-semibold flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4 text-primary" />
+                    {t('customer_notes', 'Customer Notes')}
+                </h4>
+                <p className="italic ps-6">"{order.customerNotes}"</p>
+            </div>
+        )}
          {order.notDeliveredInfo && (
             <div className="mt-3 pt-3 border-t text-sm space-y-1">
                 <h4 className="font-semibold text-destructive">{t('non_delivery_reason_title')}</h4>

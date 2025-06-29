@@ -75,6 +75,7 @@ export type Order = {
   discount: number;
   total: number;
   appliedCouponCode?: string;
+  customerNotes?: string;
   notDeliveredInfo?: {
     reason: string;
     responsibility: NotDeliveredResponsibility;
