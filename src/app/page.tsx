@@ -44,7 +44,7 @@ export default function Home() {
   if (loading) {
     return (
         <div className="flex flex-col">
-          <section className="w-full py-12 md:py-20 lg:py-28 bg-card">
+          <section className="w-full py-12 md:py-20 lg:py-28">
              <div className="container mx-auto px-4 md:px-6">
                 <div className="flex flex-col items-center space-y-4 text-center">
                     <Skeleton className="h-16 w-3/4" />
@@ -66,7 +66,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col">
-      <section className="w-full py-12 md:py-20 lg:py-28 bg-card">
+      <section className="w-full py-12 md:py-20 lg:py-28">
         <div className="container mx-auto px-4 md:px-6">
           <div className="flex flex-col items-center space-y-4 text-center">
             <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none text-primary">

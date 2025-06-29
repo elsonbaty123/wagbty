@@ -67,7 +67,9 @@
     background-color: hsl(var(--background));
     /* Apply a light, semi-transparent overlay in light mode over the background image */
     background-image: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url("https://firebasestorage.googleapis.com/v0/b/project-revolver-prod.appspot.com/o/images%2F125e1975-f09b-4497-a75d-f2e7b3992015?alt=media&token=8679f2fe-b50a-4a6f-a89c-497d3b516bde");
-    background-repeat: repeat;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     background-attachment: fixed;
   }
 
