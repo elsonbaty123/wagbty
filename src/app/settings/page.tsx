@@ -23,7 +23,7 @@ import { useTranslation } from 'react-i18next';
 import { DEFAULT_CHEF_AVATAR, DEFAULT_CUSTOMER_AVATAR } from '@/lib/data';
 
 export default function SettingsPage() {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const { user, loading, logout, updateUser } = useAuth();
     const router = useRouter();
     const { toast } = useToast();
@@ -106,7 +106,7 @@ export default function SettingsPage() {
         }
     };
     
-    const handleGetLocation = () => {
+    const handleGetLocation = async () => {
         if (!navigator.geolocation) {
             toast({
                 variant: "destructive",
@@ -117,28 +117,61 @@ export default function SettingsPage() {
         }
 
         setIsFetchingLocation(true);
+        
+        try {
+            const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject);
+            });
+            
+            const { latitude, longitude } = position.coords;
+            const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                const { latitude, longitude } = position.coords;
-                // In a real app, you would use a reverse geocoding API here.
-                const mockAddress = t('mock_address', { lat: latitude.toFixed(4), lng: longitude.toFixed(4) }, `Mock Address: Lat: ${latitude.toFixed(4)}, Lng: ${longitude.toFixed(4)}`);
+            if (!apiKey) {
+                toast({
+                    variant: "destructive",
+                    title: t('configuration_error', 'Configuration Error'),
+                    description: t('google_maps_api_key_missing', 'Google Maps API key is missing. Add NEXT_PUBLIC_GOOGLE_MAPS_API_KEY to .env.local'),
+                });
+                const mockAddress = `Lat: ${latitude.toFixed(4)}, Lng: ${longitude.toFixed(4)}`;
                 setAddress(mockAddress);
+                setIsFetchingLocation(false);
+                return;
+            }
+
+            const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${apiKey}&language=${i18n.language}`);
+            const data = await response.json();
+
+            if (data.status === 'OK' && data.results && data.results.length > 0) {
+                const fetchedAddress = data.results[0].formatted_address;
+                setAddress(fetchedAddress);
                 toast({
                     title: t('location_retrieved_successfully', 'Location retrieved successfully!'),
                 });
-                setIsFetchingLocation(false);
-            },
-            (error) => {
-                console.error("Geolocation error:", error);
+            } else {
+                toast({
+                    variant: "destructive",
+                    title: t('could_not_determine_address_title', 'Could not determine address'),
+                    description: t('could_not_determine_address_desc', 'Failed to determine a precise address. Please try again or enter it manually.'),
+                });
+            }
+        } catch (error: any) {
+            console.error("Geolocation or Geocoding error:", error);
+            if (error.code) { // Geolocation error
                 toast({
                     variant: "destructive",
                     title: t('failed_to_get_location', 'Failed to get location'),
                     description: t('failed_to_get_location_desc', 'Please ensure you have enabled location services and granted permission.'),
                 });
-                setIsFetchingLocation(false);
+            } else { // Geocoding or network error
+                toast({
+                    variant: "destructive",
+                    title: t('could_not_determine_address_title', 'Could not determine address'),
+                    description: t('could_not_determine_address_desc', 'Failed to determine a precise address. Please try again or enter it manually.'),
+                });
             }
-        );
+        } finally {
+            setIsFetchingLocation(false);
+        }
     };
 
 
