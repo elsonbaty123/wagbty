@@ -12,7 +12,7 @@ import { PasswordInput } from '@/components/password-input';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, MapPin } from 'lucide-react';
 import type { User } from '@/lib/types';
 import { useTranslation } from 'react-i18next';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -26,6 +26,7 @@ export default function SignupPage() {
   const [customerAddress, setCustomerAddress] = useState('');
   const [customerPassword, setCustomerPassword] = useState('');
   const [customerGender, setCustomerGender] = useState<'male' | 'female'>();
+  const [isFetchingLocation, setIsFetchingLocation] = useState(false);
 
   const [chefName, setChefName] = useState('');
   const [chefEmail, setChefEmail] = useState('');
@@ -142,6 +143,41 @@ export default function SignupPage() {
         setIsLoading(false);
     }
   };
+  
+    const handleGetLocation = () => {
+        if (!navigator.geolocation) {
+            toast({
+                variant: "destructive",
+                title: t('geolocation_not_supported', 'Geolocation is not supported by your browser.'),
+                description: t('geolocation_not_supported_desc', 'Please enter your address manually.'),
+            });
+            return;
+        }
+
+        setIsFetchingLocation(true);
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const { latitude, longitude } = position.coords;
+                // In a real app, you would use a reverse geocoding API here.
+                const mockAddress = t('mock_address', { lat: latitude.toFixed(4), lng: longitude.toFixed(4) }, `Mock Address: Lat: ${latitude.toFixed(4)}, Lng: ${longitude.toFixed(4)}`);
+                setCustomerAddress(mockAddress);
+                toast({
+                    title: t('location_retrieved_successfully', 'Location retrieved successfully!'),
+                });
+                setIsFetchingLocation(false);
+            },
+            (error) => {
+                console.error("Geolocation error:", error);
+                toast({
+                    variant: "destructive",
+                    title: t('failed_to_get_location', 'Failed to get location'),
+                    description: t('failed_to_get_location_desc', 'Please ensure you have enabled location services and granted permission.'),
+                });
+                setIsFetchingLocation(false);
+            }
+        );
+    };
 
   return (
     <Tabs defaultValue="customer" className="w-full max-w-md">
@@ -207,8 +243,28 @@ export default function SignupPage() {
                 <Input id="customer-phone" type="tel" placeholder={t('phone_placeholder')} required value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)}/>
               </div>
               <div className="space-y-2 text-left rtl:text-right">
-                  <Label htmlFor="customer-address">{t('address')}</Label>
-                  <Input id="customer-address" placeholder={t('address_placeholder_customer')} required value={customerAddress} onChange={(e) => setCustomerAddress(e.target.value)} />
+                <Label htmlFor="customer-address">{t('address')}</Label>
+                  <div className="relative">
+                      <Input
+                          id="customer-address"
+                          placeholder={t('address_placeholder_customer')}
+                          required
+                          value={customerAddress}
+                          onChange={(e) => setCustomerAddress(e.target.value)}
+                          className="pe-10"
+                      />
+                      <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={handleGetLocation}
+                          className="absolute top-1/2 -translate-y-1/2 end-1 h-8 w-8"
+                          disabled={isFetchingLocation}
+                          aria-label={t('use_current_location', 'Use current location')}
+                      >
+                          {isFetchingLocation ? <Loader2 className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
+                      </Button>
+                  </div>
               </div>
               <div className="space-y-2 text-left rtl:text-right">
                 <Label htmlFor="customer-password">{t('password')}</Label>

@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/context/auth-context';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Upload, Loader2, User as UserIcon, Circle, Trash2 } from 'lucide-react';
+import { Upload, Loader2, User as UserIcon, Circle, Trash2, MapPin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -36,6 +36,7 @@ export default function SettingsPage() {
     const [phone, setPhone] = useState('');
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
+    const [isFetchingLocation, setIsFetchingLocation] = useState(false);
 
     // Customer-specific state
     const [address, setAddress] = useState('');
@@ -104,6 +105,42 @@ export default function SettingsPage() {
             reader.readAsDataURL(file);
         }
     };
+    
+    const handleGetLocation = () => {
+        if (!navigator.geolocation) {
+            toast({
+                variant: "destructive",
+                title: t('geolocation_not_supported', 'Geolocation is not supported by your browser.'),
+                description: t('geolocation_not_supported_desc', 'Please enter your address manually.'),
+            });
+            return;
+        }
+
+        setIsFetchingLocation(true);
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const { latitude, longitude } = position.coords;
+                // In a real app, you would use a reverse geocoding API here.
+                const mockAddress = t('mock_address', { lat: latitude.toFixed(4), lng: longitude.toFixed(4) }, `Mock Address: Lat: ${latitude.toFixed(4)}, Lng: ${longitude.toFixed(4)}`);
+                setAddress(mockAddress);
+                toast({
+                    title: t('location_retrieved_successfully', 'Location retrieved successfully!'),
+                });
+                setIsFetchingLocation(false);
+            },
+            (error) => {
+                console.error("Geolocation error:", error);
+                toast({
+                    variant: "destructive",
+                    title: t('failed_to_get_location', 'Failed to get location'),
+                    description: t('failed_to_get_location_desc', 'Please ensure you have enabled location services and granted permission.'),
+                });
+                setIsFetchingLocation(false);
+            }
+        );
+    };
+
 
     const handleRemoveImage = async () => {
         if (!user) return;
@@ -275,7 +312,19 @@ export default function SettingsPage() {
                         </div>
                         {user.role === 'customer' && (
                             <div className="space-y-2 text-left rtl:text-right">
-                                <Label htmlFor="address">{t('delivery_address_label')}</Label>
+                                <div className="flex justify-between items-center">
+                                    <Label htmlFor="address">{t('delivery_address_label')}</Label>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={handleGetLocation}
+                                        disabled={isFetchingLocation}
+                                    >
+                                        {isFetchingLocation ? <Loader2 className="me-2 h-4 w-4 animate-spin" /> : <MapPin className="me-2 h-4 w-4" />}
+                                        {t('use_current_location', 'Use Current Location')}
+                                    </Button>
+                                </div>
                                 <Textarea id="address" value={address} onChange={(e) => setAddress(e.target.value)} placeholder={t('delivery_address_placeholder')} />
                             </div>
                         )}
