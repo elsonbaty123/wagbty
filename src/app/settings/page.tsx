@@ -155,7 +155,7 @@ export default function SettingsPage() {
                 });
             }
         } catch (error: any) {
-            console.error("Geolocation or Geocoding error:", error);
+            console.error("Geolocation or Geocoding error:", error.message || error);
             if (error.code) { // Geolocation error
                 toast({
                     variant: "destructive",
