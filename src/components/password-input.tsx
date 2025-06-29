@@ -32,6 +32,11 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
         number: false,
         symbol: false,
     });
+    const [isMounted, setIsMounted] = React.useState(false);
+
+    React.useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
     React.useEffect(() => {
         const password = String(value || '');
@@ -86,7 +91,7 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
             type="button"
             onClick={() => setShowPassword((prev) => !prev)}
             className="absolute inset-y-0 end-0 flex items-center px-3 text-muted-foreground"
-            aria-label={showPassword ? t('hide_password') : t('show_password')}
+            aria-label={isMounted ? (showPassword ? t('hide_password') : t('show_password')) : 'Toggle password visibility'}
           >
             {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
           </button>
