@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -18,7 +17,7 @@ interface AuthContextType {
   user: User | null;
   users: User[];
   chefs: User[];
-  login: (email: string, password: string, role: UserRole) => Promise<User>;
+  login: (identifier: string, password: string, role: UserRole) => Promise<User>;
   signup: (details: Partial<User> & { password: string, role: UserRole }) => Promise<User>;
   logout: () => void;
   updateUser: (updatedUserDetails: Partial<User>) => Promise<User>;
@@ -87,16 +86,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }
 
-  const login = async (email: string, password: string, role: UserRole): Promise<User> => {
-    const targetUser = users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.role === role);
+  const login = async (identifier: string, password: string, role: UserRole): Promise<User> => {
+    const isEmail = identifier.includes('@');
+    
+    const targetUser = isEmail
+        ? users.find(u => u.email.toLowerCase() === identifier.toLowerCase() && u.role === role)
+        : users.find(u => u.phone === identifier && u.role === role);
 
     if (!targetUser || !targetUser.hashedPassword) {
-      throw new Error(t('auth_incorrect_credentials'));
+      throw new Error(t('auth_identifier_not_found', 'رقم الهاتف أو البريد الإلكتروني غير مسجل.'));
     }
 
     const isMatch = await bcrypt.compare(password, targetUser.hashedPassword);
     if (!isMatch) {
-      throw new Error(t('auth_incorrect_credentials'));
+      throw new Error(t('auth_incorrect_password', 'كلمة المرور غير صحيحة.'));
     }
     
     const { hashedPassword, ...userToSet } = targetUser;
@@ -109,6 +112,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const emailExists = users.some(u => u.email.toLowerCase() === details.email!.toLowerCase());
     if (emailExists) {
         throw new Error(t('auth_email_in_use'));
+    }
+
+    if (details.phone) {
+        const phoneExists = users.some(u => u.phone && u.phone === details.phone);
+        if (phoneExists) {
+            throw new Error(t('auth_phone_in_use', 'هذا الرقم مسجل بالفعل، الرجاء تسجيل الدخول أو استخدام رقم آخر.'));
+        }
     }
     
     validatePassword(details.password);

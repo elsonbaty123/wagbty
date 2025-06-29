@@ -17,9 +17,9 @@ import { useTranslation } from 'react-i18next';
 
 export default function LoginPage() {
   const { t, i18n } = useTranslation();
-  const [customerEmail, setCustomerEmail] = useState('');
+  const [customerIdentifier, setCustomerIdentifier] = useState('');
   const [customerPassword, setCustomerPassword] = useState('');
-  const [chefEmail, setChefEmail] = useState('');
+  const [chefIdentifier, setChefIdentifier] = useState('');
   const [chefPassword, setChefPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -27,24 +27,36 @@ export default function LoginPage() {
   const { toast } = useToast();
   const router = useRouter();
 
-    const validateEmail = (email: string): string => {
-        if (!email.trim()) return t('validation_email_required');
-    
-        if (!/^[a-zA-Z]/.test(email)) {
-          return t('validation_email_must_start_with_letter');
-        }
-    
-        if (!email.includes('@')) {
-            return t('validation_email_must_contain_at');
-        }
-    
-        if (/[^a-zA-Z0-9@._-]/.test(email)) {
-          return t('validation_email_contains_invalid_chars');
-        }
+    const validateIdentifier = (identifier: string): string => {
+        if (!identifier.trim()) return t('validation_identifier_required', 'الرجاء إدخال البريد الإلكتروني أو رقم الهاتف');
+
+        const isEmail = identifier.includes('@');
+        const isNumeric = /^\d+$/.test(identifier);
+
+        if (isEmail) {
+            if (!/^[a-zA-Z]/.test(identifier)) {
+              return t('validation_email_must_start_with_letter');
+            }
         
-        const emailRegex = /^[a-zA-Z][a-zA-Z0-9._-]*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-        if (!emailRegex.test(email)) {
-          return t('validation_email_invalid_format');
+            if (!identifier.includes('@')) {
+                return t('validation_email_must_contain_at');
+            }
+        
+            if (/[^a-zA-Z0-9@._-]/.test(identifier)) {
+              return t('validation_email_contains_invalid_chars');
+            }
+            
+            const emailRegex = /^[a-zA-Z][a-zA-Z0-9._-]*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            if (!emailRegex.test(identifier)) {
+              return t('validation_email_invalid_format');
+            }
+        } else if (isNumeric) {
+            // Basic phone validation
+            if (identifier.length < 10) {
+                return t('validation_phone_too_short', 'يجب أن يتكون رقم الهاتف من 10 أرقام على الأقل');
+            }
+        } else {
+            return t('validation_identifier_invalid', 'الرجاء إدخال بريد إلكتروني أو رقم هاتف صحيح');
         }
         
         return '';
@@ -52,22 +64,22 @@ export default function LoginPage() {
 
   const handleLogin = async (role: 'customer' | 'chef') => {
     setIsLoading(true);
-    const email = role === 'customer' ? customerEmail : chefEmail;
+    const identifier = role === 'customer' ? customerIdentifier : chefIdentifier;
     const password = role === 'customer' ? customerPassword : chefPassword;
 
-    const emailError = validateEmail(email);
-    if (emailError) {
+    const identifierError = validateIdentifier(identifier);
+    if (identifierError) {
         toast({
             variant: "destructive",
-            title: t('error_in_email'),
-            description: emailError,
+            title: t('error_in_input', 'خطأ في الإدخال'),
+            description: identifierError,
         });
         setIsLoading(false);
         return;
     }
 
     try {
-      const loggedInUser = await login(email, password, role);
+      const loggedInUser = await login(identifier, password, role);
       toast({
         title: i18n.language === 'ar' ? 'تم تسجيل الدخول بنجاح' : 'Login Successful',
         description: i18n.language === 'ar' ? `أهلاً بعودتك، ${loggedInUser.name}` : `Welcome back, ${loggedInUser.name}`,
@@ -103,14 +115,14 @@ export default function LoginPage() {
           <CardContent>
             <form onSubmit={(e) => { e.preventDefault(); handleLogin('customer'); }} className="space-y-4">
               <div className="space-y-2 text-left rtl:text-right">
-                <Label htmlFor="customer-email">{t('email')}</Label>
+                <Label htmlFor="customer-identifier">{t('email_or_phone', 'البريد الإلكتروني أو رقم الهاتف')}</Label>
                 <Input 
-                  id="customer-email" 
-                  type="email" 
-                  placeholder={t('customer_email_placeholder')} 
+                  id="customer-identifier" 
+                  type="text" 
+                  placeholder={t('identifier_placeholder', 'أدخل بريدك الإلكتروني أو رقم هاتفك')} 
                   required 
-                  value={customerEmail}
-                  onChange={(e) => setCustomerEmail(e.target.value)}
+                  value={customerIdentifier}
+                  onChange={(e) => setCustomerIdentifier(e.target.value)}
                 />
               </div>
               <div className="space-y-2 text-left rtl:text-right">
@@ -148,14 +160,14 @@ export default function LoginPage() {
           <CardContent>
             <form onSubmit={(e) => { e.preventDefault(); handleLogin('chef'); }} className="space-y-4">
               <div className="space-y-2 text-left rtl:text-right">
-                <Label htmlFor="chef-email">{t('email')}</Label>
+                <Label htmlFor="chef-identifier">{t('email_or_phone', 'البريد الإلكتروني أو رقم الهاتف')}</Label>
                 <Input 
-                  id="chef-email" 
-                  type="email" 
-                  placeholder={t('chef_email_placeholder')} 
+                  id="chef-identifier" 
+                  type="text" 
+                  placeholder={t('identifier_placeholder_chef', 'أدخل بريد الشيف الإلكتروني أو رقم هاتفه')} 
                   required 
-                  value={chefEmail}
-                  onChange={(e) => setChefEmail(e.target.value)}
+                  value={chefIdentifier}
+                  onChange={(e) => setChefIdentifier(e.target.value)}
                 />
               </div>
               <div className="space-y-2 text-left rtl:text-right">
