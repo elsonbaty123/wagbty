@@ -63,6 +63,17 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
+    background-color: hsl(var(--background));
+    /* Apply a light, semi-transparent overlay in light mode over the background image */
+    background-image: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url("https://firebasestorage.googleapis.com/v0/b/project-revolver-prod.appspot.com/o/images%2F125e1975-f09b-4497-a75d-f2e7b3992015?alt=media&token=8679f2fe-b50a-4a6f-a89c-497d3b516bde");
+    background-repeat: repeat;
+    background-attachment: fixed;
+  }
+
+  .dark body {
+    /* The dark background color is set via theme variables. */
+    /* Apply a dark, semi-transparent overlay over the background image. */
+    background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url("https://firebasestorage.googleapis.com/v0/b/project-revolver-prod.appspot.com/o/images%2F125e1975-f09b-4497-a75d-f2e7b3992015?alt=media&token=8679f2fe-b50a-4a6f-a89c-497d3b516bde");
   }
 }
