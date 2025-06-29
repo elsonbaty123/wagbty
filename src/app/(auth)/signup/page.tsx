@@ -1,6 +1,7 @@
 
 'use client';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -161,22 +162,34 @@ export default function SignupPage() {
                 <Input id="customer-name" required value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder={t('full_name_placeholder')} />
               </div>
               <div className="space-y-2 text-left rtl:text-right">
-                  <Label>{t('gender', 'النوع')}</Label>
-                  <RadioGroup
-                      required
-                      onValueChange={(value: 'male' | 'female') => setCustomerGender(value)}
-                      value={customerGender}
-                      className="flex gap-4"
-                  >
-                      <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                          <RadioGroupItem value="male" id="customer-male" />
-                          <Label htmlFor="customer-male" className="font-normal">{t('male', 'ذكر')}</Label>
-                      </div>
-                      <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                          <RadioGroupItem value="female" id="customer-female" />
-                          <Label htmlFor="customer-female" className="font-normal">{t('female', 'أنثى')}</Label>
-                      </div>
-                  </RadioGroup>
+                <Label>{t('gender', 'النوع')}</Label>
+                <RadioGroup
+                    required
+                    onValueChange={(value: 'male' | 'female') => setCustomerGender(value)}
+                    value={customerGender}
+                    className="grid grid-cols-2 gap-4"
+                >
+                    <div>
+                        <RadioGroupItem value="male" id="customer-male" className="sr-only peer" />
+                        <Label
+                            htmlFor="customer-male"
+                            className="flex flex-col items-center justify-center rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                        >
+                            <Image src="https://cdn-icons-png.flaticon.com/512/147/147144.png" alt={t('male', 'ذكر')} width={48} height={48} className="mb-2 h-12 w-12" data-ai-hint="male avatar" />
+                            <span className="font-normal">{t('male', 'ذكر')}</span>
+                        </Label>
+                    </div>
+                    <div>
+                        <RadioGroupItem value="female" id="customer-female" className="sr-only peer" />
+                        <Label
+                            htmlFor="customer-female"
+                            className="flex flex-col items-center justify-center rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                        >
+                            <Image src="https://cdn-icons-png.flaticon.com/512/147/147142.png" alt={t('female', 'أنثى')} width={48} height={48} className="mb-2 h-12 w-12" data-ai-hint="female avatar" />
+                            <span className="font-normal">{t('female', 'أنثى')}</span>
+                        </Label>
+                    </div>
+                </RadioGroup>
               </div>
               <div className="space-y-2 text-left rtl:text-right">
                 <Label htmlFor="customer-email">{t('email')}</Label>
@@ -235,22 +248,34 @@ export default function SignupPage() {
                 <Input id="chef-name" required value={chefName} onChange={(e) => setChefName(e.target.value)} placeholder={t('full_name_placeholder_chef')}/>
               </div>
               <div className="space-y-2 text-left rtl:text-right">
-                  <Label>{t('gender', 'النوع')}</Label>
-                  <RadioGroup
-                      required
-                      onValueChange={(value: 'male' | 'female') => setChefGender(value)}
-                      value={chefGender}
-                      className="flex gap-4"
-                  >
-                      <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                          <RadioGroupItem value="male" id="chef-male" />
-                          <Label htmlFor="chef-male" className="font-normal">{t('male', 'ذكر')}</Label>
-                      </div>
-                      <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                          <RadioGroupItem value="female" id="chef-female" />
-                          <Label htmlFor="chef-female" className="font-normal">{t('female', 'أنثى')}</Label>
-                      </div>
-                  </RadioGroup>
+                <Label>{t('gender', 'النوع')}</Label>
+                <RadioGroup
+                    required
+                    onValueChange={(value: 'male' | 'female') => setChefGender(value)}
+                    value={chefGender}
+                    className="grid grid-cols-2 gap-4"
+                >
+                    <div>
+                        <RadioGroupItem value="male" id="chef-male" className="sr-only peer" />
+                        <Label
+                            htmlFor="chef-male"
+                            className="flex flex-col items-center justify-center rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                        >
+                            <Image src="https://cdn-icons-png.flaticon.com/512/147/147144.png" alt={t('male', 'ذكر')} width={48} height={48} className="mb-2 h-12 w-12" data-ai-hint="male avatar"/>
+                            <span className="font-normal">{t('male', 'ذكر')}</span>
+                        </Label>
+                    </div>
+                    <div>
+                        <RadioGroupItem value="female" id="chef-female" className="sr-only peer" />
+                        <Label
+                            htmlFor="chef-female"
+                            className="flex flex-col items-center justify-center rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                        >
+                            <Image src="https://cdn-icons-png.flaticon.com/512/147/147142.png" alt={t('female', 'أنثى')} width={48} height={48} className="mb-2 h-12 w-12" data-ai-hint="female avatar" />
+                            <span className="font-normal">{t('female', 'أنثى')}</span>
+                        </Label>
+                    </div>
+                </RadioGroup>
               </div>
               <div className="space-y-2 text-left rtl:text-right">
                 <Label htmlFor="chef-specialty">{t('kitchen_specialty')}</Label>
