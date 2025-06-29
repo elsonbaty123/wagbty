@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -14,13 +14,11 @@ import { Utensils } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
 
-export function ProfilePageContent() {
+export function ProfilePageContent({ tab }: { tab: string }) {
     const { t } = useTranslation();
     const { user, loading } = useAuth();
     const { getOrdersByCustomerId, addReviewToOrder, loading: ordersLoading } = useOrders();
     const router = useRouter();
-    const searchParams = useSearchParams();
-    const tab = searchParams.get('tab') || 'ongoing';
 
     useEffect(() => {
         if (!loading && !user) {
@@ -51,7 +49,7 @@ export function ProfilePageContent() {
   return (
     <div className="container mx-auto px-4 py-8 md:px-6 md:py-12">
       <h1 className="font-headline text-3xl md:text-4xl font-bold text-primary mb-8">{t('my_orders_title')}</h1>
-        <Tabs defaultValue={tab === 'completed' ? 'completed' : 'ongoing'} className="w-full mt-4">
+        <Tabs defaultValue={tab} className="w-full mt-4">
                 <TabsList className="grid w-full grid-cols-2 sm:max-w-sm">
                 <TabsTrigger value="ongoing">{t('ongoing_orders')}</TabsTrigger>
                 <TabsTrigger value="completed">{t('completed_orders')}</TabsTrigger>

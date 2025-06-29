@@ -1,3 +1,4 @@
+
 import { Suspense } from 'react';
 import { ProfilePageContent } from '@/components/profile-page-content';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -14,10 +15,16 @@ function ProfilePageSkeleton() {
 }
 
 
-export default function ProfilePage() {
+export default function ProfilePage({ searchParams }: { searchParams?: { tab?: string } }) {
+    let tab = searchParams?.tab || 'ongoing';
+    // Ensure the tab value is valid, otherwise default to 'ongoing'
+    if (tab !== 'ongoing' && tab !== 'completed') {
+        tab = 'ongoing';
+    }
+    
     return (
         <Suspense fallback={<ProfilePageSkeleton />}>
-            <ProfilePageContent />
+            <ProfilePageContent tab={tab} />
         </Suspense>
     );
 }
