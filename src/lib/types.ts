@@ -24,7 +24,7 @@ export type Dish = {
   ratings?: DishRating[];
 };
 
-export type UserRole = 'customer' | 'chef';
+export type UserRole = 'customer' | 'chef' | 'admin';
 
 export type StatusObject = {
   id: string;

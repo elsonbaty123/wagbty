@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createContext, useState, useEffect, useContext, type ReactNode } from 'react';
 import type { User, UserRole } from '@/lib/types';
 import { useTranslation } from 'react-i18next';
-import { initialUsers, DEFAULT_CHEF_AVATAR, DEFAULT_CUSTOMER_AVATAR } from '@/lib/data';
+import { initialUsers, DEFAULT_CHEF_AVATAR, DEFAULT_CUSTOMER_AVATAR, DEFAULT_ADMIN_AVATAR } from '@/lib/data';
 import localforage from 'localforage';
 import bcrypt from 'bcryptjs';
 import { useToast } from '@/hooks/use-toast';
@@ -24,6 +24,7 @@ interface AuthContextType {
   changePassword: (passwordDetails: { currentPassword; newPassword; confirmPassword; }) => Promise<void>;
   sendPasswordResetEmail: (email: string) => Promise<void>; // Mocked
   toggleFavoriteDish: (dishId: string) => Promise<void>;
+  deleteUser: (userIdToDelete: string) => Promise<void>;
   loading: boolean;
 }
 
@@ -89,6 +90,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (identifier: string, password: string, role: UserRole): Promise<User> => {
     const isEmail = identifier.includes('@');
     
+    // Special case for admin login
+    const adminUser = users.find(u => u.role === 'admin');
+    if (adminUser && adminUser.email.toLowerCase() === identifier.toLowerCase()) {
+        const isMatch = await bcrypt.compare(password, adminUser.hashedPassword!);
+        if (isMatch) {
+            const { hashedPassword, ...userToSet } = adminUser;
+            setUser(userToSet);
+            localStorage.setItem('currentUserId', userToSet.id);
+            return userToSet;
+        }
+    }
+    
     const targetUser = isEmail
         ? users.find(u => u.email.toLowerCase() === identifier.toLowerCase() && u.role === role)
         : users.find(u => u.phone === identifier && u.role === role);
@@ -109,6 +122,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signup = async (details: Partial<User> & { password: string, role: UserRole }): Promise<User> => {
+    if(details.role === 'admin') {
+        throw new Error("Cannot sign up as an admin.");
+    }
     const emailExists = users.some(u => u.email.toLowerCase() === details.email!.toLowerCase());
     if (emailExists) {
         throw new Error(t('auth_email_in_use'));
@@ -243,6 +259,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       title: isFavorited ? t('removed_from_favorites') : t('added_to_favorites'),
     });
   };
+  
+  const deleteUser = async (userIdToDelete: string) => {
+    if (!user || user.role !== 'admin') {
+      throw new Error("Only admins can delete users.");
+    }
+    if (user.id === userIdToDelete) {
+      throw new Error("Admin cannot delete their own account.");
+    }
+    const updatedUsers = users.filter(u => u.id !== userIdToDelete);
+    setAllUsers(updatedUsers);
+    await localforage.setItem('users', updatedUsers);
+  };
 
   const chefs = users.filter(u => u.role === 'chef').map(u => {
     const { hashedPassword, ...rest } = u;
@@ -256,7 +284,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 
   return (
-    <AuthContext.Provider value={{ user, users: publicUsers, chefs, login, signup, logout, updateUser, changePassword, sendPasswordResetEmail, toggleFavoriteDish, loading }}>
+    <AuthContext.Provider value={{ user, users: publicUsers, chefs, login, signup, logout, updateUser, changePassword, sendPasswordResetEmail, toggleFavoriteDish, deleteUser, loading }}>
       {children}
     </AuthContext.Provider>
   );

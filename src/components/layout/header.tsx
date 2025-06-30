@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription, SheetClose } from "@/components/ui/sheet"
-import { Menu, UtensilsCrossed, User, LogOut, Settings } from "lucide-react"
+import { Menu, UtensilsCrossed, User, LogOut, Settings, ShieldCheck } from "lucide-react"
 import { useAuth } from "@/context/auth-context"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -25,6 +25,7 @@ export function Header() {
 
   const getDashboardLink = () => {
     if (!user) return "/login";
+    if (user.role === 'admin') return '/admin/dashboard';
     return user.role === 'chef' ? '/chef/dashboard' : '/profile';
   }
 
@@ -61,7 +62,7 @@ export function Header() {
                           <div className="h-10 w-full animate-pulse rounded-md bg-muted" />
                       ) : user ? (
                           <>
-                          {user.role === 'chef' && (
+                          {(user.role === 'chef' || user.role === 'admin') && (
                             <SheetClose asChild>
                                 <Button variant="ghost" asChild>
                                     <Link href={getDashboardLink()}>{t('dashboard')}</Link>
@@ -149,8 +150,8 @@ export function Header() {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link href={getDashboardLink()}>
-                      <User className="me-2 h-4 w-4" />
-                      <span>{user.role === 'chef' ? t('dashboard') : t('my_orders_title')}</span>
+                      {user.role === 'admin' ? <ShieldCheck className="me-2 h-4 w-4" /> : <User className="me-2 h-4 w-4" /> }
+                      <span>{user.role === 'admin' ? t('admin_dashboard') : user.role === 'chef' ? t('dashboard') : t('my_orders_title')}</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>

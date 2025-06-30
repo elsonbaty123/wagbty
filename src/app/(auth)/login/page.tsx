@@ -84,7 +84,9 @@ export default function LoginPage() {
         title: i18n.language === 'ar' ? 'تم تسجيل الدخول بنجاح' : 'Login Successful',
         description: i18n.language === 'ar' ? `أهلاً بعودتك، ${loggedInUser.name}` : `Welcome back, ${loggedInUser.name}`,
       });
-      if (loggedInUser.role === 'chef') {
+      if (loggedInUser.role === 'admin') {
+        router.push('/admin/dashboard');
+      } else if (loggedInUser.role === 'chef') {
         router.push('/chef/dashboard');
       } else {
         router.push('/');
