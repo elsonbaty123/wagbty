@@ -158,7 +158,6 @@ export default function SettingsPage() {
                 });
             }
         } catch (error: any) {
-            console.error("Geolocation or Geocoding error:", error);
             let title = t('failed_to_get_location', 'Failed to get location');
             let description = t('failed_to_get_location_desc', 'Please ensure you have enabled location services and granted permission.');
             

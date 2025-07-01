@@ -172,7 +172,6 @@ export default function SignupPage() {
              toast({ variant: "destructive", title: t('could_not_determine_address_title'), description: t('could_not_determine_address_desc') });
         }
     } catch (error: any) {
-        console.error("Geolocation or Geocoding error:", error);
         let title = t('failed_to_get_location', 'Failed to get location');
         let description = t('failed_to_get_location_desc', 'Please ensure you have enabled location services and granted permission.');
         
