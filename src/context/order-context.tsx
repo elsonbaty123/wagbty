@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { initialOrders, allDishes, initialCoupons } from '@/lib/data';
 import localforage from 'localforage';
 import { useAuth } from './auth-context';
+import { useToast } from '@/hooks/use-toast';
 
 type CreateOrderPayload = Omit<Order, 'id' | 'status' | 'createdAt' | 'chef' | 'dailyDishOrderNumber'> & {
   chef: User;
@@ -21,7 +22,7 @@ interface OrderContextType {
   getOrdersByCustomerId: (customerId: string) => Order[];
   getOrdersByChefId: (chefId: string) => Order[];
   createOrder: (orderData: CreateOrderPayload) => Promise<void>;
-  updateOrderStatus: (orderId: string, status: OrderStatus) => Promise<void>;
+  updateOrderStatus: (orderId: string, status: Order['status']) => Promise<void>;
   assignOrderToDelivery: (orderId: string) => Promise<void>;
   markOrderAsNotDelivered: (orderId: string, details: { reason: string; responsibility: NotDeliveredResponsibility }) => Promise<void>;
   addDish: (dishData: Omit<Dish, 'id' | 'ratings'>) => Promise<void>;
@@ -44,6 +45,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
   const { createNotification } = useNotifications();
   const { user } = useAuth();
   const { t } = useTranslation();
+  const { toast } = useToast();
 
   useEffect(() => {
     const loadData = async () => {
@@ -144,32 +146,46 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
     if (!user || user.role !== 'delivery') return;
 
     const orderToUpdate = orders.find(o => o.id === orderId);
-    if (orderToUpdate && orderToUpdate.status === 'ready_for_delivery') {
+    // Check if another driver just took it
+    if (orderToUpdate && !orderToUpdate.deliveryPersonId && ['preparing', 'ready_for_delivery'].includes(orderToUpdate.status)) {
       const updatedOrder = {
         ...orderToUpdate,
-        status: 'out_for_delivery' as OrderStatus,
+        // Don't change status here, just assign the driver
         deliveryPersonId: user.id,
         deliveryPersonName: user.name,
       };
       setOrders(prev => prev.map(o => o.id === orderId ? updatedOrder : o));
+      
+      toast({
+        title: t('order_accepted_for_delivery', 'Order Accepted for Delivery'),
+        description: t('order_accepted_for_delivery_desc', { id: orderToUpdate.id.slice(-6) }),
+      });
 
-      // Notify Customer
+      // Notify Customer that a driver is assigned
       createNotification({
         recipientId: updatedOrder.customerId,
-        titleKey: 'order_on_the_way_notification_title',
-        messageKey: 'order_on_the_way_delivery_notification_desc',
-        params: { dishName: updatedOrder.dish.name, deliveryPersonName: user.name },
+        titleKey: 'delivery_driver_assigned_title',
+        messageKey: 'delivery_driver_assigned_desc',
+        params: { driverName: user.name },
         link: '/profile',
       });
 
-      // Notify Chef
+      // Notify Chef that a driver is assigned
       createNotification({
         recipientId: updatedOrder.chef.id,
-        titleKey: 'order_pickup_notification_title',
-        messageKey: 'order_pickup_notification_desc',
-        params: { dishName: updatedOrder.dish.name, deliveryPersonName: user.name },
+        titleKey: 'driver_assigned_for_order_title',
+        messageKey: 'driver_assigned_for_order_desc',
+        params: { driverName: user.name, orderId: updatedOrder.id.slice(-6) },
         link: '/chef/orders',
       });
+    } else {
+        toast({
+            variant: "destructive",
+            title: t('order_unavailable_title', 'Order No Longer Available'),
+            description: t('order_unavailable_desc', 'This order was just accepted by another driver.'),
+        });
+        // Refreshes the list for the driver
+        setOrders([...orders]);
     }
   };
 
@@ -178,26 +194,44 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
     if (updatedOrder) {
       setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o));
 
-      const { customerId, dish: { name: dishName } } = updatedOrder;
+      const { customerId, chef, dish: { name: dishName } } = updatedOrder;
+      
       const notifications: {[key: string]: {titleKey: string, messageKey: string}} = {
         preparing: { titleKey: 'order_confirmed_notification_title', messageKey: 'order_confirmed_notification_desc' },
-        ready_for_delivery: { titleKey: 'order_ready_notification_title', messageKey: 'order_ready_notification_desc' },
         out_for_delivery: { titleKey: 'order_on_the_way_notification_title', messageKey: 'order_on_the_way_notification_desc' },
         delivered: { titleKey: 'order_delivered_notification_title', messageKey: 'order_delivered_notification_desc' },
         rejected: { titleKey: 'order_rejected_notification_title', messageKey: 'order_rejected_notification_desc' }
       };
 
       if (notifications[status]) {
-          // Avoid sending the generic "out_for_delivery" notification if it was triggered by delivery assignment
-          if (status === 'out_for_delivery' && updatedOrder.deliveryPersonId) {
-            return;
-          }
           createNotification({
               recipientId: customerId,
               titleKey: notifications[status].titleKey,
               messageKey: notifications[status].messageKey,
               params: { dishName },
               link: '/profile',
+          });
+      }
+      
+      // Special notification for when chef marks as ready_for_delivery
+      if (status === 'ready_for_delivery' && updatedOrder.deliveryPersonId) {
+          createNotification({
+              recipientId: updatedOrder.deliveryPersonId,
+              titleKey: 'order_ready_for_pickup_title',
+              messageKey: 'order_ready_for_pickup_desc',
+              params: { orderId: updatedOrder.id.slice(-6), chefName: chef.name },
+              link: '/delivery/dashboard',
+          });
+      }
+
+      // Special notification for chef when order is delivered
+      if (status === 'delivered') {
+          createNotification({
+              recipientId: chef.id,
+              titleKey: 'order_delivered_to_customer_title',
+              messageKey: 'order_delivered_to_customer_desc',
+              params: { orderId: updatedOrder.id.slice(-6) },
+              link: '/chef/orders?tab=completed',
           });
       }
     }

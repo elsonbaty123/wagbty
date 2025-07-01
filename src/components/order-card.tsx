@@ -61,17 +61,6 @@ export function OrderCard({ order, isChefView = false, isDeliveryView = false, u
       });
     }
   };
-  
-  const handleAssignDelivery = () => {
-    if (assignOrderToDelivery) {
-        assignOrderToDelivery(order.id);
-        const orderIdentifier = order.dailyDishOrderNumber ?? order.id.slice(-6);
-        toast({
-            title: t('order_accepted_for_delivery', 'Order Accepted for Delivery'),
-            description: t('order_accepted_for_delivery_desc', { id: orderIdentifier }),
-        });
-    }
-  }
 
   const handleSubmitReview = () => {
     if (rating > 0 && addReview) {
@@ -96,7 +85,6 @@ export function OrderCard({ order, isChefView = false, isDeliveryView = false, u
       mark_as_out_for_delivery: t('mark_as_out_for_delivery'),
       mark_as_delivered: t('mark_as_delivered'),
       report_not_delivered: t('report_not_delivered'),
-      accept_for_delivery: t('accept_for_delivery', 'Accept for Delivery'),
     };
 
     const renderChefActions = () => {
@@ -107,23 +95,35 @@ export function OrderCard({ order, isChefView = false, isDeliveryView = false, u
                 return <div className="grid grid-cols-2 gap-2 w-full"><Button variant="destructive" onClick={() => handleStatusChange('rejected')}><X className="me-2 h-4 w-4" />{actionTexts.reject_order}</Button><Button className="bg-green-600 hover:bg-green-700 text-white" onClick={() => handleStatusChange('preparing')}><Check className="me-2 h-4 w-4" />{actionTexts.accept_order}</Button></div>;
             case 'preparing':
                 return <Button className="w-full" onClick={() => handleStatusChange('ready_for_delivery')}><PackageCheck className="me-2 h-4 w-4" />{actionTexts.mark_as_prepared}</Button>;
-            case 'ready_for_delivery':
-                return <Button className="w-full" onClick={() => handleStatusChange('out_for_delivery')}><Truck className="me-2 h-4 w-4" />{actionTexts.mark_as_out_for_delivery}</Button>;
-            case 'out_for_delivery':
-                return <Dialog open={isNotDeliveredDialogOpen} onOpenChange={setNotDeliveredDialogOpen}><div className="grid grid-cols-2 gap-2 w-full"><Button variant="destructive" asChild><DialogTrigger><XCircle className="me-2 h-4 w-4" />{actionTexts.report_not_delivered}</DialogTrigger></Button><Button className="w-full bg-green-600 hover:bg-green-700 text-white" onClick={() => handleStatusChange('delivered')}><Check className="me-2 h-4 w-4" />{actionTexts.mark_as_delivered}</Button></div><NotDeliveredForm orderId={order.id} onFinished={() => setNotDeliveredDialogOpen(false)} /></Dialog>;
             default: return null;
         }
     };
     
     const renderDeliveryActions = () => {
         if (!isDeliveryView) return null;
-        switch (order.status) {
-            case 'ready_for_delivery':
-                return <Button className="w-full" onClick={handleAssignDelivery}><Bike className="me-2 h-4 w-4" />{actionTexts.accept_for_delivery}</Button>;
-            case 'out_for_delivery':
-                return <Dialog open={isNotDeliveredDialogOpen} onOpenChange={setNotDeliveredDialogOpen}><div className="grid grid-cols-2 gap-2 w-full"><Button variant="destructive" asChild><DialogTrigger><XCircle className="me-2 h-4 w-4" />{actionTexts.report_not_delivered}</DialogTrigger></Button><Button className="w-full bg-green-600 hover:bg-green-700 text-white" onClick={() => handleStatusChange('delivered')}><Check className="me-2 h-4 w-4" />{actionTexts.mark_as_delivered}</Button></div><NotDeliveredForm orderId={order.id} onFinished={() => setNotDeliveredDialogOpen(false)} /></Dialog>;
-            default: return null;
+        
+        // Case 1: Order is in the pool, not yet accepted by anyone.
+        if (!order.deliveryPersonId && assignOrderToDelivery) {
+            return <Button className="w-full" onClick={() => assignOrderToDelivery(order.id)}><Bike className="me-2 h-4 w-4" />{t('accept_delivery', 'Accept Delivery')}</Button>;
         }
+        
+        // Case 2: Order is assigned to the current driver.
+        if (order.deliveryPersonId) {
+            switch (order.status) {
+                case 'preparing':
+                    return <Badge variant="outline" className="w-full justify-center"><Clock className="me-2 h-4 w-4" />{t('order_status_preparing_delivery', 'Waiting for chef')}</Badge>;
+                case 'ready_for_delivery':
+                    if (updateOrderStatus) {
+                        return <Button className="w-full" onClick={() => handleStatusChange('out_for_delivery')}><PackageCheck className="me-2 h-4 w-4" />{t('i_have_the_order', 'I have the order')}</Button>;
+                    }
+                    return null;
+                case 'out_for_delivery':
+                     return <Dialog open={isNotDeliveredDialogOpen} onOpenChange={setNotDeliveredDialogOpen}><div className="grid grid-cols-2 gap-2 w-full"><Button variant="destructive" asChild><DialogTrigger><XCircle className="me-2 h-4 w-4" />{actionTexts.report_not_delivered}</DialogTrigger></Button><Button className="w-full bg-green-600 hover:bg-green-700 text-white" onClick={() => handleStatusChange('delivered')}><Check className="me-2 h-4 w-4" />{actionTexts.mark_as_delivered}</Button></div><NotDeliveredForm orderId={order.id} onFinished={() => setNotDeliveredDialogOpen(false)} /></Dialog>;
+                default: return null;
+            }
+        }
+    
+        return null;
     };
 
 
