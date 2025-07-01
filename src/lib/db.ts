@@ -74,7 +74,7 @@ export async function getUsers(): Promise<User[]> {
     return storedUsers.map(({ hashedPassword, ...user }) => user);
 }
 
-export async function loginUser(identifier: string, password: string, role: UserRole): Promise<User> {
+export async function loginUser(identifier: string, password: string): Promise<User> {
     const users = await readData<StoredUser[]>(USERS_PATH);
     const isEmail = identifier.includes('@');
     
@@ -91,8 +91,8 @@ export async function loginUser(identifier: string, password: string, role: User
     }
     
     const targetUser = isEmail
-        ? users.find(u => u.email.toLowerCase() === identifier.toLowerCase() && u.role === role)
-        : users.find(u => u.phone === identifier && u.role === role);
+        ? users.find(u => u.email.toLowerCase() === identifier.toLowerCase())
+        : users.find(u => u.phone === identifier);
 
     if (!targetUser || !targetUser.hashedPassword) {
       throw new Error('Identifier not found.');
@@ -103,6 +103,13 @@ export async function loginUser(identifier: string, password: string, role: User
       throw new Error('Incorrect password.');
     }
     
+    if (targetUser.accountStatus === 'pending_approval') {
+        throw new Error('Your account is pending approval. You will be notified once it has been reviewed.');
+    }
+    if (targetUser.accountStatus === 'rejected') {
+        throw new Error('Your application has been rejected. Please contact support for more information.');
+    }
+
     const { hashedPassword, ...userToSet } = targetUser;
     return userToSet;
 }
@@ -118,11 +125,9 @@ const validatePassword = (password: string) => {
     }
 }
 
-export async function signupUser(details: Partial<User> & { password: string, role: UserRole }): Promise<User> {
+export async function signupUser(details: Partial<User> & { password: string, role: 'customer' | 'chef' }): Promise<User> {
     const users = await readData<StoredUser[]>(USERS_PATH);
 
-    if(details.role === 'admin') throw new Error("Cannot sign up as an admin.");
-    
     const emailExists = users.some(u => u.email.toLowerCase() === details.email!.toLowerCase());
     if (emailExists) throw new Error('Email is already in use.');
 
@@ -136,7 +141,7 @@ export async function signupUser(details: Partial<User> & { password: string, ro
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(details.password, salt);
     
-    const accountStatus = (details.role === 'chef' || details.role === 'delivery') ? 'pending_approval' : 'active';
+    const accountStatus = details.role === 'chef' ? 'pending_approval' : 'active';
     
     const newUser: StoredUser = {
         id: `user_${Date.now()}`,
@@ -144,6 +149,49 @@ export async function signupUser(details: Partial<User> & { password: string, ro
         email: details.email!,
         role: details.role,
         accountStatus: accountStatus,
+        gender: details.gender,
+        phone: details.phone,
+        address: details.role === 'customer' ? details.address : undefined,
+        deliveryZone: details.role === 'customer' ? details.deliveryZone : undefined,
+        specialty: details.role === 'chef' ? details.specialty : undefined,
+        bio: details.role === 'chef' ? `New chef specializing in ${details.specialty}` : undefined,
+        imageUrl: details.imageUrl || (details.role === 'chef' ? DEFAULT_CHEF_AVATAR : DEFAULT_CUSTOMER_AVATAR),
+        availabilityStatus: details.role === 'chef' ? 'available' : undefined,
+        favoriteDishIds: details.role === 'customer' ? [] : undefined,
+        hashedPassword: hashedPassword
+    };
+    
+    const updatedUsers = [...users, newUser];
+    await writeData(USERS_PATH, updatedUsers);
+
+    const { hashedPassword: _, ...userToSet } = newUser;
+    return userToSet;
+}
+
+export async function createUserByAdmin(details: Partial<User> & { password: string, role: UserRole }): Promise<User> {
+    const users = await readData<StoredUser[]>(USERS_PATH);
+
+    if (details.email) {
+        const emailExists = users.some(u => u.email.toLowerCase() === details.email!.toLowerCase());
+        if (emailExists) throw new Error('Email is already in use.');
+    }
+
+    if (details.phone) {
+        const phoneExists = users.some(u => u.phone && u.phone === details.phone);
+        if (phoneExists) throw new Error('Phone number is already in use.');
+    }
+    
+    validatePassword(details.password);
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(details.password, salt);
+    
+    const newUser: StoredUser = {
+        id: `user_${Date.now()}`,
+        name: details.name!,
+        email: details.email!,
+        role: details.role,
+        accountStatus: 'active', // Accounts created by admin are active by default
         gender: details.gender,
         phone: details.phone,
         address: details.role === 'customer' ? details.address : undefined,

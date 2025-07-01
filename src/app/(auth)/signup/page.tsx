@@ -12,7 +12,7 @@ import { PasswordInput } from '@/components/password-input';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, MapPin, Bike, Car, User as UserIcon } from 'lucide-react';
+import { Loader2, MapPin } from 'lucide-react';
 import type { User } from '@/lib/types';
 import { useTranslation } from 'react-i18next';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -22,10 +22,9 @@ import { deliveryZones } from '@/lib/data';
 
 const SignupSkeleton = () => (
     <Tabs defaultValue="customer" className="w-full max-w-md">
-      <TabsList className="grid w-full grid-cols-3">
+      <TabsList className="grid w-full grid-cols-2">
         <TabsTrigger value="customer"><Skeleton className="h-5 w-24" /></TabsTrigger>
         <TabsTrigger value="chef"><Skeleton className="h-5 w-20" /></TabsTrigger>
-        <TabsTrigger value="delivery"><Skeleton className="h-5 w-20" /></TabsTrigger>
       </TabsList>
       <TabsContent value="customer">
         <Card>
@@ -70,15 +69,6 @@ export default function SignupPage() {
   const [chefPhone, setChefPhone] = useState('');
   const [chefPassword, setChefPassword] = useState('');
   const [chefGender, setChefGender] = useState<'male' | 'female'>();
-
-  // Delivery state
-  const [deliveryName, setDeliveryName] = useState('');
-  const [deliveryEmail, setDeliveryEmail] = useState('');
-  const [deliveryPhone, setDeliveryPhone] = useState('');
-  const [deliveryPassword, setDeliveryPassword] = useState('');
-  const [deliveryGender, setDeliveryGender] = useState<'male' | 'female'>();
-  const [vehicleType, setVehicleType] = useState<'Motorcycle' | 'Car' | 'Bicycle'>();
-  const [licensePlate, setLicensePlate] = useState('');
   
   const [isLoading, setIsLoading] = useState(false);
   const { signup } = useAuth();
@@ -99,9 +89,9 @@ export default function SignupPage() {
         return '';
     };
 
-  const handleSignup = async (role: 'customer' | 'chef' | 'delivery') => {
+  const handleSignup = async (role: 'customer' | 'chef') => {
     setIsLoading(true);
-    let userDetails: Partial<User> & { password: string, role: 'customer' | 'chef' | 'delivery' };
+    let userDetails: Partial<User> & { password: string, role: 'customer' | 'chef' };
     let email: string;
     
     if (role === 'customer') {
@@ -109,15 +99,10 @@ export default function SignupPage() {
         if (!customerDeliveryZone) { toast({ variant: 'destructive', title: t('input_error'), description: t('delivery_zone_required', 'الرجاء تحديد منطقة التوصيل'), }); setIsLoading(false); return; }
         email = customerEmail;
         userDetails = { name: customerName, email: customerEmail, phone: customerPhone, address: customerAddress, password: customerPassword, gender: customerGender, role: 'customer', deliveryZone: customerDeliveryZone }
-    } else if (role === 'chef') {
+    } else { // Chef
         if (!chefGender) { toast({ variant: 'destructive', title: t('input_error'), description: t('gender_required', 'الرجاء تحديد النوع'), }); setIsLoading(false); return; }
         email = chefEmail;
         userDetails = { name: chefName, email: chefEmail, phone: chefPhone, specialty: chefSpecialty, password: chefPassword, gender: chefGender, role: 'chef' }
-    } else { // Delivery
-        if (!deliveryGender) { toast({ variant: 'destructive', title: t('input_error'), description: t('gender_required', 'الرجاء تحديد النوع'), }); setIsLoading(false); return; }
-        if (!vehicleType) { toast({ variant: 'destructive', title: t('input_error'), description: t('vehicle_type_required', 'الرجاء تحديد نوع المركبة'), }); setIsLoading(false); return; }
-        email = deliveryEmail;
-        userDetails = { name: deliveryName, email: deliveryEmail, phone: deliveryPhone, password: deliveryPassword, gender: deliveryGender, vehicleType: vehicleType, licensePlate: licensePlate, role: 'delivery' }
     }
     
     const emailError = validateEmail(email);
@@ -140,7 +125,6 @@ export default function SignupPage() {
       } else {
           toast({ title: i18n.language === 'ar' ? 'تم إنشاء الحساب بنجاح' : 'Signup Successful', description: i18n.language === 'ar' ? 'أهلاً بك في وجبتي!' : 'Welcome to Wagbty!', });
           if (signedUpUser.role === 'chef') router.push('/chef/dashboard');
-          else if (signedUpUser.role === 'delivery') router.push('/delivery/dashboard');
           else router.push('/');
       }
     } catch (error: any) {
@@ -208,10 +192,9 @@ export default function SignupPage() {
 
   return (
     <Tabs defaultValue="customer" className="w-full max-w-md">
-      <TabsList className="grid w-full grid-cols-3">
+      <TabsList className="grid w-full grid-cols-2">
         <TabsTrigger value="customer">{t('i_am_a_customer')}</TabsTrigger>
         <TabsTrigger value="chef">{t('i_am_a_chef')}</TabsTrigger>
-        <TabsTrigger value="delivery">{t('i_am_a_driver', 'أنا سائق')}</TabsTrigger>
       </TabsList>
       <TabsContent value="customer">
         <Card>
@@ -255,24 +238,6 @@ export default function SignupPage() {
               <div className="space-y-2 text-left rtl:text-right"><Label htmlFor="chef-phone">{t('phone_number')}</Label><Input id="chef-phone" type="tel" placeholder={t('phone_placeholder')} required value={chefPhone} onChange={(e) => setChefPhone(e.target.value)} /></div>
               <div className="space-y-2 text-left rtl:text-right"><Label htmlFor="chef-password">{t('password')}</Label><PasswordInput id="chef-password" required placeholder={t('password_placeholder')} value={chefPassword} onChange={(e) => setChefPassword(e.target.value)} showStrength /></div>
               <Button type="submit" disabled={isLoading} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">{isLoading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}{t('apply_to_be_chef')}</Button>
-              <div className="mt-4 text-center text-sm">{t('already_a_member')}{' '}<Link href="/login" className="underline text-primary">{t('login')}</Link></div>
-            </form>
-          </CardContent>
-        </Card>
-      </TabsContent>
-      <TabsContent value="delivery">
-        <Card>
-          <CardHeader className="text-center"><CardTitle className="font-headline text-2xl">{t('delivery_signup_title', 'Join as a Driver')}</CardTitle><CardDescription>{t('delivery_signup_desc', 'Start earning by delivering delicious meals.')}</CardDescription></CardHeader>
-          <CardContent>
-            <form onSubmit={(e) => {e.preventDefault(); handleSignup('delivery')}} className="space-y-4">
-              <div className="space-y-2 text-left rtl:text-right"><Label htmlFor="delivery-name">{t('full_name')}</Label><Input id="delivery-name" required value={deliveryName} onChange={(e) => setDeliveryName(e.target.value)} placeholder={t('full_name_placeholder')} /></div>
-              <div className="space-y-2 text-left rtl:text-right"><Label>{t('gender', 'النوع')}</Label><RadioGroup required onValueChange={(value: 'male' | 'female') => setDeliveryGender(value)} value={deliveryGender} className="grid grid-cols-2 gap-4"><div><RadioGroupItem value="male" id="delivery-male" className="sr-only peer" /><Label htmlFor="delivery-male" className="flex flex-col items-center justify-center rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"><Image src="https://cdn-icons-png.flaticon.com/512/147/147144.png" alt={t('male', 'ذكر')} width={48} height={48} className="mb-2 h-12 w-12" data-ai-hint="male avatar"/><span className="font-normal">{t('male', 'ذكر')}</span></Label></div><div><RadioGroupItem value="female" id="delivery-female" className="sr-only peer" /><Label htmlFor="delivery-female" className="flex flex-col items-center justify-center rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"><Image src="https://cdn-icons-png.flaticon.com/512/6997/6997662.png" alt={t('female', 'أنثى')} width={48} height={48} className="mb-2 h-12 w-12" data-ai-hint="female avatar" /><span className="font-normal">{t('female', 'أنثى')}</span></Label></div></RadioGroup></div>
-              <div className="space-y-2 text-left rtl:text-right"><Label>{t('vehicle_type', 'Vehicle Type')}</Label><RadioGroup required onValueChange={(value: 'Motorcycle' | 'Car' | 'Bicycle') => setVehicleType(value)} value={vehicleType} className="grid grid-cols-3 gap-4"><div><RadioGroupItem value="Motorcycle" id="motorcycle" className="sr-only peer" /><Label htmlFor="motorcycle" className="flex flex-col items-center justify-center rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"><Bike className="h-6 w-6 mb-1"/><span className="font-normal">{t('motorcycle', 'Motorcycle')}</span></Label></div><div><RadioGroupItem value="Car" id="car" className="sr-only peer" /><Label htmlFor="car" className="flex flex-col items-center justify-center rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"><Car className="h-6 w-6 mb-1"/><span className="font-normal">{t('car', 'Car')}</span></Label></div><div><RadioGroupItem value="Bicycle" id="bicycle" className="sr-only peer" /><Label htmlFor="bicycle" className="flex flex-col items-center justify-center rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"><UserIcon className="h-6 w-6 mb-1"/><span className="font-normal">{t('bicycle', 'Bicycle')}</span></Label></div></RadioGroup></div>
-              <div className="space-y-2 text-left rtl:text-right"><Label htmlFor="delivery-license">{t('license_plate', 'License Plate (if applicable)')}</Label><Input id="delivery-license" value={licensePlate} onChange={(e) => setLicensePlate(e.target.value)} placeholder={t('license_plate_placeholder', 'e.g., ABC 1234')} /></div>
-              <div className="space-y-2 text-left rtl:text-right"><Label htmlFor="delivery-email">{t('email')}</Label><Input id="delivery-email" type="email" placeholder={t('email_placeholder')} required value={deliveryEmail} onChange={(e) => setDeliveryEmail(e.target.value)} /></div>
-              <div className="space-y-2 text-left rtl:text-right"><Label htmlFor="delivery-phone">{t('phone_number')}</Label><Input id="delivery-phone" type="tel" placeholder={t('phone_placeholder')} required value={deliveryPhone} onChange={(e) => setDeliveryPhone(e.target.value)} /></div>
-              <div className="space-y-2 text-left rtl:text-right"><Label htmlFor="delivery-password">{t('password')}</Label><PasswordInput id="delivery-password" required placeholder={t('password_placeholder')} value={deliveryPassword} onChange={(e) => setDeliveryPassword(e.target.value)} showStrength /></div>
-              <Button type="submit" disabled={isLoading} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">{isLoading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}{t('join_as_driver', 'Join as a Driver')}</Button>
               <div className="mt-4 text-center text-sm">{t('already_a_member')}{' '}<Link href="/login" className="underline text-primary">{t('login')}</Link></div>
             </form>
           </CardContent>

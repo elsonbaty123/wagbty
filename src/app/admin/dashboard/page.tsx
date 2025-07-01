@@ -1,5 +1,6 @@
 
 'use client';
+import { useState } from 'react';
 import {
   Table,
   TableBody,
@@ -19,19 +20,26 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import {
+    Dialog,
+    DialogContent,
+    DialogTrigger,
+} from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/context/auth-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from "react-i18next";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Trash2 } from "lucide-react";
+import { Trash2, UserPlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { CreateUserForm } from '@/components/admin/create-user-form';
 
 export default function AdminDashboardPage() {
     const { t } = useTranslation();
     const { user, users, loading, deleteUser } = useAuth();
     const { toast } = useToast();
+    const [isCreateUserOpen, setCreateUserOpen] = useState(false);
     
     const handleDeleteUser = async (userId: string, userName: string) => {
         try {
@@ -67,9 +75,22 @@ export default function AdminDashboardPage() {
 
   return (
     <Card>
-        <CardHeader>
-            <CardTitle>{t('user_management')}</CardTitle>
-            <CardDescription>{t('user_management_desc')}</CardDescription>
+        <CardHeader className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+            <div>
+                <CardTitle>{t('user_management')}</CardTitle>
+                <CardDescription>{t('user_management_desc')}</CardDescription>
+            </div>
+             <Dialog open={isCreateUserOpen} onOpenChange={setCreateUserOpen}>
+                <DialogTrigger asChild>
+                    <Button>
+                        <UserPlus className="me-2 h-4 w-4" />
+                        {t('create_new_user', 'Create New User')}
+                    </Button>
+                </DialogTrigger>
+                <DialogContent>
+                    <CreateUserForm onFinished={() => setCreateUserOpen(false)} />
+                </DialogContent>
+            </Dialog>
         </CardHeader>
         <CardContent>
             <Table>

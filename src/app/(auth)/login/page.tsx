@@ -18,10 +18,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 const LoginSkeleton = () => (
     <Tabs defaultValue="customer" className="w-full max-w-md">
-      <TabsList className="grid w-full grid-cols-3">
+      <TabsList className="grid w-full grid-cols-2">
         <TabsTrigger value="customer"><Skeleton className="h-5 w-24" /></TabsTrigger>
         <TabsTrigger value="chef"><Skeleton className="h-5 w-20" /></TabsTrigger>
-        <TabsTrigger value="delivery"><Skeleton className="h-5 w-20" /></TabsTrigger>
       </TabsList>
       <TabsContent value="customer">
         <Card>
@@ -53,8 +52,6 @@ export default function LoginPage() {
   const [customerPassword, setCustomerPassword] = useState('');
   const [chefIdentifier, setChefIdentifier] = useState('');
   const [chefPassword, setChefPassword] = useState('');
-  const [deliveryIdentifier, setDeliveryIdentifier] = useState('');
-  const [deliveryPassword, setDeliveryPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const { login } = useAuth();
@@ -100,22 +97,9 @@ export default function LoginPage() {
         return '';
     };
 
-  const handleLogin = async (role: 'customer' | 'chef' | 'delivery') => {
+  const handleLogin = async (identifier: string, password: string) => {
     setIsLoading(true);
-    let identifier = '';
-    let password = '';
-
-    if (role === 'customer') {
-      identifier = customerIdentifier;
-      password = customerPassword;
-    } else if (role === 'chef') {
-      identifier = chefIdentifier;
-      password = chefPassword;
-    } else {
-      identifier = deliveryIdentifier;
-      password = deliveryPassword;
-    }
-
+    
     const identifierError = validateIdentifier(identifier);
     if (identifierError) {
         toast({
@@ -128,7 +112,7 @@ export default function LoginPage() {
     }
 
     try {
-      const loggedInUser = await login(identifier, password, role);
+      const loggedInUser = await login(identifier, password);
       toast({
         title: i18n.language === 'ar' ? 'تم تسجيل الدخول بنجاح' : 'Login Successful',
         description: i18n.language === 'ar' ? `أهلاً بعودتك، ${loggedInUser.name}` : `Welcome back, ${loggedInUser.name}`,
@@ -159,10 +143,9 @@ export default function LoginPage() {
 
   return (
     <Tabs defaultValue="customer" className="w-full max-w-md">
-      <TabsList className="grid w-full grid-cols-3">
+      <TabsList className="grid w-full grid-cols-2">
         <TabsTrigger value="customer">{t('customer')}</TabsTrigger>
         <TabsTrigger value="chef">{t('chef')}</TabsTrigger>
-        <TabsTrigger value="delivery">{t('delivery_person', 'سائق توصيل')}</TabsTrigger>
       </TabsList>
       <TabsContent value="customer">
         <Card>
@@ -171,7 +154,7 @@ export default function LoginPage() {
             <CardDescription>{t('customer_login_desc')}</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={(e) => { e.preventDefault(); handleLogin('customer'); }} className="space-y-4">
+            <form onSubmit={(e) => { e.preventDefault(); handleLogin(customerIdentifier, customerPassword); }} className="space-y-4">
               <div className="space-y-2 text-left rtl:text-right">
                 <Label htmlFor="customer-identifier">{t('email_or_phone', 'البريد الإلكتروني أو رقم الهاتف')}</Label>
                 <Input 
@@ -216,7 +199,7 @@ export default function LoginPage() {
             <CardDescription>{t('chef_login_desc')}</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={(e) => { e.preventDefault(); handleLogin('chef'); }} className="space-y-4">
+            <form onSubmit={(e) => { e.preventDefault(); handleLogin(chefIdentifier, chefPassword); }} className="space-y-4">
               <div className="space-y-2 text-left rtl:text-right">
                 <Label htmlFor="chef-identifier">{t('email_or_phone', 'البريد الإلكتروني أو رقم الهاتف')}</Label>
                 <Input 
@@ -245,51 +228,6 @@ export default function LoginPage() {
                <div className="mt-4 flex flex-col items-center gap-2 text-sm">
                   <div>
                     {t('not_a_chef_yet')}{' '}
-                    <Link href="/signup" className="underline text-accent">
-                      {t('join_now')}
-                    </Link>
-                  </div>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      </TabsContent>
-      <TabsContent value="delivery">
-        <Card>
-          <CardHeader className="text-center">
-            <CardTitle className="font-headline text-2xl">{t('delivery_login_title', 'Delivery Login')}</CardTitle>
-            <CardDescription>{t('delivery_login_desc', 'Access your delivery dashboard.')}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={(e) => { e.preventDefault(); handleLogin('delivery'); }} className="space-y-4">
-              <div className="space-y-2 text-left rtl:text-right">
-                <Label htmlFor="delivery-identifier">{t('email_or_phone', 'البريد الإلكتروني أو رقم الهاتف')}</Label>
-                <Input 
-                  id="delivery-identifier" 
-                  type="text" 
-                  placeholder={t('identifier_placeholder_delivery', 'أدخل بريدك الإلكتروني أو رقم هاتفك')} 
-                  required 
-                  value={deliveryIdentifier}
-                  onChange={(e) => setDeliveryIdentifier(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2 text-left rtl:text-right">
-                  <Label htmlFor="delivery-password">{t('password')}</Label>
-                 <PasswordInput
-                  id="delivery-password"
-                  required
-                  value={deliveryPassword}
-                  onChange={(e) => setDeliveryPassword(e.target.value)}
-                  placeholder={t('password_placeholder')}
-                />
-              </div>
-              <Button type="submit" disabled={isLoading} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-                {isLoading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
-                {t('login')}
-              </Button>
-               <div className="mt-4 flex flex-col items-center gap-2 text-sm">
-                  <div>
-                    {t('not_a_driver_yet', 'Not a driver yet?')}{' '}
                     <Link href="/signup" className="underline text-accent">
                       {t('join_now')}
                     </Link>

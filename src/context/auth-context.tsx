@@ -14,8 +14,9 @@ interface AuthContextType {
   users: User[];
   chefs: User[];
   deliveryUsers: User[];
-  login: (identifier: string, password: string, role: UserRole) => Promise<User>;
-  signup: (details: Partial<User> & { password: string, role: UserRole }) => Promise<User>;
+  login: (identifier: string, password: string) => Promise<User>;
+  signup: (details: Partial<User> & { password: string, role: 'customer' | 'chef' }) => Promise<User>;
+  createUserByAdmin: (details: Partial<User> & { password: string, role: UserRole }) => Promise<void>;
   logout: () => void;
   updateUser: (updatedUserDetails: Partial<User>) => Promise<User>;
   updateUserByAdmin: (userId: string, updatedUserDetails: Partial<User>) => Promise<User>;
@@ -68,23 +69,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return updatedUsers;
   }
 
-  const login = async (identifier: string, password: string, role: UserRole): Promise<User> => {
-    const loggedInUser = await db.loginUser(identifier, password, role);
-
-    if (loggedInUser.accountStatus === 'pending_approval') {
-        throw new Error(t('auth_account_pending', 'حسابك قيد المراجعة. ستتلقى إشعارًا عند الموافقة عليه.'));
-    }
-    if (loggedInUser.accountStatus === 'rejected') {
-        throw new Error(t('auth_account_rejected', 'تم رفض طلب انضمامك. يرجى التواصل مع الإدارة لمزيد من المعلومات.'));
-    }
-    
+  const login = async (identifier: string, password: string): Promise<User> => {
+    const loggedInUser = await db.loginUser(identifier, password);
     setUser(loggedInUser);
     localStorage.setItem('currentUserId', loggedInUser.id);
     await refreshUsers();
     return loggedInUser;
   };
 
-  const signup = async (details: Partial<User> & { password: string, role: UserRole }): Promise<User> => {
+  const signup = async (details: Partial<User> & { password: string, role: 'customer' | 'chef' }): Promise<User> => {
     const signedUpUser = await db.signupUser(details);
     
     if (signedUpUser.accountStatus === 'active') {
@@ -93,6 +86,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
     await refreshUsers();
     return signedUpUser;
+  };
+  
+  const createUserByAdmin = async (details: Partial<User> & { password: string, role: UserRole }) => {
+      if (!user || user.role !== 'admin') throw new Error("Only admins can create users.");
+      await db.createUserByAdmin(details);
+      await refreshUsers();
   };
 
   const logout = async () => {
@@ -166,7 +165,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const deliveryUsers = users.filter(u => u.role === 'delivery');
   
   return (
-    <AuthContext.Provider value={{ user, users, chefs, deliveryUsers, login, signup, logout, updateUser, updateUserByAdmin, changePassword, sendPasswordResetEmail, toggleFavoriteDish, deleteUser, loading }}>
+    <AuthContext.Provider value={{ user, users, chefs, deliveryUsers, login, signup, createUserByAdmin, logout, updateUser, updateUserByAdmin, changePassword, sendPasswordResetEmail, toggleFavoriteDish, deleteUser, loading }}>
       {children}
     </AuthContext.Provider>
   );
