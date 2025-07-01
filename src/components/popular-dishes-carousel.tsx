@@ -23,7 +23,7 @@ interface PopularDishesCarouselProps {
 export function PopularDishesCarousel({ dishes }: PopularDishesCarouselProps) {
   const { t, i18n } = useTranslation();
   const plugin = React.useRef(
-    Autoplay({ delay: 3000, stopOnInteraction: true })
+    Autoplay({ delay: 4000, stopOnInteraction: true })
   );
   
   const carouselDirection = i18n.dir() === 'rtl' ? 'rtl' : 'ltr';
@@ -45,6 +45,7 @@ export function PopularDishesCarousel({ dishes }: PopularDishesCarouselProps) {
                     align: "start",
                     loop: true,
                     direction: carouselDirection,
+                    speed: 15,
                 }}
                 plugins={[plugin.current]}
                 onMouseEnter={plugin.current.stop}
