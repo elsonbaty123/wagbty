@@ -20,6 +20,7 @@ export function NotificationsPopover() {
   const { user } = useAuth();
   const { notificationsForUser, unreadCount, markAllAsRead, markAsRead } = useNotifications();
   const [activeTab, setActiveTab] = useState('unread');
+  const [isPopoverOpen, setPopoverOpen] = useState(false);
 
   useEffect(() => {
     const savedTab = localStorage.getItem('notifications_active_tab');
@@ -41,6 +42,11 @@ export function NotificationsPopover() {
   const unreadNotifications = userNotifications.filter(n => !n.isRead);
   const readNotifications = userNotifications.filter(n => n.isRead);
   const userUnreadCount = unreadCount(user.id);
+
+  const handleNotificationClick = (notificationId: string) => {
+    markAsRead(notificationId);
+    setPopoverOpen(false); // Close popover on click
+  };
   
   const renderNotificationList = (notifications: typeof userNotifications) => (
     notifications.length > 0 ? (
@@ -50,7 +56,7 @@ export function NotificationsPopover() {
             key={notification.id}
             href={notification.link}
             className={cn("block p-4 hover:bg-muted/50", !notification.isRead && "bg-primary/5")}
-            onClick={() => markAsRead(notification.id)}
+            onClick={() => handleNotificationClick(notification.id)}
           >
             <div className="flex items-start gap-3">
               {!notification.isRead && <div className="h-2 w-2 rounded-full bg-primary mt-1.5 flex-shrink-0"></div>}
@@ -75,7 +81,7 @@ export function NotificationsPopover() {
 
 
   return (
-    <Popover>
+    <Popover open={isPopoverOpen} onOpenChange={setPopoverOpen}>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="icon" className="relative h-10 w-10">
           <Bell className="h-5 w-5" />
