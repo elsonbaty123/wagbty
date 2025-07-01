@@ -2,7 +2,7 @@
 'use client';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -16,10 +16,55 @@ import { Loader2, MapPin } from 'lucide-react';
 import type { User } from '@/lib/types';
 import { useTranslation } from 'react-i18next';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Skeleton } from '@/components/ui/skeleton';
 
+const SignupSkeleton = () => (
+    <Tabs defaultValue="customer" className="w-full max-w-md">
+      <TabsList className="grid w-full grid-cols-2">
+        <TabsTrigger value="customer"><Skeleton className="h-5 w-24" /></TabsTrigger>
+        <TabsTrigger value="chef"><Skeleton className="h-5 w-20" /></TabsTrigger>
+      </TabsList>
+      <TabsContent value="customer">
+        <Card>
+          <CardHeader className="text-center">
+            <Skeleton className="h-7 w-48 mx-auto" />
+            <Skeleton className="h-4 w-full max-w-xs mx-auto mt-2" />
+          </CardHeader>
+          <CardContent className="space-y-4 pt-6">
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+            <div className="space-y-2">
+                <Skeleton className="h-4 w-20" />
+                <div className="grid grid-cols-2 gap-4">
+                    <Skeleton className="h-28 w-full" />
+                    <Skeleton className="h-28 w-full" />
+                </div>
+            </div>
+             <div className="space-y-2">
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+             <div className="space-y-2">
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+            <Skeleton className="h-10 w-full mt-4" />
+            <Skeleton className="h-4 w-40 mx-auto mt-2" />
+          </CardContent>
+        </Card>
+      </TabsContent>
+    </Tabs>
+  );
 
 export default function SignupPage() {
   const { t, i18n } = useTranslation();
+  const [isMounted, setIsMounted] = useState(false);
   const [customerName, setCustomerName] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
@@ -40,6 +85,10 @@ export default function SignupPage() {
   const { signup } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
     const validateEmail = (email: string): string => {
         if (!email.trim()) return t('validation_email_required');
@@ -211,6 +260,10 @@ export default function SignupPage() {
         setIsFetchingLocation(false);
     }
   };
+
+  if (!isMounted) {
+    return <SignupSkeleton />;
+  }
 
   return (
     <Tabs defaultValue="customer" className="w-full max-w-md">

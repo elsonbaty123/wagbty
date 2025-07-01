@@ -1,7 +1,7 @@
 
 'use client';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -13,10 +13,41 @@ import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { Skeleton } from '@/components/ui/skeleton';
 
+
+const LoginSkeleton = () => (
+    <Tabs defaultValue="customer" className="w-full max-w-md">
+      <TabsList className="grid w-full grid-cols-2">
+        <TabsTrigger value="customer"><Skeleton className="h-5 w-24" /></TabsTrigger>
+        <TabsTrigger value="chef"><Skeleton className="h-5 w-20" /></TabsTrigger>
+      </TabsList>
+      <TabsContent value="customer">
+        <Card>
+          <CardHeader className="text-center">
+            <Skeleton className="h-7 w-48 mx-auto" />
+            <Skeleton className="h-4 w-full max-w-xs mx-auto mt-2" />
+          </CardHeader>
+          <CardContent className="space-y-4 pt-6">
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-40" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+            <Skeleton className="h-10 w-full mt-4" />
+            <Skeleton className="h-4 w-48 mx-auto mt-2" />
+          </CardContent>
+        </Card>
+      </TabsContent>
+    </Tabs>
+  );
 
 export default function LoginPage() {
   const { t, i18n } = useTranslation();
+  const [isMounted, setIsMounted] = useState(false);
   const [customerIdentifier, setCustomerIdentifier] = useState('');
   const [customerPassword, setCustomerPassword] = useState('');
   const [chefIdentifier, setChefIdentifier] = useState('');
@@ -26,6 +57,10 @@ export default function LoginPage() {
   const { login } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
     const validateIdentifier = (identifier: string): string => {
         if (!identifier.trim()) return t('validation_identifier_required', 'الرجاء إدخال البريد الإلكتروني أو رقم الهاتف');
@@ -100,6 +135,10 @@ export default function LoginPage() {
     } finally {
       setIsLoading(false);
     }
+  }
+
+  if (!isMounted) {
+    return <LoginSkeleton />;
   }
 
   return (
