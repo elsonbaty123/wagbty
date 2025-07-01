@@ -38,9 +38,9 @@ export function PopularDishesCarousel({ dishes }: PopularDishesCarouselProps) {
       clearTimeout(inactivityTimerRef.current);
     }
     inactivityTimerRef.current = setTimeout(() => {
-      api?.plugins().autoplay?.play();
+      autoplayPlugin.current?.play();
     }, 10000); // 10 seconds
-  }, [api]);
+  }, []);
   
   React.useEffect(() => {
     if (!api) {
@@ -74,6 +74,10 @@ export function PopularDishesCarousel({ dishes }: PopularDishesCarouselProps) {
   }, [api, startInactivityTimer])
   
   const carouselDirection = i18n.dir() === 'rtl' ? 'rtl' : 'ltr';
+
+  if (!dishes || dishes.length === 0) {
+    return null;
+  }
 
   return (
     <section className="w-full py-12 md:py-16 lg:py-20 bg-muted/50">

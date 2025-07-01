@@ -103,5 +103,19 @@
     "vehicleType": "Bicycle",
     "licensePlate": "",
     "hashedPassword": "$2a$10$fjM3WEdA46K21kxDWZlNBe6hq8elG/pzg7uCgcOhrmQYmz/givyE2"
+  },
+  {
+    "id": "user_1751393343233",
+    "name": "ahmed",
+    "email": "ahmed135mema.d@gmail.com",
+    "role": "customer",
+    "accountStatus": "active",
+    "gender": "male",
+    "phone": "01006312288",
+    "address": "Lat: 25.5558, Lng: 29.2651",
+    "deliveryZone": "Alexandria",
+    "imageUrl": "data:image/svg+xml,%3csvg width='100px' height='100px' viewBox='0 0 24 24' fill='currentColor' xmlns='http://www.w3.org/2000/svg' color='%23cccccc'%3e%3cpath d='M12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2Z' /%3e%3cpath d='M20.5858 20.3463C20.0336 18.8433 18.8872 17.6186 17.3916 16.9142C15.8959 16.2098 14.1611 15.75 12 15.75C9.83889 15.75 8.10406 16.2098 6.60843 16.9142C5.11281 17.6186 3.96644 18.8433 3.41421 20.3463C3.31596 20.6401 3.56116 20.9412 3.87673 20.9412H20.1233C20.4388 20.9412 20.684 20.6401 20.5858 20.3463Z' /%3e%3c/svg%3e",
+    "favoriteDishIds": [],
+    "hashedPassword": "$2a$10$iaf9AKoldzBqXZfPZLWCEux48VdV3ZBLkxuRtDcjieTkFS94zgLl6"
   }
 ]
