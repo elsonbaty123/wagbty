@@ -16,6 +16,7 @@ const AdminNav = () => {
     const navItems = [
       { href: '/admin/dashboard', labelKey: 'user_management' },
       { href: '/admin/approvals', labelKey: 'account_approvals' },
+      { href: '/admin/dishes', labelKey: 'dish_management' },
     ];
 
     return (
@@ -26,7 +27,7 @@ const AdminNav = () => {
                         key={item.href}
                         href={item.href}
                         className={cn(
-                            pathname === item.href
+                            pathname.startsWith(item.href)
                                 ? 'border-primary text-primary'
                                 : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border',
                             'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
