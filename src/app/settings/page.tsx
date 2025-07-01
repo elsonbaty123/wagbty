@@ -158,20 +158,32 @@ export default function SettingsPage() {
                 });
             }
         } catch (error: any) {
-            console.error("Geolocation or Geocoding error:", error.message || error);
-            if (error.code) { // Geolocation error
-                toast({
-                    variant: "destructive",
-                    title: t('failed_to_get_location', 'Failed to get location'),
-                    description: t('failed_to_get_location_desc', 'Please ensure you have enabled location services and granted permission.'),
-                });
-            } else { // Geocoding or network error
-                toast({
-                    variant: "destructive",
-                    title: t('could_not_determine_address_title', 'Could not determine address'),
-                    description: t('could_not_determine_address_desc', 'Failed to determine a precise address. Please try again or enter it manually.'),
-                });
+            console.error("Geolocation or Geocoding error:", error);
+            let title = t('failed_to_get_location', 'Failed to get location');
+            let description = t('failed_to_get_location_desc', 'Please ensure you have enabled location services and granted permission.');
+            
+            if (error.code) {
+                switch(error.code) {
+                    case 1:
+                        description = t('geolocation_permission_denied_desc', 'Please allow location access in your browser settings to use this feature.');
+                        break;
+                    case 2:
+                        description = t('geolocation_position_unavailable_desc', 'We could not determine your location. Please check your network connection.');
+                        break;
+                    case 3:
+                        description = t('geolocation_timeout_desc', 'The request to get your location timed out. Please try again.');
+                        break;
+                }
+            } else if (error instanceof Error) {
+                 title = t('could_not_determine_address_title', 'Could not determine address');
+                 description = t('could_not_determine_address_desc', 'Failed to determine a precise address. Please try again or enter it manually.');
             }
+
+            toast({
+                variant: "destructive",
+                title: title,
+                description: description,
+            });
         } finally {
             setIsFetchingLocation(false);
         }
