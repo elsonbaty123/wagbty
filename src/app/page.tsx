@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -9,11 +10,12 @@ import { Users, Search } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useTranslation } from 'react-i18next';
 import { PopularDishesCarousel } from '@/components/popular-dishes-carousel';
+import { DiscountedDishesCarousel } from '@/components/discounted-dishes-carousel';
 import type { Dish } from '@/lib/types';
 
 export default function Home() {
   const { t } = useTranslation();
-  const { dishes, orders, loading: dishesLoading } = useOrders();
+  const { dishes, orders, coupons, loading: dishesLoading } = useOrders();
   const { chefs, loading: authLoading } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -42,6 +44,48 @@ export default function Home() {
     
     return [...sortedDishes, ...unorderedDishes].slice(0, 6); // Take top 6 for the carousel
   }, [orders, dishes]);
+
+  const discountedDishes = useMemo(() => {
+    const now = new Date();
+    // Get active coupons that apply to specific dishes
+    const activeDishCoupons = coupons.filter(c => 
+        c.isActive && 
+        c.appliesTo === 'specific' && 
+        c.applicableDishIds && 
+        c.applicableDishIds.length > 0 &&
+        new Date(c.endDate) > now &&
+        c.timesUsed < c.usageLimit
+    );
+
+    const discountsMap = new Map();
+
+    activeDishCoupons.forEach(coupon => {
+        (coupon.applicableDishIds || []).forEach(dishId => {
+            const dish = dishes.find(d => d.id === dishId);
+            if (!dish) return;
+
+            let discountAmount = coupon.discountType === 'fixed' 
+                ? coupon.discountValue 
+                : dish.price * (coupon.discountValue / 100);
+            
+            discountAmount = Math.min(discountAmount, dish.price);
+
+            const discountPercentage = (discountAmount / dish.price) * 100;
+            
+            if (!discountsMap.has(dishId) || discountAmount > (discountsMap.get(dishId).discountAmount || 0)) {
+                 discountsMap.set(dishId, {
+                    dish,
+                    originalPrice: dish.price,
+                    discountedPrice: dish.price - discountAmount,
+                    discountPercentage: Math.round(discountPercentage),
+                    discountAmount,
+                 });
+            }
+        });
+    });
+
+    return Array.from(discountsMap.values()).sort((a, b) => b.discountPercentage - a.discountPercentage);
+  }, [coupons, dishes]);
 
 
   const chefsWithDishData = useMemo(() => {
@@ -80,7 +124,7 @@ export default function Home() {
                 </div>
              </div>
           </section>
-          {/* Skeleton for popular dishes */}
+          
           <section className="w-full py-12 md:py-16 lg:py-20 bg-muted/50">
              <div className="container mx-auto px-4 md:px-6">
                 <div className="flex flex-col items-center space-y-4 text-center">
@@ -93,6 +137,20 @@ export default function Home() {
                    <Skeleton className="h-[225px] w-full hidden lg:block" />
                 </div>
              </div>
+          </section>
+
+          <section className="w-full py-12 md:py-16 lg:py-20 bg-background">
+              <div className="container mx-auto px-4 md:px-6">
+                  <div className="flex flex-col items-center space-y-4 text-center">
+                      <Skeleton className="h-10 w-48" />
+                      <Skeleton className="h-6 w-3/4 max-w-md" />
+                  </div>
+                  <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto">
+                      <Skeleton className="h-[400px] w-full" />
+                      <Skeleton className="h-[400px] w-full hidden sm:block" />
+                      <Skeleton className="h-[400px] w-full hidden lg:block" />
+                  </div>
+              </div>
           </section>
 
           <section id="chefs" className="w-full py-12 md:py-24 lg:py-32">
@@ -134,6 +192,8 @@ export default function Home() {
       </section>
 
       {popularDishes.length > 0 && <PopularDishesCarousel dishes={popularDishes} />}
+      
+      {discountedDishes.length > 0 && <DiscountedDishesCarousel dishes={discountedDishes} />}
 
       <section id="chefs" className="w-full py-12 md:py-24 lg:py-32">
         <div className="container mx-auto px-4 md:px-6">
