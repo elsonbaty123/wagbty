@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Heart, User as UserIcon, Utensils } from 'lucide-react';
+import { Home, Heart, User as UserIcon, Utensils, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/auth-context';
 import { useTranslation } from 'react-i18next';
@@ -19,6 +19,7 @@ export function BottomNavBar() {
   
   const navItems = [
     { href: '/', icon: Home, labelKey: 'nav_home', isActive: pathname === '/' },
+    { href: '/community', icon: MessageSquare, labelKey: 'nav_community', isActive: pathname === '/community' },
     { href: '/favorites', icon: Heart, labelKey: 'nav_favorites', isActive: pathname === '/favorites' },
     { href: '/profile', icon: Utensils, labelKey: 'nav_orders', isActive: pathname === '/profile' },
     { href: '/settings', icon: UserIcon, labelKey: 'nav_account', isActive: pathname === '/settings' },
@@ -26,7 +27,7 @@ export function BottomNavBar() {
 
   return (
     <nav className="fixed bottom-0 z-40 w-full border-t bg-background md:hidden">
-      <div className="grid h-16 grid-cols-4 items-center">
+      <div className="grid h-16 grid-cols-5 items-center">
         {navItems.map((item) => (
           <Link
             key={item.href}
@@ -37,7 +38,7 @@ export function BottomNavBar() {
             )}
           >
             <item.icon className="h-5 w-5" />
-            <span>{t(item.labelKey)}</span>
+            <span>{t(item.labelKey, item.labelKey.replace('nav_', ''))}</span>
           </Link>
         ))}
       </div>
