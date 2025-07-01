@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -5,6 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Autoplay from "embla-carousel-autoplay";
 import { useTranslation } from 'react-i18next';
+import type { UseEmblaCarouselType } from 'embla-carousel-react';
 
 import type { Dish } from '@/lib/types';
 import {
@@ -20,11 +22,56 @@ interface PopularDishesCarouselProps {
   dishes: Dish[];
 }
 
+type CarouselApi = UseEmblaCarouselType[1];
+
 export function PopularDishesCarousel({ dishes }: PopularDishesCarouselProps) {
   const { t, i18n } = useTranslation();
-  const plugin = React.useRef(
+  const [api, setApi] = React.useState<CarouselApi>();
+  const inactivityTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const autoplayPlugin = React.useRef(
     Autoplay({ delay: 4000, stopOnInteraction: true })
   );
+
+  const startInactivityTimer = React.useCallback(() => {
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+    }
+    inactivityTimerRef.current = setTimeout(() => {
+      api?.plugins().autoplay?.play();
+    }, 10000); // 10 seconds
+  }, [api]);
+  
+  React.useEffect(() => {
+    if (!api) {
+      return
+    }
+
+    const onPointerDown = () => {
+        if (inactivityTimerRef.current) {
+            clearTimeout(inactivityTimerRef.current);
+            inactivityTimerRef.current = null;
+        }
+    }
+    
+    const onSettle = () => {
+        startInactivityTimer();
+    }
+
+    api.on("pointerDown", onPointerDown)
+    api.on("settle", onSettle)
+
+    // Initial start of the timer
+    startInactivityTimer();
+
+    return () => {
+      api.off("pointerDown", onPointerDown)
+      api.off("settle", onSettle)
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
+      }
+    }
+  }, [api, startInactivityTimer])
   
   const carouselDirection = i18n.dir() === 'rtl' ? 'rtl' : 'ltr';
 
@@ -41,15 +88,13 @@ export function PopularDishesCarousel({ dishes }: PopularDishesCarouselProps) {
         </div>
         <div className="mt-8">
             <Carousel
+                setApi={setApi}
                 opts={{
                     align: "start",
                     loop: true,
                     direction: carouselDirection,
-                    speed: 15,
                 }}
-                plugins={[plugin.current]}
-                onMouseEnter={plugin.current.stop}
-                onMouseLeave={plugin.current.reset}
+                plugins={[autoplayPlugin.current]}
                 className="w-full max-w-4xl mx-auto"
             >
                 <CarouselContent>
