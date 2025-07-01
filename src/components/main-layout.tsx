@@ -13,6 +13,7 @@ import { StatusProvider } from '@/context/status-context';
 import { ThemeProvider } from '@/components/theme-provider';
 import I18nProvider from '@/app/i18n-provider';
 import { BottomNavBar } from './bottom-nav-bar';
+import { ChefBottomNavBar } from './chef-bottom-nav-bar';
 
 const Header = dynamic(() => import('@/components/layout/header').then((mod) => mod.Header), {
   ssr: false,
@@ -26,11 +27,13 @@ const Footer = dynamic(() => import('@/components/layout/footer').then((mod) => 
 function LayoutWrapper({ children }: { children: ReactNode }) {
     const { user } = useAuth();
     const pathname = usePathname();
-    const showBottomNavForUser = user && user.role === 'customer';
     
     const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/signup') || pathname.startsWith('/forgot-password') || pathname.startsWith('/reset-password');
     
-    const showBottomNav = showBottomNavForUser && !isAuthPage;
+    const showCustomerBottomNav = user && user.role === 'customer' && !isAuthPage;
+    const showChefBottomNav = user && user.role === 'chef' && !isAuthPage;
+    
+    const showBottomNav = showCustomerBottomNav || showChefBottomNav;
 
     return (
         <div className="relative flex min-h-screen flex-col">
@@ -42,7 +45,8 @@ function LayoutWrapper({ children }: { children: ReactNode }) {
             <div className="hidden md:block">
                 <Footer />
             </div>
-            {showBottomNav && <BottomNavBar />}
+            {showCustomerBottomNav && <BottomNavBar />}
+            {showChefBottomNav && <ChefBottomNavBar />}
         </div>
     );
 }
