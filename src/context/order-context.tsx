@@ -129,7 +129,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
             titleKey: 'new_waitlisted_order_notification_title',
             messageKey: 'new_waitlisted_order_notification_desc',
             params: { customerName: orderData.customerName },
-            link: '/chef/dashboard',
+            link: '/chef/orders',
         });
     } else {
         createNotification({
@@ -137,7 +137,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
           titleKey: 'new_order_notification_title',
           messageKey: 'new_order_notification_desc',
           params: { dishName: orderData.dish.name, customerName: orderData.customerName },
-          link: '/chef/dashboard',
+          link: '/chef/orders',
         });
     }
   };
@@ -196,20 +196,21 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
 
       const { customerId, chef, dish: { name: dishName } } = updatedOrder;
       
-      const notifications: {[key: string]: {titleKey: string, messageKey: string}} = {
-        preparing: { titleKey: 'order_confirmed_notification_title', messageKey: 'order_confirmed_notification_desc' },
-        out_for_delivery: { titleKey: 'order_on_the_way_notification_title', messageKey: 'order_on_the_way_notification_desc' },
-        delivered: { titleKey: 'order_delivered_notification_title', messageKey: 'order_delivered_notification_desc' },
-        rejected: { titleKey: 'order_rejected_notification_title', messageKey: 'order_rejected_notification_desc' }
+      const notifications: Partial<Record<OrderStatus, {titleKey: string, messageKey: string, link: string}>> = {
+        preparing: { titleKey: 'order_confirmed_notification_title', messageKey: 'order_confirmed_notification_desc', link: '/profile' },
+        out_for_delivery: { titleKey: 'order_on_the_way_notification_title', messageKey: 'order_on_the_way_notification_desc', link: '/profile' },
+        delivered: { titleKey: 'order_delivered_notification_title', messageKey: 'order_delivered_notification_desc', link: '/profile?tab=completed' },
+        rejected: { titleKey: 'order_rejected_notification_title', messageKey: 'order_rejected_notification_desc', link: '/profile?tab=completed' }
       };
 
-      if (notifications[status]) {
+      const notificationInfo = notifications[status];
+      if (notificationInfo) {
           createNotification({
               recipientId: customerId,
-              titleKey: notifications[status].titleKey,
-              messageKey: notifications[status].messageKey,
+              titleKey: notificationInfo.titleKey,
+              messageKey: notificationInfo.messageKey,
               params: { dishName },
-              link: '/profile',
+              link: notificationInfo.link,
           });
       }
       

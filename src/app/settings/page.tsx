@@ -250,7 +250,7 @@ export default function SettingsPage() {
                     titleKey: 'you_have_pending_orders',
                     messageKey: 'pending_orders_desc',
                     params: { count: queuedOrders.length },
-                    link: '/chef/dashboard',
+                    link: '/chef/orders',
                 });
             }
         }

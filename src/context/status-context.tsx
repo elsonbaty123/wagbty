@@ -95,7 +95,7 @@ export const StatusProvider = ({ children }: { children: ReactNode }) => {
           titleKey: 'new_reaction_on_status_title',
           messageKey: reaction.emoji && reaction.message ? 'new_reaction_on_status_desc_both' : reaction.emoji ? 'new_reaction_on_status_desc_emoji' : 'new_reaction_on_status_desc_message',
           params: { userName: user.name, emoji: reaction.emoji, message: reaction.message },
-          link: '/chef/dashboard?tab=status',
+          link: '/chef/status',
       })
     }
   };
