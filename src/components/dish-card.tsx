@@ -23,6 +23,18 @@ export function DishCard({ dish, chefName, chefStatus = 'available' }: DishCardP
   const { t } = useTranslation();
   const { user, toggleFavoriteDish, loading: authLoading } = useAuth();
 
+  const getDisplayPrice = (dish: Dish): { finalPrice: number, originalPrice?: number } => {
+      const now = new Date();
+      if (dish.discountPercentage && dish.discountPercentage > 0 && dish.discountEndDate && new Date(dish.discountEndDate) > now) {
+          return {
+              finalPrice: dish.price * (1 - dish.discountPercentage / 100),
+              originalPrice: dish.price
+          };
+      }
+      return { finalPrice: dish.price };
+  }
+  const { finalPrice, originalPrice } = getDisplayPrice(dish);
+
   const isDishAvailable = dish.status === 'available';
   const canOrder = isDishAvailable && chefStatus !== 'closed';
 
@@ -104,7 +116,15 @@ export function DishCard({ dish, chefName, chefStatus = 'available' }: DishCardP
         <Button asChild className={cn("bg-accent hover:bg-accent/90 text-accent-foreground", !canOrder && "bg-muted text-muted-foreground hover:bg-muted")} disabled={!canOrder}>
           <Link href={`/order?dishId=${dish.id}`}>{getButtonText()}</Link>
         </Button>
-        <p className="text-lg font-bold text-primary">{dish.price.toFixed(2)} {t('currency_egp')}</p>
+        {originalPrice ? (
+            <div className="flex items-baseline gap-2">
+                <p className="text-lg font-bold text-primary">{finalPrice.toFixed(2)}</p>
+                <p className="text-sm font-medium text-muted-foreground line-through">{originalPrice.toFixed(2)}</p>
+                <p className="sr-only">{t('currency_egp')}</p>
+            </div>
+        ) : (
+            <p className="text-lg font-bold text-primary">{finalPrice.toFixed(2)} {t('currency_egp')}</p>
+        )}
       </CardFooter>
     </Card>
   );

@@ -22,6 +22,8 @@ export type Dish = {
   category: string;
   status: DishStatus;
   ratings?: DishRating[];
+  discountPercentage?: number;
+  discountEndDate?: string; // ISO string
 };
 
 export type UserRole = 'customer' | 'chef' | 'admin' | 'delivery';

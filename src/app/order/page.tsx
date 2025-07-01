@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import Link from 'next/link';
@@ -19,6 +20,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useTranslation } from 'react-i18next';
 import { Textarea } from '@/components/ui/textarea';
 import { deliveryZones } from '@/lib/data';
+import type { Dish } from '@/lib/types';
 
 export default function OrderPage() {
   const { t } = useTranslation();
@@ -64,6 +66,18 @@ export default function OrderPage() {
     notFound();
   }
 
+  const getDisplayPrice = (dish: Dish): { finalPrice: number, originalPrice?: number } => {
+      const now = new Date();
+      if (dish.discountPercentage && dish.discountPercentage > 0 && dish.discountEndDate && new Date(dish.discountEndDate) > now) {
+          return {
+              finalPrice: dish.price * (1 - dish.discountPercentage / 100),
+              originalPrice: dish.price
+          };
+      }
+      return { finalPrice: dish.price };
+  }
+  const { finalPrice, originalPrice } = getDisplayPrice(dish);
+
   const deliveryFee = useMemo(() => {
     if (!user?.deliveryZone) {
       return 50.0; // Default fee if zone is not set
@@ -75,7 +89,7 @@ export default function OrderPage() {
   const isChefBusy = chef.availabilityStatus === 'busy';
   const isChefClosed = chef.availabilityStatus === 'closed';
 
-  const subtotal = dish.price * quantity;
+  const subtotal = finalPrice * quantity;
   const total = subtotal - appliedDiscount + deliveryFee;
 
   const handleApplyCoupon = () => {
@@ -223,7 +237,15 @@ export default function OrderPage() {
                     <div className="grid gap-1 flex-1">
                         <h3 className="font-semibold">{dish.name}</h3>
                         <p className="text-sm text-muted-foreground">{dish.description}</p>
-                        <p className="font-bold text-primary">{dish.price.toFixed(2)} {t('currency_egp')}</p>
+                        {originalPrice ? (
+                            <div className="flex items-baseline gap-2">
+                                <p className="font-bold text-primary">{finalPrice.toFixed(2)}</p>
+                                <p className="text-sm text-muted-foreground line-through">{originalPrice.toFixed(2)}</p>
+                                <p className="font-bold text-primary">{t('currency_egp')}</p>
+                            </div>
+                        ) : (
+                            <p className="font-bold text-primary">{finalPrice.toFixed(2)} {t('currency_egp')}</p>
+                        )}
                     </div>
                      <Image
                       alt={dish.name}

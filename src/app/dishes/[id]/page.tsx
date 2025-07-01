@@ -17,6 +17,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { dateLocales } from '@/components/language-manager';
+import type { Dish } from '@/lib/types';
 
 export default function DishDetailsPage() {
   const { t, i18n } = useTranslation();
@@ -64,6 +65,18 @@ export default function DishDetailsPage() {
     notFound();
   }
   
+  const getDisplayPrice = (dish: Dish): { finalPrice: number, originalPrice?: number } => {
+      const now = new Date();
+      if (dish.discountPercentage && dish.discountPercentage > 0 && dish.discountEndDate && new Date(dish.discountEndDate) > now) {
+          return {
+              finalPrice: dish.price * (1 - dish.discountPercentage / 100),
+              originalPrice: dish.price
+          };
+      }
+      return { finalPrice: dish.price };
+  }
+  const { finalPrice, originalPrice } = getDisplayPrice(dish);
+
   const sortedRatings = dish.ratings?.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) || [];
   const ratingsCount = sortedRatings.length;
   const averageRating = ratingsCount > 0
@@ -137,7 +150,15 @@ export default function DishDetailsPage() {
                 <Button size="lg" asChild className={cn("bg-primary text-primary-foreground hover:bg-primary/90", !canOrder && "bg-muted text-muted-foreground hover:bg-muted")} disabled={!canOrder}>
                     <Link href={`/order?dishId=${dish.id}`}>{getButtonText()}</Link>
                 </Button>
-                <p className="text-3xl font-bold text-accent">{dish.price.toFixed(2)} {t('currency_egp')}</p>
+                 {originalPrice ? (
+                    <div className="flex items-baseline gap-2">
+                        <p className="text-3xl font-bold text-accent">{finalPrice.toFixed(2)}</p>
+                        <p className="text-xl font-medium text-muted-foreground line-through">{originalPrice.toFixed(2)}</p>
+                        <p className="sr-only">{t('currency_egp')}</p>
+                    </div>
+                ) : (
+                    <p className="text-3xl font-bold text-accent">{finalPrice.toFixed(2)} {t('currency_egp')}</p>
+                )}
             </div>
           </div>
         </div>

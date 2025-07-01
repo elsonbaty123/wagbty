@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -47,7 +48,22 @@ export default function Home() {
 
   const discountedDishes = useMemo(() => {
     const now = new Date();
-    // Get active coupons that apply to specific dishes
+    const discountsMap = new Map<string, { dish: Dish; originalPrice: number; discountedPrice: number; discountPercentage: number; }>();
+
+    // 1. Process direct discounts on dishes
+    dishes.forEach(dish => {
+        if (dish.discountPercentage && dish.discountPercentage > 0 && dish.discountEndDate && new Date(dish.discountEndDate) > now) {
+            const discountAmount = dish.price * (dish.discountPercentage / 100);
+            discountsMap.set(dish.id, {
+                dish,
+                originalPrice: dish.price,
+                discountedPrice: dish.price - discountAmount,
+                discountPercentage: dish.discountPercentage,
+            });
+        }
+    });
+
+    // 2. Process coupon-based discounts
     const activeDishCoupons = coupons.filter(c => 
         c.isActive && 
         c.appliesTo === 'specific' && 
@@ -56,8 +72,6 @@ export default function Home() {
         new Date(c.endDate) > now &&
         c.timesUsed < c.usageLimit
     );
-
-    const discountsMap = new Map();
 
     activeDishCoupons.forEach(coupon => {
         (coupon.applicableDishIds || []).forEach(dishId => {
@@ -69,16 +83,17 @@ export default function Home() {
                 : dish.price * (coupon.discountValue / 100);
             
             discountAmount = Math.min(discountAmount, dish.price);
-
-            const discountPercentage = (discountAmount / dish.price) * 100;
             
-            if (!discountsMap.has(dishId) || discountAmount > (discountsMap.get(dishId).discountAmount || 0)) {
-                 discountsMap.set(dishId, {
+            const existingDiscount = discountsMap.get(dishId);
+            const existingDiscountAmount = existingDiscount ? existingDiscount.originalPrice - existingDiscount.discountedPrice : 0;
+
+            if (discountAmount > existingDiscountAmount) {
+                const discountPercentage = Math.round((discountAmount / dish.price) * 100);
+                discountsMap.set(dishId, {
                     dish,
                     originalPrice: dish.price,
                     discountedPrice: dish.price - discountAmount,
-                    discountPercentage: Math.round(discountPercentage),
-                    discountAmount,
+                    discountPercentage: discountPercentage,
                  });
             }
         });

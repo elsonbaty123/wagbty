@@ -16,9 +16,14 @@ import { useOrders } from '@/context/order-context';
 import { useAuth } from '@/context/auth-context';
 import { useState } from 'react';
 import Image from 'next/image';
-import { Upload } from 'lucide-react';
+import { Upload, Calendar as CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { dateLocales } from './language-manager';
+import { format } from 'date-fns';
 
 interface DishFormProps {
   dish?: Dish | null;
@@ -26,7 +31,7 @@ interface DishFormProps {
 }
 
 export function DishForm({ dish, onFinished }: DishFormProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { toast } = useToast();
   const { user } = useAuth();
   const { addDish, updateDish } = useOrders();
@@ -39,6 +44,24 @@ export function DishForm({ dish, onFinished }: DishFormProps) {
     ingredients: z.string().min(1, t('dish_ingredients_required')),
     prepTime: z.coerce.number().int().positive(t('prep_time_positive')),
     category: z.string().min(1, t('category_required')),
+    discountPercentage: z.coerce.number().min(0).max(100).optional().default(0),
+    discountEndDate: z.date().optional(),
+  }).refine(data => {
+    if (data.discountPercentage && data.discountPercentage > 0) {
+        return !!data.discountEndDate;
+    }
+    return true;
+  }, {
+      message: t('discount_end_date_required'),
+      path: ['discountEndDate'],
+  }).refine(data => {
+      if (data.discountEndDate && data.discountPercentage && data.discountPercentage > 0) {
+          return data.discountEndDate >= new Date(new Date().setHours(0, 0, 0, 0));
+      }
+      return true;
+  }, {
+      message: t('discount_end_date_in_future'),
+      path: ['discountEndDate'],
   });
 
   type DishFormValues = z.infer<typeof dishFormSchema>;
@@ -54,6 +77,8 @@ export function DishForm({ dish, onFinished }: DishFormProps) {
       ingredients: dish?.ingredients?.join(', ') || '',
       prepTime: dish?.prepTime ?? '',
       category: dish?.category || '',
+      discountPercentage: dish?.discountPercentage || 0,
+      discountEndDate: dish?.discountEndDate ? new Date(dish.discountEndDate) : undefined,
     },
   });
 
@@ -66,9 +91,18 @@ export function DishForm({ dish, onFinished }: DishFormProps) {
       return;
     }
     
+    const isDiscountActive = data.discountPercentage && data.discountPercentage > 0 && data.discountEndDate;
+
     const dishPayload = {
-      ...data,
+      name: data.name,
+      description: data.description,
+      price: data.price,
+      imageUrl: data.imageUrl,
       ingredients: data.ingredients.split(',').map(item => item.trim()).filter(item => item.length > 0),
+      prepTime: data.prepTime,
+      category: data.category,
+      discountPercentage: isDiscountActive ? data.discountPercentage : undefined,
+      discountEndDate: isDiscountActive ? data.discountEndDate!.toISOString() : undefined,
     };
 
     if (dish) {
@@ -216,6 +250,52 @@ export function DishForm({ dish, onFinished }: DishFormProps) {
               </FormItem>
             )}
           />
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="item-1">
+              <AccordionTrigger>{t('discount_settings', 'Discount Settings (Optional)')}</AccordionTrigger>
+              <AccordionContent className="space-y-4">
+                  <FormField
+                      control={form.control}
+                      name="discountPercentage"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('discount_percentage', 'Discount Percentage')}</FormLabel>
+                          <FormControl>
+                            <Input type="number" min="0" max="100" placeholder="e.g., 15 for 15%" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="discountEndDate"
+                      render={({ field }) => (
+                          <FormItem className="flex flex-col">
+                          <FormLabel>{t('discount_end_date', 'Discount End Date')}</FormLabel>
+                          <Popover>
+                              <PopoverTrigger asChild>
+                              <FormControl>
+                                  <Button
+                                  variant={"outline"}
+                                  className={cn("w-full ps-3 text-start font-normal", !field.value && "text-muted-foreground")}
+                                  >
+                                  {field.value ? format(field.value, 'd MMMM yyyy', { locale: dateLocales[i18n.language] }) : <span>{t('pick_a_date')}</span>}
+                                  <CalendarIcon className="ms-auto h-4 w-4 opacity-50" />
+                                  </Button>
+                              </FormControl>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date < new Date(new Date().setHours(0,0,0,0))} initialFocus locale={dateLocales[i18n.language]} />
+                              </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                          </FormItem>
+                      )}
+                      />
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
 
           <DialogFooter className="pt-4">
             <Button type="submit" disabled={form.formState.isSubmitting} className="bg-primary text-primary-foreground hover:bg-primary/90">{t('save')}</Button>
