@@ -191,15 +191,16 @@ export default function Home() {
               {t('discover_best_chefs_desc')}
             </p>
             <div className="w-full max-w-lg">
-              <div className="relative">
-                <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+               <div className="relative">
+                <Search className="absolute start-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-20 pointer-events-none" />
                 <Input
                   type="search"
                   placeholder={t('search_placeholder')}
-                  className="w-full rounded-full bg-background ps-10 pe-4 py-2 text-lg"
+                  className="peer z-10 w-full rounded-full bg-background ps-12 pe-4 py-3 text-lg border-2 border-border focus:border-transparent focus-visible:ring-0 focus-visible:ring-offset-0 transition-colors duration-300"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
+                <div className="absolute inset-0 rounded-full border-2 border-primary scale-x-0 peer-focus:scale-x-100 transition-transform duration-500 ease-in-out origin-left rtl:origin-right pointer-events-none z-20" />
               </div>
             </div>
           </div>
