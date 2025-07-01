@@ -180,7 +180,12 @@ export function OrderCard({ order, isChefView = false, isDeliveryView = false, u
         )}
         {isChefView && renderChefActions()}
         {isDeliveryView && renderDeliveryActions()}
-        <InvoiceDialog order={order} />
+        <InvoiceDialog order={order}>
+            <Button variant="outline" className="w-full">
+                <FileText className="me-2 h-4 w-4"/>
+                {t('view_invoice', 'View Invoice')}
+            </Button>
+        </InvoiceDialog>
       </CardFooter>
     </Card>
   );

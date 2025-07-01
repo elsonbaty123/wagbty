@@ -15,9 +15,10 @@ import { useToast } from '@/hooks/use-toast';
 
 interface InvoiceProps {
   order: Order;
+  children: React.ReactNode;
 }
 
-const InvoiceDetails = React.forwardRef<HTMLDivElement, InvoiceProps>(({ order }, ref) => {
+const InvoiceDetails = React.forwardRef<HTMLDivElement, { order: Order }>(({ order }, ref) => {
     const { t, i18n } = useTranslation();
   
     return (
@@ -79,7 +80,7 @@ const InvoiceDetails = React.forwardRef<HTMLDivElement, InvoiceProps>(({ order }
 });
 InvoiceDetails.displayName = 'InvoiceDetails';
 
-export function InvoiceDialog({ order }: InvoiceProps) {
+export function InvoiceDialog({ order, children }: InvoiceProps) {
   const invoiceRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { t } = useTranslation();
@@ -120,10 +121,7 @@ export function InvoiceDialog({ order }: InvoiceProps) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" className="w-full">
-            <FileText className="me-2 h-4 w-4"/>
-            {t('view_invoice', 'View Invoice')}
-        </Button>
+        {children}
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>

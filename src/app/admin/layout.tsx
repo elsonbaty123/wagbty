@@ -17,11 +17,13 @@ const AdminNav = () => {
       { href: '/admin/dashboard', labelKey: 'user_management' },
       { href: '/admin/approvals', labelKey: 'account_approvals' },
       { href: '/admin/dishes', labelKey: 'dish_management' },
+      { href: '/admin/orders', labelKey: 'order_monitoring' },
+      { href: '/admin/community', labelKey: 'community_chat' },
     ];
 
     return (
         <div className="border-b">
-            <nav className="flex -mb-px space-x-8 rtl:space-x-reverse" aria-label="Tabs">
+            <nav className="flex -mb-px space-x-8 rtl:space-x-reverse overflow-x-auto" aria-label="Tabs">
                 {navItems.map(item => (
                     <Link
                         key={item.href}
@@ -33,7 +35,7 @@ const AdminNav = () => {
                             'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
                         )}
                     >
-                        {t(item.labelKey)}
+                        {t(item.labelKey, item.labelKey.replace(/_/g, ' '))}
                     </Link>
                 ))}
             </nav>
