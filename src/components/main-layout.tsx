@@ -14,6 +14,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import I18nProvider from '@/app/i18n-provider';
 import { BottomNavBar } from './bottom-nav-bar';
 import { ChefBottomNavBar } from './chef-bottom-nav-bar';
+import { DeliveryBottomNavBar } from './delivery-bottom-nav-bar';
 
 const Header = dynamic(() => import('@/components/layout/header').then((mod) => mod.Header), {
   ssr: false,
@@ -32,8 +33,9 @@ function LayoutWrapper({ children }: { children: ReactNode }) {
     
     const showCustomerBottomNav = user && user.role === 'customer' && !isAuthPage;
     const showChefBottomNav = user && user.role === 'chef' && !isAuthPage;
+    const showDeliveryBottomNav = user && user.role === 'delivery' && !isAuthPage;
     
-    const showBottomNav = showCustomerBottomNav || showChefBottomNav;
+    const showBottomNav = showCustomerBottomNav || showChefBottomNav || showDeliveryBottomNav;
 
     return (
         <div className="relative flex min-h-screen flex-col">
@@ -47,6 +49,7 @@ function LayoutWrapper({ children }: { children: ReactNode }) {
             </div>
             {showCustomerBottomNav && <BottomNavBar />}
             {showChefBottomNav && <ChefBottomNavBar />}
+            {showDeliveryBottomNav && <DeliveryBottomNavBar />}
         </div>
     );
 }

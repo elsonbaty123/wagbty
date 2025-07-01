@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription, SheetClose } from "@/components/ui/sheet"
-import { Menu, UtensilsCrossed, User, LogOut, Settings, ShieldCheck } from "lucide-react"
+import { Menu, UtensilsCrossed, User, LogOut, Settings, ShieldCheck, Bike } from "lucide-react"
 import { useAuth } from "@/context/auth-context"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -25,9 +25,33 @@ export function Header() {
 
   const getDashboardLink = () => {
     if (!user) return "/login";
-    if (user.role === 'admin') return '/admin/dashboard';
-    return user.role === 'chef' ? '/chef/dashboard' : '/profile';
+    switch(user.role) {
+      case 'admin': return '/admin/dashboard';
+      case 'chef': return '/chef/dashboard';
+      case 'delivery': return '/delivery/dashboard';
+      default: return '/profile';
+    }
   }
+
+  const getDashboardIcon = () => {
+    if (!user) return <User className="me-2 h-4 w-4" />;
+    switch(user.role) {
+      case 'admin': return <ShieldCheck className="me-2 h-4 w-4" />;
+      case 'chef': return <User className="me-2 h-4 w-4" />;
+      case 'delivery': return <Bike className="me-2 h-4 w-4" />;
+      default: return <User className="me-2 h-4 w-4" />;
+    }
+  };
+
+  const getDashboardLabel = () => {
+    if (!user) return t('my_orders_title');
+    switch(user.role) {
+      case 'admin': return t('admin_dashboard');
+      case 'chef': return t('dashboard');
+      case 'delivery': return t('delivery_dashboard', 'Delivery Dashboard');
+      default: return t('my_orders_title');
+    }
+  };
 
   const sheetSide = i18n.dir() === 'rtl' ? 'right' : 'left';
 
@@ -62,10 +86,10 @@ export function Header() {
                           <div className="h-10 w-full animate-pulse rounded-md bg-muted" />
                       ) : user ? (
                           <>
-                          {(user.role === 'chef' || user.role === 'admin') && (
+                          {(user.role === 'chef' || user.role === 'admin' || user.role === 'delivery') && (
                             <SheetClose asChild>
                                 <Button variant="ghost" asChild>
-                                    <Link href={getDashboardLink()}>{t('dashboard')}</Link>
+                                    <Link href={getDashboardLink()}>{getDashboardLabel()}</Link>
                                 </Button>
                             </SheetClose>
                           )}
@@ -150,8 +174,8 @@ export function Header() {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link href={getDashboardLink()}>
-                      {user.role === 'admin' ? <ShieldCheck className="me-2 h-4 w-4" /> : <User className="me-2 h-4 w-4" /> }
-                      <span>{user.role === 'admin' ? t('admin_dashboard') : user.role === 'chef' ? t('dashboard') : t('my_orders_title')}</span>
+                      {getDashboardIcon()}
+                      <span>{getDashboardLabel()}</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>

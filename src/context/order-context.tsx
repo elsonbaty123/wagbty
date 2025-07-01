@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { createContext, useState, useEffect, useContext, type ReactNode } from 'react';
@@ -8,6 +7,7 @@ import { useNotifications } from './notification-context';
 import { useTranslation } from 'react-i18next';
 import { initialOrders, allDishes, initialCoupons } from '@/lib/data';
 import localforage from 'localforage';
+import { useAuth } from './auth-context';
 
 type CreateOrderPayload = Omit<Order, 'id' | 'status' | 'createdAt' | 'chef' | 'dailyDishOrderNumber'> & {
   chef: User;
@@ -22,6 +22,7 @@ interface OrderContextType {
   getOrdersByChefId: (chefId: string) => Order[];
   createOrder: (orderData: CreateOrderPayload) => Promise<void>;
   updateOrderStatus: (orderId: string, status: OrderStatus) => Promise<void>;
+  assignOrderToDelivery: (orderId: string) => Promise<void>;
   markOrderAsNotDelivered: (orderId: string, details: { reason: string; responsibility: NotDeliveredResponsibility }) => Promise<void>;
   addDish: (dishData: Omit<Dish, 'id' | 'ratings'>) => Promise<void>;
   updateDish: (dishData: Dish) => Promise<void>;
@@ -41,6 +42,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(true);
   const { createNotification } = useNotifications();
+  const { user } = useAuth();
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -138,6 +140,39 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const assignOrderToDelivery = async (orderId: string) => {
+    if (!user || user.role !== 'delivery') return;
+
+    const orderToUpdate = orders.find(o => o.id === orderId);
+    if (orderToUpdate && orderToUpdate.status === 'ready_for_delivery') {
+      const updatedOrder = {
+        ...orderToUpdate,
+        status: 'out_for_delivery' as OrderStatus,
+        deliveryPersonId: user.id,
+        deliveryPersonName: user.name,
+      };
+      setOrders(prev => prev.map(o => o.id === orderId ? updatedOrder : o));
+
+      // Notify Customer
+      createNotification({
+        recipientId: updatedOrder.customerId,
+        titleKey: 'order_on_the_way_notification_title',
+        messageKey: 'order_on_the_way_delivery_notification_desc',
+        params: { dishName: updatedOrder.dish.name, deliveryPersonName: user.name },
+        link: '/profile',
+      });
+
+      // Notify Chef
+      createNotification({
+        recipientId: updatedOrder.chef.id,
+        titleKey: 'order_pickup_notification_title',
+        messageKey: 'order_pickup_notification_desc',
+        params: { dishName: updatedOrder.dish.name, deliveryPersonName: user.name },
+        link: '/chef/orders',
+      });
+    }
+  };
+
   const updateOrderStatus = async (orderId: string, status: OrderStatus) => {
     const updatedOrder = orders.find(o => o.id === orderId);
     if (updatedOrder) {
@@ -153,6 +188,10 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
       };
 
       if (notifications[status]) {
+          // Avoid sending the generic "out_for_delivery" notification if it was triggered by delivery assignment
+          if (status === 'out_for_delivery' && updatedOrder.deliveryPersonId) {
+            return;
+          }
           createNotification({
               recipientId: customerId,
               titleKey: notifications[status].titleKey,
@@ -248,7 +287,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <OrderContext.Provider value={{ orders, dishes, coupons, loading, getOrdersByCustomerId, getOrdersByChefId, createOrder, updateOrderStatus, markOrderAsNotDelivered, addDish, updateDish, deleteDish, addReviewToOrder, getCouponsByChefId, createCoupon, updateCoupon, validateAndApplyCoupon }}>
+    <OrderContext.Provider value={{ orders, dishes, coupons, loading, getOrdersByCustomerId, getOrdersByChefId, createOrder, updateOrderStatus, assignOrderToDelivery, markOrderAsNotDelivered, addDish, updateDish, deleteDish, addReviewToOrder, getCouponsByChefId, createCoupon, updateCoupon, validateAndApplyCoupon }}>
       {children}
     </OrderContext.Provider>
   );
@@ -261,5 +300,3 @@ export const useOrders = () => {
   }
   return context;
 };
-
-    

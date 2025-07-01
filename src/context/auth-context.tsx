@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createContext, useState, useEffect, useContext, type ReactNode } from 'react';
 import type { User, UserRole } from '@/lib/types';
 import { useTranslation } from 'react-i18next';
-import { initialUsers, DEFAULT_CHEF_AVATAR, DEFAULT_CUSTOMER_AVATAR, DEFAULT_ADMIN_AVATAR } from '@/lib/data';
+import { initialUsers, DEFAULT_CHEF_AVATAR, DEFAULT_CUSTOMER_AVATAR, DEFAULT_ADMIN_AVATAR, DEFAULT_DELIVERY_AVATAR } from '@/lib/data';
 import localforage from 'localforage';
 import bcrypt from 'bcryptjs';
 import { useToast } from '@/hooks/use-toast';
@@ -17,6 +17,7 @@ interface AuthContextType {
   user: User | null;
   users: User[];
   chefs: User[];
+  deliveryUsers: User[];
   login: (identifier: string, password: string, role: UserRole) => Promise<User>;
   signup: (details: Partial<User> & { password: string, role: UserRole }) => Promise<User>;
   logout: () => void;
@@ -151,11 +152,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         gender: details.gender,
         phone: details.phone,
         address: details.role === 'customer' ? details.address : undefined,
-        specialty: details.specialty,
+        specialty: details.role === 'chef' ? details.specialty : undefined,
         bio: details.role === 'chef' ? t('new_chef_bio', { specialty: details.specialty }) : undefined,
-        imageUrl: details.imageUrl || (details.role === 'chef' ? DEFAULT_CHEF_AVATAR : DEFAULT_CUSTOMER_AVATAR),
+        imageUrl: details.imageUrl || (details.role === 'chef' ? DEFAULT_CHEF_AVATAR : details.role === 'delivery' ? DEFAULT_DELIVERY_AVATAR : DEFAULT_CUSTOMER_AVATAR),
         availabilityStatus: details.role === 'chef' ? 'available' : undefined,
         favoriteDishIds: details.role === 'customer' ? [] : undefined,
+        vehicleType: details.role === 'delivery' ? details.vehicleType : undefined,
+        licensePlate: details.role === 'delivery' ? details.licensePlate : undefined,
         hashedPassword: hashedPassword
     };
     
@@ -276,6 +279,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { hashedPassword, ...rest } = u;
     return rest;
   });
+
+  const deliveryUsers = users.filter(u => u.role === 'delivery').map(u => {
+    const { hashedPassword, ...rest } = u;
+    return rest;
+  });
   
   const publicUsers = users.map(u => {
     const { hashedPassword, ...rest } = u;
@@ -284,7 +292,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 
   return (
-    <AuthContext.Provider value={{ user, users: publicUsers, chefs, login, signup, logout, updateUser, changePassword, sendPasswordResetEmail, toggleFavoriteDish, deleteUser, loading }}>
+    <AuthContext.Provider value={{ user, users: publicUsers, chefs, deliveryUsers, login, signup, logout, updateUser, changePassword, sendPasswordResetEmail, toggleFavoriteDish, deleteUser, loading }}>
       {children}
     </AuthContext.Provider>
   );

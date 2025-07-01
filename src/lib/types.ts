@@ -24,7 +24,7 @@ export type Dish = {
   ratings?: DishRating[];
 };
 
-export type UserRole = 'customer' | 'chef' | 'admin';
+export type UserRole = 'customer' | 'chef' | 'admin' | 'delivery';
 
 export type StatusObject = {
   id: string;
@@ -50,6 +50,9 @@ export interface User {
   rating?: number;
   availabilityStatus?: 'available' | 'busy' | 'closed';
   status?: StatusObject;
+  // Delivery-specific properties
+  vehicleType?: 'Motorcycle' | 'Car' | 'Bicycle';
+  licensePlate?: string;
 }
 
 export type OrderStatus = 'pending_review' | 'preparing' | 'ready_for_delivery' | 'out_for_delivery' | 'delivered' | 'rejected' | 'waiting_for_chef' | 'not_delivered';
@@ -81,6 +84,8 @@ export type Order = {
     responsibility: NotDeliveredResponsibility;
     timestamp: string;
   };
+  deliveryPersonId?: string;
+  deliveryPersonName?: string;
 };
 
 export type DiscountType = 'percentage' | 'fixed';
