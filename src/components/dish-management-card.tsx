@@ -1,3 +1,4 @@
+
 'use client';
 import Image from 'next/image';
 import {
@@ -26,7 +27,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Edit, MoreVertical, Trash2, Eye, EyeOff, CheckCircle } from 'lucide-react';
+import { Edit, MoreVertical, Trash2, Eye, EyeOff, CheckCircle, Percent } from 'lucide-react';
 import type { Dish, DishStatus } from '@/lib/types';
 import { useOrders } from '@/context/order-context';
 import { useToast } from '@/hooks/use-toast';
@@ -36,9 +37,10 @@ import { useTranslation } from 'react-i18next';
 interface DishManagementCardProps {
   dish: Dish;
   onEdit: () => void;
+  onSetDiscount: () => void;
 }
 
-export function DishManagementCard({ dish, onEdit }: DishManagementCardProps) {
+export function DishManagementCard({ dish, onEdit, onSetDiscount }: DishManagementCardProps) {
     const { t } = useTranslation();
     const { updateDish, deleteDish } = useOrders();
     const { toast } = useToast();
@@ -78,6 +80,10 @@ export function DishManagementCard({ dish, onEdit }: DishManagementCardProps) {
                                 <DropdownMenuItem onClick={onEdit}>
                                     <Edit className="h-4 w-4" />
                                     <span>{t('edit')}</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={onSetDiscount}>
+                                    <Percent className="h-4 w-4" />
+                                    <span>{t('set_discount', 'Set Discount')}</span>
                                 </DropdownMenuItem>
                                 <AlertDialogTrigger asChild>
                                     <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">

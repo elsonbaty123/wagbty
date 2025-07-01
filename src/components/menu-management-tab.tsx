@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -11,21 +12,28 @@ import type { Dish } from '@/lib/types';
 import { DishForm } from './dish-form';
 import { DishManagementCard } from './dish-management-card';
 import { useTranslation } from 'react-i18next';
+import { DiscountForm } from './discount-form';
 
 export function MenuManagementTab() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { dishes } = useOrders();
   const [isDishDialogOpen, setDishDialogOpen] = useState(false);
+  const [isDiscountDialogOpen, setDiscountDialogOpen] = useState(false);
   const [selectedDish, setSelectedDish] = useState<Dish | null>(null);
 
   if (!user) return null;
 
   const chefDishes = dishes.filter(d => d.chefId === user.id);
 
-  const handleOpenDialog = (dish: Dish | null) => {
+  const handleOpenEditDialog = (dish: Dish | null) => {
     setSelectedDish(dish);
     setDishDialogOpen(true);
+  };
+
+  const handleOpenDiscountDialog = (dish: Dish) => {
+    setSelectedDish(dish);
+    setDiscountDialogOpen(true);
   };
 
   return (
@@ -39,7 +47,7 @@ export function MenuManagementTab() {
                 {t('menu_management_desc')}
               </CardDescription>
             </div>
-            <Button onClick={() => handleOpenDialog(null)}>
+            <Button onClick={() => handleOpenEditDialog(null)}>
               <PlusCircle className="me-2 h-4 w-4" />
               {t('add_new_dish')}
             </Button>
@@ -52,7 +60,8 @@ export function MenuManagementTab() {
                 <DishManagementCard
                   key={dish.id}
                   dish={dish}
-                  onEdit={() => handleOpenDialog(dish)}
+                  onEdit={() => handleOpenEditDialog(dish)}
+                  onSetDiscount={() => handleOpenDiscountDialog(dish)}
                 />
               ))}
             </div>
@@ -63,7 +72,7 @@ export function MenuManagementTab() {
                 <p className="mt-2 text-md text-muted-foreground">
                     {t('your_menu_is_empty_desc')}
                 </p>
-                <Button onClick={() => handleOpenDialog(null)} className="mt-6">
+                <Button onClick={() => handleOpenEditDialog(null)} className="mt-6">
                     <PlusCircle className="me-2 h-4 w-4" />
                     {t('add_your_first_dish')}
                 </Button>
@@ -77,6 +86,15 @@ export function MenuManagementTab() {
           dish={selectedDish}
           onFinished={() => setDishDialogOpen(false)}
         />
+      </Dialog>
+      
+      <Dialog open={isDiscountDialogOpen} onOpenChange={setDiscountDialogOpen}>
+        {selectedDish && (
+            <DiscountForm
+                dish={selectedDish}
+                onFinished={() => setDiscountDialogOpen(false)}
+            />
+        )}
       </Dialog>
     </>
   );
