@@ -12,6 +12,15 @@ export const DEFAULT_ADMIN_AVATAR = `data:image/svg+xml,%3csvg width='100px' hei
 export const DEFAULT_DELIVERY_AVATAR = `data:image/svg+xml,%3csvg width='100px' height='100px' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg' color='%23cccccc'%3e%3cpath d='M2.378
  8.368l2.3-5.75a2 2 0 011.848-1.318h9.948a2 2 0 011.848 1.318l2.3 5.75' stroke='currentColor' stroke-width='1.5' stroke-linecap='round'/%3e%3cpath d='M21 17.5a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0zm-11 0a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z' stroke='currentColor' stroke-width='1.5'/%3e%3cpath d='M3 17.5H5m5 0h6m5 0h-2M5 17.5l-1.5-4.5h-1M21.5 13H18l-1-4.5h4.5v4.5z' stroke='currentColor' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3e%3c/svg%3e`;
 
+export const deliveryZones = [
+  { name: 'Nasr City', fee: 30 },
+  { name: 'Heliopolis', fee: 35 },
+  { name: 'Maadi', fee: 40 },
+  { name: 'Zamalek', fee: 45 },
+  { name: 'New Cairo', fee: 50 },
+  { name: '6th of October City', fee: 60 },
+  { name: 'Alexandria', fee: 80 },
+];
 
 // Note: All initial passwords are 'Password123!', admin password is 'AdminPassword123!'
 const salt = bcrypt.genSaltSync(10);
@@ -95,6 +104,7 @@ export const initialUsers: (User & { hashedPassword?: string })[] = [
     gender: 'male',
     phone: '01112223334',
     address: '123 Foodie Lane, Cairo, Egypt',
+    deliveryZone: 'Nasr City',
     imageUrl: DEFAULT_CUSTOMER_AVATAR,
     favoriteDishIds: ['dish_1', 'dish_3'],
     hashedPassword: bcrypt.hashSync('Password123!', salt),
@@ -108,6 +118,7 @@ export const initialUsers: (User & { hashedPassword?: string })[] = [
     gender: 'female',
     phone: '01112223335',
     address: '456 Culinary Street, Giza, Egypt',
+    deliveryZone: 'Heliopolis',
     imageUrl: DEFAULT_CUSTOMER_AVATAR,
     favoriteDishIds: [],
     hashedPassword: bcrypt.hashSync('Password123!', salt),
@@ -121,6 +132,7 @@ export const initialUsers: (User & { hashedPassword?: string })[] = [
     gender: 'male',
     phone: '01112223336',
     address: '789 Gourmet Avenue, Alexandria, Egypt',
+    deliveryZone: 'Alexandria',
     imageUrl: DEFAULT_CUSTOMER_AVATAR,
     favoriteDishIds: ['dish_5'],
     hashedPassword: bcrypt.hashSync('Password123!', salt),
@@ -134,6 +146,7 @@ export const initialUsers: (User & { hashedPassword?: string })[] = [
     gender: 'female',
     phone: '01112223337',
     address: '101 Flavor Town, Luxor, Egypt',
+    deliveryZone: 'Maadi',
     imageUrl: DEFAULT_CUSTOMER_AVATAR,
     favoriteDishIds: [],
     hashedPassword: bcrypt.hashSync('Password123!', salt),
@@ -260,9 +273,9 @@ export const initialOrders: Order[] = [
     rating: 5,
     review: 'Super fast delivery and the pasta was amazing!',
     subtotal: 360.00,
-    deliveryFee: 50.00,
+    deliveryFee: 30.00, // Based on Nasr City
     discount: 0,
-    total: 410.00,
+    total: 390.00,
   },
   {
     id: 'order_2',
@@ -276,10 +289,10 @@ export const initialOrders: Order[] = [
     status: 'preparing',
     createdAt: new Date().toISOString(),
     subtotal: 350.00,
-    deliveryFee: 50.00,
+    deliveryFee: 35.00, // Based on Heliopolis
     discount: 35.00,
     appliedCouponCode: 'SAVE10',
-    total: 365.00,
+    total: 350.00,
   },
 ];
 

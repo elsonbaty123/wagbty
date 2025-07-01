@@ -163,6 +163,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         gender: details.gender,
         phone: details.phone,
         address: details.role === 'customer' ? details.address : undefined,
+        deliveryZone: details.role === 'customer' ? details.deliveryZone : undefined,
         specialty: details.role === 'chef' ? details.specialty : undefined,
         bio: details.role === 'chef' ? t('new_chef_bio', { specialty: details.specialty }) : undefined,
         imageUrl: details.imageUrl || (details.role === 'chef' ? DEFAULT_CHEF_AVATAR : details.role === 'delivery' ? DEFAULT_DELIVERY_AVATAR : DEFAULT_CUSTOMER_AVATAR),

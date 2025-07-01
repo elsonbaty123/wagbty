@@ -18,6 +18,7 @@ import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useTranslation } from 'react-i18next';
 import { Textarea } from '@/components/ui/textarea';
+import { deliveryZones } from '@/lib/data';
 
 export default function OrderPage() {
   const { t } = useTranslation();
@@ -62,12 +63,19 @@ export default function OrderPage() {
   if (!dish || !chef) {
     notFound();
   }
+
+  const deliveryFee = useMemo(() => {
+    if (!user?.deliveryZone) {
+      return 50.0; // Default fee if zone is not set
+    }
+    const zone = deliveryZones.find(z => z.name === user.deliveryZone);
+    return zone ? zone.fee : 50.0; // Default fee if zone not found
+  }, [user]);
   
   const isChefBusy = chef.availabilityStatus === 'busy';
   const isChefClosed = chef.availabilityStatus === 'closed';
 
   const subtotal = dish.price * quantity;
-  const deliveryFee = 50.0;
   const total = subtotal - appliedDiscount + deliveryFee;
 
   const handleApplyCoupon = () => {
@@ -91,12 +99,13 @@ export default function OrderPage() {
   };
   
   const handleConfirmOrder = () => {
-    if (!user || !chef || !user.address) {
+    if (!user || !chef || !user.address || !user.deliveryZone) {
       toast({
         variant: 'destructive',
         title: t('order_error'),
-        description: t('order_error_desc'),
+        description: t('order_error_desc_address_zone'),
       });
+      router.push('/settings');
       return;
     }
 
@@ -171,6 +180,15 @@ export default function OrderPage() {
               </CardContent>
             </Card>
           ) : (
+            <>
+            {!user.deliveryZone && (
+               <Alert variant="destructive" className="mb-4">
+                  <AlertTitle>{t('no_delivery_zone_title', 'No Delivery Zone Set')}</AlertTitle>
+                  <AlertDescription>
+                      {t('no_delivery_zone_desc', 'A default delivery fee has been applied. Please set your delivery zone in your account settings for accurate pricing.')}
+                  </AlertDescription>
+              </Alert>
+            )}
             <Card>
               <CardHeader>
                 <CardTitle>{t('delivery_information')}</CardTitle>
@@ -178,6 +196,7 @@ export default function OrderPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                  <p className="font-semibold">{user.name}</p>
+                 {user.deliveryZone && <p className="font-semibold text-primary">{user.deliveryZone}</p>}
                  <p>{user.address || t('no_address_yet')}</p>
                  <p>{user.phone || t('no_phone_provided')}</p>
                  <Button variant="outline" asChild>
@@ -185,6 +204,7 @@ export default function OrderPage() {
                 </Button>
               </CardContent>
             </Card>
+            </>
           )}
         </div>
         <div className="space-y-6">

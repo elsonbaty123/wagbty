@@ -20,7 +20,8 @@ import type { User } from '@/lib/types';
 import { useNotifications } from '@/context/notification-context';
 import { useOrders } from '@/context/order-context';
 import { useTranslation } from 'react-i18next';
-import { DEFAULT_CHEF_AVATAR, DEFAULT_CUSTOMER_AVATAR } from '@/lib/data';
+import { DEFAULT_CHEF_AVATAR, DEFAULT_CUSTOMER_AVATAR, deliveryZones } from '@/lib/data';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function SettingsPage() {
     const { t, i18n } = useTranslation();
@@ -40,6 +41,7 @@ export default function SettingsPage() {
 
     // Customer-specific state
     const [address, setAddress] = useState('');
+    const [deliveryZone, setDeliveryZone] = useState('');
 
     // Chef-specific state
     const [specialty, setSpecialty] = useState('');
@@ -55,6 +57,7 @@ export default function SettingsPage() {
             setImagePreview(user.imageUrl || null);
             if (user.role === 'customer') {
                 setAddress(user.address || '');
+                setDeliveryZone(user.deliveryZone || '');
             }
             if (user.role === 'chef') {
                 setSpecialty(user.specialty || '');
@@ -213,6 +216,7 @@ export default function SettingsPage() {
             const userDetails: Partial<User> = { name, email, phone, imageUrl: imagePreview };
             if (user.role === 'customer') {
                 userDetails.address = address;
+                userDetails.deliveryZone = deliveryZone;
             }
             if (user.role === 'chef') {
                 userDetails.specialty = specialty;
@@ -344,22 +348,37 @@ export default function SettingsPage() {
                             <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={t('phone_placeholder')} />
                         </div>
                         {user.role === 'customer' && (
-                            <div className="space-y-2 text-left rtl:text-right">
-                                <div className="flex justify-between items-center">
-                                    <Label htmlFor="address">{t('delivery_address_label')}</Label>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={handleGetLocation}
-                                        disabled={isFetchingLocation}
-                                    >
-                                        {isFetchingLocation ? <Loader2 className="me-2 h-4 w-4 animate-spin" /> : <MapPin className="me-2 h-4 w-4" />}
-                                        {t('use_current_location', 'Use Current Location')}
-                                    </Button>
+                            <>
+                                <div className="space-y-2 text-left rtl:text-right">
+                                    <Label htmlFor="delivery-zone">{t('delivery_zone_label', 'Delivery Zone')}</Label>
+                                    <Select onValueChange={setDeliveryZone} value={deliveryZone}>
+                                      <SelectTrigger id="delivery-zone" className="w-full">
+                                        <SelectValue placeholder={t('select_delivery_zone_placeholder', 'Select your delivery zone')} />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {deliveryZones.map((zone) => (
+                                          <SelectItem key={zone.name} value={zone.name}>{t(zone.name, zone.name)}</SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
                                 </div>
-                                <Textarea id="address" value={address} onChange={(e) => setAddress(e.target.value)} placeholder={t('delivery_address_placeholder')} />
-                            </div>
+                                <div className="space-y-2 text-left rtl:text-right">
+                                    <div className="flex justify-between items-center">
+                                        <Label htmlFor="address">{t('delivery_address_label')}</Label>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={handleGetLocation}
+                                            disabled={isFetchingLocation}
+                                        >
+                                            {isFetchingLocation ? <Loader2 className="me-2 h-4 w-4 animate-spin" /> : <MapPin className="me-2 h-4 w-4" />}
+                                            {t('use_current_location', 'Use Current Location')}
+                                        </Button>
+                                    </div>
+                                    <Textarea id="address" value={address} onChange={(e) => setAddress(e.target.value)} placeholder={t('delivery_address_placeholder')} />
+                                </div>
+                            </>
                         )}
                         {user.role === 'chef' && (
                             <>

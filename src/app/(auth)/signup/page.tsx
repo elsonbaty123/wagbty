@@ -17,6 +17,8 @@ import type { User } from '@/lib/types';
 import { useTranslation } from 'react-i18next';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { deliveryZones } from '@/lib/data';
 
 const SignupSkeleton = () => (
     <Tabs defaultValue="customer" className="w-full max-w-md">
@@ -58,6 +60,7 @@ export default function SignupPage() {
   const [customerAddress, setCustomerAddress] = useState('');
   const [customerPassword, setCustomerPassword] = useState('');
   const [customerGender, setCustomerGender] = useState<'male' | 'female'>();
+  const [customerDeliveryZone, setCustomerDeliveryZone] = useState<string>('');
   const [isFetchingLocation, setIsFetchingLocation] = useState(false);
 
   // Chef state
@@ -103,8 +106,9 @@ export default function SignupPage() {
     
     if (role === 'customer') {
         if (!customerGender) { toast({ variant: 'destructive', title: t('input_error'), description: t('gender_required', 'الرجاء تحديد النوع'), }); setIsLoading(false); return; }
+        if (!customerDeliveryZone) { toast({ variant: 'destructive', title: t('input_error'), description: t('delivery_zone_required', 'الرجاء تحديد منطقة التوصيل'), }); setIsLoading(false); return; }
         email = customerEmail;
-        userDetails = { name: customerName, email: customerEmail, phone: customerPhone, address: customerAddress, password: customerPassword, gender: customerGender, role: 'customer' }
+        userDetails = { name: customerName, email: customerEmail, phone: customerPhone, address: customerAddress, password: customerPassword, gender: customerGender, role: 'customer', deliveryZone: customerDeliveryZone }
     } else if (role === 'chef') {
         if (!chefGender) { toast({ variant: 'destructive', title: t('input_error'), description: t('gender_required', 'الرجاء تحديد النوع'), }); setIsLoading(false); return; }
         email = chefEmail;
@@ -194,6 +198,19 @@ export default function SignupPage() {
               <div className="space-y-2 text-left rtl:text-right"><Label>{t('gender', 'النوع')}</Label><RadioGroup required onValueChange={(value: 'male' | 'female') => setCustomerGender(value)} value={customerGender} className="grid grid-cols-2 gap-4"><div><RadioGroupItem value="male" id="customer-male" className="sr-only peer" /><Label htmlFor="customer-male" className="flex flex-col items-center justify-center rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"><Image src="https://cdn-icons-png.flaticon.com/512/147/147144.png" alt={t('male', 'ذكر')} width={48} height={48} className="mb-2 h-12 w-12" data-ai-hint="male avatar" /><span className="font-normal">{t('male', 'ذكر')}</span></Label></div><div><RadioGroupItem value="female" id="customer-female" className="sr-only peer" /><Label htmlFor="customer-female" className="flex flex-col items-center justify-center rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"><Image src="https://cdn-icons-png.flaticon.com/512/6997/6997662.png" alt={t('female', 'أنثى')} width={48} height={48} className="mb-2 h-12 w-12" data-ai-hint="female avatar" /><span className="font-normal">{t('female', 'أنثى')}</span></Label></div></RadioGroup></div>
               <div className="space-y-2 text-left rtl:text-right"><Label htmlFor="customer-email">{t('email')}</Label><Input id="customer-email" type="email" placeholder={t('email_placeholder')} required value={customerEmail} onChange={(e) => setCustomerEmail(e.target.value)} /></div>
               <div className="space-y-2 text-left rtl:text-right"><Label htmlFor="customer-phone">{t('phone_number')}</Label><Input id="customer-phone" type="tel" placeholder={t('phone_placeholder')} required value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)}/></div>
+              <div className="space-y-2 text-left rtl:text-right">
+                <Label htmlFor="customer-zone">{t('delivery_zone_label', 'Delivery Zone')}</Label>
+                <Select required onValueChange={setCustomerDeliveryZone} value={customerDeliveryZone}>
+                  <SelectTrigger id="customer-zone" className="w-full">
+                    <SelectValue placeholder={t('select_delivery_zone_placeholder', 'Select your delivery zone')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {deliveryZones.map((zone) => (
+                      <SelectItem key={zone.name} value={zone.name}>{t(zone.name, zone.name)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="space-y-2 text-left rtl:text-right"><Label htmlFor="customer-address">{t('address')}</Label><div className="relative"><Input id="customer-address" placeholder={t('address_placeholder_customer')} required value={customerAddress} onChange={(e) => setCustomerAddress(e.target.value)} className="pe-10" /><Button type="button" variant="ghost" size="icon" onClick={handleGetLocation} className="absolute top-1/2 -translate-y-1/2 end-1 h-8 w-8" disabled={isFetchingLocation} aria-label={t('use_current_location')} >{isFetchingLocation ? <Loader2 className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}</Button></div></div>
               <div className="space-y-2 text-left rtl:text-right"><Label htmlFor="customer-password">{t('password')}</Label><PasswordInput id="customer-password" required placeholder={t('password_placeholder')} value={customerPassword} onChange={(e) => setCustomerPassword(e.target.value)} showStrength /></div>
               <Button type="submit" disabled={isLoading} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">{isLoading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}{t('signup')}</Button>
