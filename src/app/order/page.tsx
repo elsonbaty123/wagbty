@@ -43,6 +43,14 @@ export default function OrderPage() {
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
   const [customerNotes, setCustomerNotes] = useState('');
 
+  const deliveryFee = useMemo(() => {
+    if (!user?.deliveryZone) {
+      return 50.0; // Default fee if zone is not set
+    }
+    const zone = deliveryZones.find(z => z.name === user.deliveryZone);
+    return zone ? zone.fee : 50.0; // Default fee if zone not found
+  }, [user]);
+
   if (authLoading || dishesLoading) {
       return (
         <div className="container mx-auto px-4 py-8 md:px-6 md:py-12">
@@ -77,14 +85,6 @@ export default function OrderPage() {
       return { finalPrice: dish.price };
   }
   const { finalPrice, originalPrice } = getDisplayPrice(dish);
-
-  const deliveryFee = useMemo(() => {
-    if (!user?.deliveryZone) {
-      return 50.0; // Default fee if zone is not set
-    }
-    const zone = deliveryZones.find(z => z.name === user.deliveryZone);
-    return zone ? zone.fee : 50.0; // Default fee if zone not found
-  }, [user]);
   
   const isChefBusy = chef.availabilityStatus === 'busy';
   const isChefClosed = chef.availabilityStatus === 'closed';
