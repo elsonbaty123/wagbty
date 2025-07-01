@@ -33,7 +33,7 @@ export function BottomNavBar() {
             key={item.href}
             href={item.href}
             className={cn(
-              'flex flex-col items-center justify-center gap-1 text-xs font-medium transition-colors',
+              'flex flex-col items-center justify-center gap-1 text-xs font-medium transition-all duration-200 hover:scale-110 active:scale-100',
               item.isActive ? 'text-primary' : 'text-muted-foreground hover:text-primary'
             )}
           >

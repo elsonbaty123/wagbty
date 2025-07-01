@@ -66,7 +66,7 @@ export function DishManagementCard({ dish, onEdit, onSetDiscount }: DishManageme
 
     return (
         <AlertDialog>
-            <Card className={cn("flex flex-col transition-opacity", isHidden && 'opacity-60')}>
+            <Card className={cn("flex flex-col transition-all duration-200 hover:shadow-lg hover:-translate-y-1", isHidden && 'opacity-60')}>
                 <CardHeader className="p-0 relative">
                     <Image src={dish.imageUrl} alt={dish.name} width={400} height={225} className="aspect-video w-full rounded-t-lg object-cover" data-ai-hint="plated food" />
                     <div className="absolute top-2 start-2">

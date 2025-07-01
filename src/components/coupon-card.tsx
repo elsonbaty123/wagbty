@@ -51,7 +51,7 @@ export function CouponCard({ coupon, onEdit }: CouponCardProps) {
   }
   
   return (
-    <Card className="flex flex-col">
+    <Card className="flex flex-col transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
       <CardHeader>
         <div className="flex justify-between items-start">
             <div className="flex items-center gap-2">

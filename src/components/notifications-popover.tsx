@@ -55,7 +55,7 @@ export function NotificationsPopover() {
           <Link
             key={notification.id}
             href={notification.link}
-            className={cn("block p-4 hover:bg-muted/50", !notification.isRead && "bg-primary/5")}
+            className={cn("block p-4 hover:bg-muted/50 transition-colors duration-150", !notification.isRead && "bg-primary/5")}
             onClick={() => handleNotificationClick(notification.id)}
           >
             <div className="flex items-start gap-3">

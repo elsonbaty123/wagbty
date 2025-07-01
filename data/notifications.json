@@ -1,0 +1,11 @@
+[
+  {
+    "recipientId": "user_1751373322555",
+    "titleKey": "account_approved_title",
+    "messageKey": "account_approved_desc",
+    "link": "/login",
+    "id": "notif_1751373383107",
+    "createdAt": "2025-07-01T12:36:23.107Z",
+    "isRead": false
+  }
+]

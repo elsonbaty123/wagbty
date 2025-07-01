@@ -128,7 +128,7 @@ export function OrderCard({ order, isChefView = false, isDeliveryView = false, u
 
 
   return (
-    <Card className="flex flex-col">
+    <Card className="flex flex-col transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
       <CardHeader>
         <div className="flex justify-between items-start">
           <Badge variant={currentStatus.variant} className="flex items-center">{currentStatus.icon}{t(currentStatus.labelKey)}</Badge>
