@@ -41,7 +41,7 @@ export interface User {
   name:string;
   email: string;
   role: UserRole;
-  accountStatus?: 'pending_approval' | 'active' | 'rejected';
+  accountStatus?: 'pending_approval' | 'active' | 'rejected' | 'suspended';
   gender?: 'male' | 'female';
   phone?: string;
   address?: string;

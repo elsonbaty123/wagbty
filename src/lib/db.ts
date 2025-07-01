@@ -109,6 +109,10 @@ export async function loginUser(identifier: string, password: string): Promise<U
     if (targetUser.accountStatus === 'rejected') {
         throw new Error('Your application has been rejected. Please contact support for more information.');
     }
+    if (targetUser.accountStatus === 'suspended') {
+        throw new Error('Your account has been suspended. Please contact support for more information.');
+    }
+
 
     const { hashedPassword, ...userToSet } = targetUser;
     return userToSet;
