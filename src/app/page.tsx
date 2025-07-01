@@ -8,14 +8,41 @@ import { useAuth } from '@/context/auth-context';
 import { Users, Search } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useTranslation } from 'react-i18next';
+import { PopularDishesCarousel } from '@/components/popular-dishes-carousel';
+import type { Dish } from '@/lib/types';
 
 export default function Home() {
   const { t } = useTranslation();
-  const { dishes, loading: dishesLoading } = useOrders();
+  const { dishes, orders, loading: dishesLoading } = useOrders();
   const { chefs, loading: authLoading } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   
   const loading = dishesLoading || authLoading;
+
+  const popularDishes = useMemo(() => {
+    const dishOrderCounts = new Map<string, number>();
+
+    orders.forEach(order => {
+        dishOrderCounts.set(order.dish.id, (dishOrderCounts.get(order.dish.id) || 0) + order.quantity);
+    });
+    
+    // Sort dish IDs by popularity
+    const sortedDishIds = Array.from(dishOrderCounts.entries())
+        .sort((a, b) => b[1] - a[1])
+        .map(entry => entry[0]);
+
+    // Map back to dish objects, maintaining order
+    const sortedDishes = sortedDishIds
+        .map(id => dishes.find(dish => dish.id === id))
+        .filter((dish): dish is Dish => !!dish); // Type guard to remove undefined
+
+    // Add remaining dishes that haven't been ordered to the end, to ensure we have enough items
+    const orderedDishIds = new Set(sortedDishIds);
+    const unorderedDishes = dishes.filter(dish => !orderedDishIds.has(dish.id));
+    
+    return [...sortedDishes, ...unorderedDishes].slice(0, 6); // Take top 6 for the carousel
+  }, [orders, dishes]);
+
 
   const chefsWithDishData = useMemo(() => {
     return chefs.map(chef => {
@@ -53,6 +80,21 @@ export default function Home() {
                 </div>
              </div>
           </section>
+          {/* Skeleton for popular dishes */}
+          <section className="w-full py-12 md:py-16 lg:py-20 bg-muted/50">
+             <div className="container mx-auto px-4 md:px-6">
+                <div className="flex flex-col items-center space-y-4 text-center">
+                  <Skeleton className="h-10 w-48" />
+                  <Skeleton className="h-6 w-3/4 max-w-md" />
+                </div>
+                <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
+                   <Skeleton className="h-[225px] w-full" />
+                   <Skeleton className="h-[225px] w-full hidden sm:block" />
+                   <Skeleton className="h-[225px] w-full hidden lg:block" />
+                </div>
+             </div>
+          </section>
+
           <section id="chefs" className="w-full py-12 md:py-24 lg:py-32">
             <div className="container mx-auto px-4 md:px-6">
                  <div className="mx-auto grid grid-cols-1 gap-8 py-12 sm:grid-cols-2 md:grid-cols-3 lg:gap-12">
@@ -91,8 +133,11 @@ export default function Home() {
         </div>
       </section>
 
+      {popularDishes.length > 0 && <PopularDishesCarousel dishes={popularDishes} />}
+
       <section id="chefs" className="w-full py-12 md:py-24 lg:py-32">
         <div className="container mx-auto px-4 md:px-6">
+          <h2 className="font-headline text-3xl font-bold text-primary mb-6 text-center">{t('our_chefs_title', 'Our Talented Chefs')}</h2>
           {filteredChefs.length > 0 ? (
             <div className="mx-auto grid grid-cols-1 gap-8 py-12 sm:grid-cols-2 md:grid-cols-3 lg:gap-12">
               {filteredChefs.map((chef) => (
