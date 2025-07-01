@@ -22,6 +22,7 @@ interface AuthContextType {
   signup: (details: Partial<User> & { password: string, role: UserRole }) => Promise<User>;
   logout: () => void;
   updateUser: (updatedUserDetails: Partial<User>) => Promise<User>;
+  updateUserByAdmin: (userId: string, updatedUserDetails: Partial<User>) => Promise<User>;
   changePassword: (passwordDetails: { currentPassword; newPassword; confirmPassword; }) => Promise<void>;
   sendPasswordResetEmail: (email: string) => Promise<void>; // Mocked
   toggleFavoriteDish: (dishId: string) => Promise<void>;
@@ -115,6 +116,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!isMatch) {
       throw new Error(t('auth_incorrect_password', 'كلمة المرور غير صحيحة.'));
     }
+
+    if (targetUser.accountStatus === 'pending_approval') {
+        throw new Error(t('auth_account_pending', 'حسابك قيد المراجعة. ستتلقى إشعارًا عند الموافقة عليه.'));
+    }
+    if (targetUser.accountStatus === 'rejected') {
+        throw new Error(t('auth_account_rejected', 'تم رفض طلب انضمامك. يرجى التواصل مع الإدارة لمزيد من المعلومات.'));
+    }
     
     const { hashedPassword, ...userToSet } = targetUser;
     setUser(userToSet);
@@ -143,12 +151,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(details.password, salt);
     
+    const accountStatus = (details.role === 'chef' || details.role === 'delivery') ? 'pending_approval' : 'active';
+    
     const newUserId = `user_${Date.now()}`;
     const newUser: StoredUser = {
         id: newUserId,
         name: details.name!,
         email: details.email!,
         role: details.role,
+        accountStatus: accountStatus,
         gender: details.gender,
         phone: details.phone,
         address: details.role === 'customer' ? details.address : undefined,
@@ -167,8 +178,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await localforage.setItem('users', updatedUsers);
 
     const { hashedPassword: _, ...userToSet } = newUser;
-    setUser(userToSet);
-    localStorage.setItem('currentUserId', userToSet.id);
+    
+    if (accountStatus === 'active') {
+        setUser(userToSet);
+        localStorage.setItem('currentUserId', userToSet.id);
+    }
     
     return userToSet;
   };
@@ -203,6 +217,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { hashedPassword, ...userToSet } = updatedStoredUser;
       setUser(userToSet);
       
+      return userToSet;
+  };
+
+  const updateUserByAdmin = async (userId: string, updatedUserDetails: Partial<User>): Promise<User> => {
+      if (!user || user.role !== 'admin') throw new Error(t("auth_admin_only_action"));
+  
+      const userIndex = users.findIndex(u => u.id === userId);
+      if (userIndex === -1) throw new Error("User not found");
+  
+      const currentUserState = users[userIndex];
+      const updatedStoredUser: StoredUser = { ...currentUserState, ...updatedUserDetails };
+  
+      const updatedUsers = [...users];
+      updatedUsers[userIndex] = updatedStoredUser;
+  
+      setAllUsers(updatedUsers);
+      await localforage.setItem('users', updatedUsers);
+      
+      const { hashedPassword, ...userToSet } = updatedStoredUser;
       return userToSet;
   };
 
@@ -292,7 +325,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 
   return (
-    <AuthContext.Provider value={{ user, users: publicUsers, chefs, deliveryUsers, login, signup, logout, updateUser, changePassword, sendPasswordResetEmail, toggleFavoriteDish, deleteUser, loading }}>
+    <AuthContext.Provider value={{ user, users: publicUsers, chefs, deliveryUsers, login, signup, logout, updateUser, updateUserByAdmin, changePassword, sendPasswordResetEmail, toggleFavoriteDish, deleteUser, loading }}>
       {children}
     </AuthContext.Provider>
   );

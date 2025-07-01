@@ -125,10 +125,20 @@ export default function SignupPage() {
     
     try {
       const signedUpUser = await signup(userDetails);
-      toast({ title: i18n.language === 'ar' ? 'تم إنشاء الحساب بنجاح' : 'Signup Successful', description: i18n.language === 'ar' ? 'أهلاً بك في وجبتي!' : 'Welcome to Wagbty!', });
-      if (signedUpUser.role === 'chef') router.push('/chef/dashboard');
-      else if (signedUpUser.role === 'delivery') router.push('/delivery/dashboard');
-      else router.push('/');
+      
+      if (signedUpUser.accountStatus === 'pending_approval') {
+          toast({ 
+              title: t('signup_pending_title', 'Account Submitted for Review'),
+              description: t('signup_pending_desc', 'Your account is now pending approval. You will be notified once it is reviewed by the administration.'),
+              duration: 10000,
+          });
+          router.push('/login');
+      } else {
+          toast({ title: i18n.language === 'ar' ? 'تم إنشاء الحساب بنجاح' : 'Signup Successful', description: i18n.language === 'ar' ? 'أهلاً بك في وجبتي!' : 'Welcome to Wagbty!', });
+          if (signedUpUser.role === 'chef') router.push('/chef/dashboard');
+          else if (signedUpUser.role === 'delivery') router.push('/delivery/dashboard');
+          else router.push('/');
+      }
     } catch (error: any) {
       toast({ variant: 'destructive', title: t('signup_failed'), description: error.message || t('something_went_wrong'), });
     } finally {
