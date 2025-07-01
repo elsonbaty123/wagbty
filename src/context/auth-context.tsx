@@ -101,6 +101,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setUser(userToSet);
             localStorage.setItem('currentUserId', userToSet.id);
             return userToSet;
+        } else {
+            throw new Error(t('auth_incorrect_password', 'كلمة المرور غير صحيحة.'));
         }
     }
     
