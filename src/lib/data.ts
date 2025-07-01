@@ -1,7 +1,6 @@
 
 
 import type { Dish, Order, Coupon, User, StatusReaction, ViewedStatus } from '@/lib/types';
-import bcrypt from 'bcryptjs';
 
 // The application will now start with pre-defined data for local storage.
 // This data will be used to seed the database if it's empty.
@@ -22,10 +21,7 @@ export const deliveryZones = [
   { name: 'Alexandria', fee: 80 },
 ];
 
-// Note: All initial passwords are 'Password123!', admin password is 'AdminPassword123!'
-const salt = bcrypt.genSaltSync(10);
-
-export const initialUsers: (User & { hashedPassword?: string })[] = [
+export const initialUsers: (User & { password?: string })[] = [
   // Admin
   {
     id: 'admin_1',
@@ -35,7 +31,7 @@ export const initialUsers: (User & { hashedPassword?: string })[] = [
     accountStatus: 'active',
     gender: 'male',
     imageUrl: DEFAULT_ADMIN_AVATAR,
-    hashedPassword: bcrypt.hashSync('AdminPassword123!', salt),
+    password: 'AdminPassword123!',
   },
   // Customers
   {
@@ -50,7 +46,7 @@ export const initialUsers: (User & { hashedPassword?: string })[] = [
     deliveryZone: 'Nasr City',
     imageUrl: DEFAULT_CUSTOMER_AVATAR,
     favoriteDishIds: [],
-    hashedPassword: bcrypt.hashSync('Password123!', salt),
+    password: 'Password123!',
   },
   {
     id: 'customer_2',
@@ -64,7 +60,7 @@ export const initialUsers: (User & { hashedPassword?: string })[] = [
     deliveryZone: 'Heliopolis',
     imageUrl: DEFAULT_CUSTOMER_AVATAR,
     favoriteDishIds: [],
-    hashedPassword: bcrypt.hashSync('Password123!', salt),
+    password: 'Password123!',
   },
   {
     id: 'customer_3',
@@ -78,7 +74,7 @@ export const initialUsers: (User & { hashedPassword?: string })[] = [
     deliveryZone: 'Alexandria',
     imageUrl: DEFAULT_CUSTOMER_AVATAR,
     favoriteDishIds: [],
-    hashedPassword: bcrypt.hashSync('Password123!', salt),
+    password: 'Password123!',
   },
   {
     id: 'customer_4',
@@ -92,7 +88,7 @@ export const initialUsers: (User & { hashedPassword?: string })[] = [
     deliveryZone: 'Maadi',
     imageUrl: DEFAULT_CUSTOMER_AVATAR,
     favoriteDishIds: [],
-    hashedPassword: bcrypt.hashSync('Password123!', salt),
+    password: 'Password123!',
   },
   // Delivery
   {
@@ -106,7 +102,7 @@ export const initialUsers: (User & { hashedPassword?: string })[] = [
     vehicleType: 'Motorcycle',
     licensePlate: 'Cairo 1234',
     imageUrl: DEFAULT_DELIVERY_AVATAR,
-    hashedPassword: bcrypt.hashSync('Password123!', salt),
+    password: 'Password123!',
   },
 ];
 

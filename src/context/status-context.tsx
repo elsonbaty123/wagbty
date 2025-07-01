@@ -3,7 +3,7 @@
 
 import { createContext, useState, useEffect, useContext, type ReactNode } from 'react';
 import type { StatusReaction, ViewedStatus } from '@/lib/types';
-import localforage from 'localforage';
+import * as db from '@/lib/db';
 import { useAuth } from './auth-context';
 import { useNotifications } from './notification-context';
 import { useToast } from '@/hooks/use-toast';
@@ -32,31 +32,23 @@ export const StatusProvider = ({ children }: { children: ReactNode }) => {
   const [viewedStatuses, setViewedStatuses] = useState<ViewedStatus[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const refreshStatusData = async () => {
+      const [freshReactions, freshViews] = await Promise.all([
+          db.getStatusReactions(),
+          db.getViewedStatuses()
+      ]);
+      setReactions(freshReactions);
+      setViewedStatuses(freshViews);
+  }
+
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-      const [storedReactions, storedViews] = await Promise.all([
-          localforage.getItem<StatusReaction[]>('status_reactions'),
-          localforage.getItem<ViewedStatus[]>('viewed_statuses')
-      ]);
-      setReactions(storedReactions || []);
-      setViewedStatuses(storedViews || []);
+      await refreshStatusData();
       setLoading(false);
     };
     loadData();
   }, []);
-
-  useEffect(() => {
-    if (!loading) {
-      localforage.setItem('status_reactions', reactions);
-    }
-  }, [reactions, loading]);
-
-  useEffect(() => {
-    if (!loading) {
-      localforage.setItem('viewed_statuses', viewedStatuses);
-    }
-  }, [viewedStatuses, loading]);
 
   const addReaction = async (reaction: { statusId: string; chefId: string; emoji?: string; message?: string }) => {
     if (!user) throw new Error("User not logged in");
@@ -75,20 +67,17 @@ export const StatusProvider = ({ children }: { children: ReactNode }) => {
         console.warn("User has already reacted to this status.");
         return;
     }
+    
+    await db.createStatusReaction({
+        statusId: reaction.statusId,
+        userId: user.id,
+        userName: user.name,
+        userImageUrl: user.imageUrl,
+        emoji: reaction.emoji,
+        message: reaction.message,
+    });
+    await refreshStatusData();
 
-    const newReaction: StatusReaction = {
-      id: `reaction_${Date.now()}`,
-      statusId: reaction.statusId,
-      userId: user.id,
-      userName: user.name,
-      userImageUrl: user.imageUrl,
-      emoji: reaction.emoji,
-      message: reaction.message,
-      createdAt: new Date().toISOString(),
-    };
-    setReactions(prev => [newReaction, ...prev]);
-
-    // Notify the chef
     if (user.id !== reaction.chefId) {
       createNotification({
           recipientId: reaction.chefId,
@@ -112,14 +101,9 @@ export const StatusProvider = ({ children }: { children: ReactNode }) => {
       if (!user) return;
       const alreadyViewed = viewedStatuses.some(v => v.statusId === statusId && v.userId === user.id);
       if (alreadyViewed) return;
-
-      const newView: ViewedStatus = {
-          id: `view_${Date.now()}`,
-          statusId,
-          userId: user.id,
-          createdAt: new Date().toISOString(),
-      };
-      setViewedStatuses(prev => [...prev, newView]);
+      
+      await db.createViewedStatus({ statusId, userId: user.id });
+      await refreshStatusData();
   }
 
   const isStoryViewed = (statusId: string, userId: string): boolean => {

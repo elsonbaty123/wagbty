@@ -5,8 +5,7 @@ import { createContext, useState, useEffect, useContext, type ReactNode } from '
 import type { Order, Dish, DishRating, Coupon, User, OrderStatus, NotDeliveredResponsibility } from '@/lib/types';
 import { useNotifications } from './notification-context';
 import { useTranslation } from 'react-i18next';
-import { initialOrders, allDishes, initialCoupons } from '@/lib/data';
-import localforage from 'localforage';
+import * as db from '@/lib/db';
 import { useAuth } from './auth-context';
 import { useToast } from '@/hooks/use-toast';
 
@@ -47,33 +46,31 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
   const { t } = useTranslation();
   const { toast } = useToast();
 
+  const refreshData = async () => {
+    const [freshOrders, freshDishes, freshCoupons] = await Promise.all([
+        db.getOrders(),
+        db.getDishes(),
+        db.getCoupons(),
+    ]);
+    setOrders(freshOrders);
+    setDishes(freshDishes);
+    setCoupons(freshCoupons);
+    return { freshOrders, freshDishes, freshCoupons };
+  }
+
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
       try {
-        const [storedOrders, storedDishes, storedCoupons] = await Promise.all([
-          localforage.getItem<Order[]>('orders'),
-          localforage.getItem<Dish[]>('dishes'),
-          localforage.getItem<Coupon[]>('coupons'),
-        ]);
-
-        setOrders(storedOrders || initialOrders);
-        setDishes(storedDishes || allDishes);
-        setCoupons(storedCoupons || initialCoupons);
-
+        await refreshData();
       } catch (error) {
-        console.error("Failed to load data from localforage", error);
+        console.error("Failed to load data from db", error);
       } finally {
         setLoading(false);
       }
     };
     loadData();
   }, []);
-
-  // Persist data to localforage whenever it changes
-  useEffect(() => { if (!loading) localforage.setItem('orders', orders); }, [orders, loading]);
-  useEffect(() => { if (!loading) localforage.setItem('dishes', dishes); }, [dishes, loading]);
-  useEffect(() => { if (!loading) localforage.setItem('coupons', coupons); }, [coupons, loading]);
 
   const getOrdersByCustomerId = (customerId: string) => {
     return orders.filter((order) => order.customerId === customerId);
@@ -84,37 +81,18 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const createOrder = async (orderData: CreateOrderPayload) => {
-    const isChefBusy = orderData.chef.availabilityStatus === 'busy';
-
-    // Calculate daily order number
-    const now = new Date();
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-    const todaysOrdersForDishByCustomer = orders.filter(o =>
-        o.customerId === orderData.customerId &&
-        o.dish.id === orderData.dish.id &&
-        new Date(o.createdAt) >= startOfToday
-    );
-
-    const dailyDishOrderNumber = todaysOrdersForDishByCustomer.length + 1;
-    
-    const newOrder: Order = {
-        ...orderData,
-        id: `order_${Date.now()}`,
-        status: isChefBusy ? 'waiting_for_chef' : 'pending_review',
-        createdAt: new Date().toISOString(),
-        chef: { id: orderData.chef.id, name: orderData.chef.name },
-        dailyDishOrderNumber,
-    };
-
-    setOrders(prev => [newOrder, ...prev]);
+    await db.createOrder(orderData);
+    const { freshOrders, freshCoupons } = await refreshData();
 
     if (orderData.appliedCouponCode) {
-        const coupon = coupons.find(c => c.code.toLowerCase() === orderData.appliedCouponCode!.toLowerCase());
+        const coupon = freshCoupons.find(c => c.code.toLowerCase() === orderData.appliedCouponCode!.toLowerCase());
         if (coupon) {
-            setCoupons(prev => prev.map(c => c.id === coupon.id ? {...c, timesUsed: c.timesUsed + 1} : c));
+            await db.updateCoupon(coupon.id, {...coupon, timesUsed: coupon.timesUsed + 1});
+            await refreshData();
         }
     }
+
+    const isChefBusy = orderData.chef.availabilityStatus === 'busy';
 
     if (isChefBusy) {
         createNotification({
@@ -144,55 +122,44 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
 
   const assignOrderToDelivery = async (orderId: string) => {
     if (!user || user.role !== 'delivery') return;
+    try {
+        const updatedOrder = await db.assignOrderToDelivery(orderId, user.id, user.name);
+        await refreshData();
+        
+        toast({
+            title: t('order_accepted_for_delivery', 'Order Accepted for Delivery'),
+            description: t('order_accepted_for_delivery_desc', { id: orderId.slice(-6) }),
+        });
 
-    const orderToUpdate = orders.find(o => o.id === orderId);
-    // Check if another driver just took it
-    if (orderToUpdate && !orderToUpdate.deliveryPersonId && ['preparing', 'ready_for_delivery'].includes(orderToUpdate.status)) {
-      const updatedOrder = {
-        ...orderToUpdate,
-        // Don't change status here, just assign the driver
-        deliveryPersonId: user.id,
-        deliveryPersonName: user.name,
-      };
-      setOrders(prev => prev.map(o => o.id === orderId ? updatedOrder : o));
-      
-      toast({
-        title: t('order_accepted_for_delivery', 'Order Accepted for Delivery'),
-        description: t('order_accepted_for_delivery_desc', { id: orderToUpdate.id.slice(-6) }),
-      });
+        createNotification({
+            recipientId: updatedOrder.customerId,
+            titleKey: 'delivery_driver_assigned_title',
+            messageKey: 'delivery_driver_assigned_desc',
+            params: { driverName: user.name },
+            link: '/profile',
+        });
 
-      // Notify Customer that a driver is assigned
-      createNotification({
-        recipientId: updatedOrder.customerId,
-        titleKey: 'delivery_driver_assigned_title',
-        messageKey: 'delivery_driver_assigned_desc',
-        params: { driverName: user.name },
-        link: '/profile',
-      });
-
-      // Notify Chef that a driver is assigned
-      createNotification({
-        recipientId: updatedOrder.chef.id,
-        titleKey: 'driver_assigned_for_order_title',
-        messageKey: 'driver_assigned_for_order_desc',
-        params: { driverName: user.name, orderId: updatedOrder.id.slice(-6) },
-        link: '/chef/orders',
-      });
-    } else {
+        createNotification({
+            recipientId: updatedOrder.chef.id,
+            titleKey: 'driver_assigned_for_order_title',
+            messageKey: 'driver_assigned_for_order_desc',
+            params: { driverName: user.name, orderId: updatedOrder.id.slice(-6) },
+            link: '/chef/orders',
+        });
+    } catch(error: any) {
         toast({
             variant: "destructive",
             title: t('order_unavailable_title', 'Order No Longer Available'),
-            description: t('order_unavailable_desc', 'This order was just accepted by another driver.'),
+            description: error.message || t('order_unavailable_desc', 'This order was just accepted by another driver.'),
         });
-        // Refreshes the list for the driver
-        setOrders([...orders]);
+        await refreshData();
     }
   };
 
   const updateOrderStatus = async (orderId: string, status: OrderStatus) => {
-    const updatedOrder = orders.find(o => o.id === orderId);
+    const updatedOrder = await db.updateOrderStatus(orderId, status);
     if (updatedOrder) {
-      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o));
+      await refreshData();
 
       const { customerId, chef, dish: { name: dishName } } = updatedOrder;
       
@@ -214,7 +181,6 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
           });
       }
       
-      // Special notification for when chef marks as ready_for_delivery
       if (status === 'ready_for_delivery' && updatedOrder.deliveryPersonId) {
           createNotification({
               recipientId: updatedOrder.deliveryPersonId,
@@ -225,7 +191,6 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
           });
       }
 
-      // Special notification for chef when order is delivered
       if (status === 'delivered') {
           createNotification({
               recipientId: chef.id,
@@ -239,17 +204,9 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const markOrderAsNotDelivered = async (orderId: string, details: { reason: string; responsibility: NotDeliveredResponsibility }) => {
-    const updatedOrder = orders.find(o => o.id === orderId);
-    if (updatedOrder) {
-        setOrders(prev => prev.map(o => o.id === orderId ? { 
-            ...o, 
-            status: 'not_delivered',
-            notDeliveredInfo: {
-                ...details,
-                timestamp: new Date().toISOString()
-            }
-        } : o));
-
+    const updatedOrder = await db.markOrderAsNotDelivered(orderId, details);
+    if(updatedOrder) {
+        await refreshData();
         createNotification({
             recipientId: updatedOrder.customerId,
             titleKey: 'order_not_delivered_title',
@@ -261,37 +218,24 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
   };
     
   const addDish = async (dishData: Omit<Dish, 'id' | 'ratings'>) => {
-    const newDish: Dish = { ...dishData, id: `dish_${Date.now()}`, ratings: [] };
-    setDishes(prev => [newDish, ...prev]);
+    if(!user) throw new Error("User must be logged in.");
+    await db.createDish(dishData, user.id);
+    await refreshData();
   };
 
-  const updateDish = async (updatedDish: Dish) => {
-    setDishes(prev => prev.map(d => d.id === updatedDish.id ? updatedDish : d));
+  const updateDish = async (updatedDishData: Dish) => {
+    await db.updateDish(updatedDishData.id, updatedDishData);
+    await refreshData();
   };
 
   const deleteDish = async (dishId: string) => {
-    setDishes(prev => prev.filter(d => d.id !== dishId));
+    await db.deleteDish(dishId);
+    await refreshData();
   };
   
   const addReviewToOrder = async (orderId: string, rating: number, review: string) => {
-    const orderToUpdate = orders.find(o => o.id === orderId);
-    if (!orderToUpdate) return;
-
-    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, rating, review } : o));
-
-    const newRating: DishRating = {
-        customerId: orderToUpdate.customerId,
-        customerName: orderToUpdate.customerName,
-        rating,
-        review,
-        createdAt: new Date().toISOString(),
-    };
-
-    const dishToUpdate = dishes.find(d => d.id === orderToUpdate.dish.id);
-    if(dishToUpdate) {
-        const updatedRatings = [...(dishToUpdate.ratings || []), newRating];
-        setDishes(prev => prev.map(d => d.id === dishToUpdate.id ? { ...d, ratings: updatedRatings } : d));
-    }
+    const updatedOrder = await db.addReviewToOrder(orderId, { rating, review });
+    await refreshData();
   };
 
   const getCouponsByChefId = (chefId: string) => {
@@ -299,12 +243,13 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const createCoupon = async (couponData: Omit<Coupon, 'id' | 'timesUsed'>) => {
-    const newCoupon: Coupon = { ...couponData, id: `coupon_${Date.now()}`, timesUsed: 0 };
-    setCoupons(prev => [newCoupon, ...prev]);
+    await db.createCoupon(couponData);
+    await refreshData();
   };
 
-  const updateCoupon = async (updatedCoupon: Coupon) => {
-    setCoupons(prev => prev.map(c => c.id === updatedCoupon.id ? updatedCoupon : c));
+  const updateCoupon = async (couponData: Coupon) => {
+    await db.updateCoupon(couponData.id, couponData);
+    await refreshData();
   };
 
   const validateAndApplyCoupon = (code: string, chefId: string, dishId: string, subtotal: number): { discount: number; error?: string } => {

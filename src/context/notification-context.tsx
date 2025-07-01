@@ -3,8 +3,7 @@
 
 import { createContext, useState, useEffect, useContext, type ReactNode } from 'react';
 import type { Notification } from '@/lib/types';
-import localforage from 'localforage';
-import { useAuth } from './auth-context';
+import * as db from '@/lib/db';
 
 interface NotificationContextType {
   notifications: Notification[];
@@ -20,34 +19,24 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
 
-  // Load notifications from local storage on initial render
+  const refreshNotifications = async () => {
+    const freshNotifications = await db.getNotifications();
+    setNotifications(freshNotifications);
+  }
+
   useEffect(() => {
     const loadNotifications = async () => {
       setLoading(true);
-      const storedNotifications: Notification[] | null = await localforage.getItem('notifications');
-      setNotifications(storedNotifications || []);
+      await refreshNotifications();
       setLoading(false);
     };
     loadNotifications();
   }, []);
 
-  // Persist notifications to local storage whenever they change
-  useEffect(() => {
-    if (!loading) {
-      localforage.setItem('notifications', notifications);
-    }
-  }, [notifications, loading]);
-
   const createNotification = async (notificationData: Omit<Notification, 'id' | 'createdAt' | 'isRead'>) => {
-    const newNotification: Notification = {
-      ...notificationData,
-      id: `notif_${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      isRead: false,
-    };
-    setNotifications(prev => [newNotification, ...prev]);
+    await db.createNotification(notificationData);
+    await refreshNotifications();
   };
   
   const notificationsForUser = (userId: string) => {
@@ -61,11 +50,13 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   }
 
   const markAsRead = async (notificationId: string) => {
-    setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n));
+    await db.markNotificationAsRead(notificationId);
+    await refreshNotifications();
   };
   
   const markAllAsRead = async (userId: string) => {
-    setNotifications(prev => prev.map(n => n.recipientId === userId ? { ...n, isRead: true } : n));
+    await db.markAllNotificationsAsRead(userId);
+    await refreshNotifications();
   }
 
   const value = {

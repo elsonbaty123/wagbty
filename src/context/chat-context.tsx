@@ -6,7 +6,7 @@ import type { ChatMessage } from '@/lib/types';
 import { useAuth } from './auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
-import localforage from 'localforage';
+import * as db from '@/lib/db';
 import { containsProfanity } from '@/lib/profanity-filter';
 
 interface ChatContextType {
@@ -24,23 +24,19 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Load messages from local storage on initial render
+  const refreshMessages = async () => {
+      const freshMessages = await db.getChatMessages();
+      setMessages(freshMessages);
+  }
+
   useEffect(() => {
     const loadMessages = async () => {
       setLoading(true);
-      const storedMessages: ChatMessage[] | null = await localforage.getItem('chat_messages');
-      setMessages(storedMessages || []);
+      await refreshMessages();
       setLoading(false);
     };
     loadMessages();
   }, []);
-
-  // Persist messages to local storage whenever they change
-  useEffect(() => {
-    if (!loading) {
-      localforage.setItem('chat_messages', messages);
-    }
-  }, [messages, loading]);
   
   const validateMessage = (text: string): boolean => {
     if (!text.trim()) {
@@ -69,16 +65,15 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     if (!user || user.role !== 'customer') return;
     if (!validateMessage(text)) return;
     
-    const newMessage: ChatMessage = {
-      id: `msg_${Date.now()}`,
+    const newMessageData = {
       userId: user.id,
       userName: user.name,
       userImageUrl: user.imageUrl,
       text: text,
-      createdAt: new Date().toISOString(),
     };
     
-    setMessages(prevMessages => [...prevMessages, newMessage]);
+    await db.createChatMessage(newMessageData);
+    await refreshMessages();
   };
 
   return (
