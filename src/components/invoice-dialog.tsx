@@ -90,6 +90,17 @@ export function InvoiceDialog({ order }: InvoiceProps) {
       const dataUrl = await toPng(invoiceRef.current, {
         backgroundColor: '#ffffff', // Set a solid background for the image
         pixelRatio: 2, // Increase resolution
+        // Add a filter to exclude external font stylesheets which cause CORS issues.
+        filter: (node: HTMLElement) => {
+            if (
+                node.tagName === 'LINK' &&
+                node.getAttribute('rel') === 'stylesheet' &&
+                (node as HTMLLinkElement).href.includes('fonts.googleapis.com')
+            ) {
+                return false;
+            }
+            return true;
+        },
       });
       const link = document.createElement('a');
       link.download = `invoice-${order.id.slice(-6)}.png`;
