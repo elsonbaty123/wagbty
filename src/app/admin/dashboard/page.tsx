@@ -42,9 +42,10 @@ import { Trash2, UserPlus, MoreHorizontal, Ban, CheckCircle, Search } from "luci
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { CreateUserForm } from '@/components/admin/create-user-form';
-import type { User } from '@/lib/types';
+import type { User, UserRole } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function AdminDashboardPage() {
     const { t } = useTranslation();
@@ -52,6 +53,7 @@ export default function AdminDashboardPage() {
     const { toast } = useToast();
     const [isCreateUserOpen, setCreateUserOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [roleFilter, setRoleFilter] = useState<UserRole | 'all'>('all');
     
     const handleDeleteUser = async (userId: string, userName: string) => {
         try {
@@ -86,11 +88,15 @@ export default function AdminDashboardPage() {
     };
 
     const filteredUsers = useMemo(() => {
-        return users.filter(u => u.role !== 'admin' && (
-            u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            u.email.toLowerCase().includes(searchQuery.toLowerCase())
-        ));
-    }, [users, searchQuery]);
+        return users.filter(u => 
+            u.role !== 'admin' &&
+            (roleFilter === 'all' || u.role === roleFilter) &&
+            (
+                u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                u.email.toLowerCase().includes(searchQuery.toLowerCase())
+            )
+        );
+    }, [users, searchQuery, roleFilter]);
 
 
     if (loading) {
@@ -115,15 +121,28 @@ export default function AdminDashboardPage() {
                     <CardTitle>{t('user_management')}</CardTitle>
                     <CardDescription>{t('user_management_desc')}</CardDescription>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-                     <div className="relative flex-grow md:flex-grow-0">
-                        <Search className="absolute start-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            placeholder={t('search_by_name_or_email', 'Search by name or email...')}
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="ps-8 w-full"
-                        />
+                <div className="flex flex-col lg:flex-row gap-2 w-full lg:w-auto">
+                    <div className="flex flex-col sm:flex-row gap-2">
+                        <Select value={roleFilter} onValueChange={(value) => setRoleFilter(value as UserRole | 'all')}>
+                            <SelectTrigger className="w-full sm:w-[180px]">
+                                <SelectValue placeholder={t('filter_by_role', 'Filter by role...')} />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">{t('all_roles', 'All Roles')}</SelectItem>
+                                <SelectItem value="customer">{t('customer')}</SelectItem>
+                                <SelectItem value="chef">{t('chef')}</SelectItem>
+                                <SelectItem value="delivery">{t('delivery_person', 'Delivery Driver')}</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <div className="relative flex-grow">
+                            <Search className="absolute start-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                placeholder={t('search_by_name_or_email', 'Search by name or email...')}
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="ps-8 w-full"
+                            />
+                        </div>
                     </div>
                     <Dialog open={isCreateUserOpen} onOpenChange={setCreateUserOpen}>
                         <DialogTrigger asChild>
@@ -156,7 +175,7 @@ export default function AdminDashboardPage() {
                         <TableRow key={listUser.id}>
                             <TableCell>{listUser.name}</TableCell>
                             <TableCell>{listUser.email}</TableCell>
-                            <TableCell><Badge variant={listUser.role === 'chef' ? 'secondary' : 'outline'}>{t(listUser.role)}</Badge></TableCell>
+                            <TableCell><Badge variant={listUser.role === 'chef' ? 'secondary' : listUser.role === 'delivery' ? 'outline' : 'default'}>{t(listUser.role)}</Badge></TableCell>
                             <TableCell>
                                 <Badge 
                                     variant={
