@@ -24,13 +24,13 @@ const ChefNav = () => {
 
     return (
         <div className={cn("flex mb-6", i18n.dir() === 'rtl' ? "justify-end" : "justify-start")}>
-            <div className="grid h-auto grid-cols-2 p-1 sm:flex sm:flex-nowrap gap-1 bg-muted rounded-md text-muted-foreground overflow-x-auto">
+            <div className="flex flex-nowrap gap-1 p-1 bg-muted text-muted-foreground rounded-md overflow-x-auto">
                 {renderedNavItems.map(item => (
                     <Link
                         key={item.href}
                         href={item.href}
                         className={cn(
-                            "inline-flex items-center justify-center rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+                            "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
                             pathname === item.href ? 'bg-background text-foreground shadow-sm' : 'hover:bg-background/50'
                         )}
                     >
