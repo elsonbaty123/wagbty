@@ -9,8 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Dialog } from '@/components/ui/dialog';
 import { PlusCircle, Tag } from 'lucide-react';
 import type { Coupon } from '@/lib/types';
-import { CouponCard } from './coupon-card';
-import { CouponForm } from './coupon-form';
+import { CouponCard } from '@/components/coupon-card';
+import { CouponForm } from '@/components/coupon-form';
 import { useTranslation } from 'react-i18next';
 
 export function CouponManagementTab() {

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import type { Dish, User } from '@/lib/types';
 import Link from 'next/link';
 import { Clock, ChefHat, Star, Heart } from 'lucide-react';
-import { Badge } from './ui/badge';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/auth-context';
@@ -46,7 +46,7 @@ export function DishCard({ dish, chefName, chefStatus = 'available' }: DishCardP
   };
   
   const ratingsCount = dish.ratings?.length || 0;
-  const averageRating = ratingsCount > 0
+  const averageRating = dish.ratings && ratingsCount > 0
     ? dish.ratings.reduce((sum, r) => sum + r.rating, 0) / ratingsCount
     : 0;
     

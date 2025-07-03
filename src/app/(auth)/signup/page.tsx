@@ -18,7 +18,7 @@ import { useTranslation } from 'react-i18next';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { deliveryZones } from '@/lib/data';
+import { getDeliveryZones } from '@/lib/db';
 
 const SignupSkeleton = () => (
     <Tabs defaultValue="customer" className="w-full max-w-md">
@@ -60,6 +60,7 @@ export default function SignupPage() {
   const [customerPassword, setCustomerPassword] = useState('');
   const [customerGender, setCustomerGender] = useState<'male' | 'female'>();
   const [customerDeliveryZone, setCustomerDeliveryZone] = useState<string>('');
+  const [deliveryZones, setDeliveryZones] = useState<any[]>([]);
   const [isFetchingLocation, setIsFetchingLocation] = useState(false);
 
   // Chef state
@@ -77,7 +78,20 @@ export default function SignupPage() {
 
     useEffect(() => {
         setIsMounted(true);
-    }, []);
+        async function fetchZones() {
+            try {
+                const zones = await getDeliveryZones();
+                setDeliveryZones(zones);
+            } catch (error) {
+                toast({
+                    title: 'Error',
+                    description: 'Failed to fetch delivery zones.',
+                    variant: 'destructive',
+                });
+            }
+        }
+        fetchZones();
+    }, [toast]);
 
     const validateEmail = (email: string): string => {
         if (!email.trim()) return t('validation_email_required');
@@ -213,7 +227,7 @@ export default function SignupPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {deliveryZones.map((zone) => (
-                      <SelectItem key={zone.name} value={zone.name}>{t(zone.name, zone.name)}</SelectItem>
+                      <SelectItem key={zone.name} value={zone.name}>{t(zone.name, zone.name) as string}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

@@ -11,9 +11,9 @@ import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/auth-context';
 import { useStatus } from '@/context/status-context';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { Dialog, DialogTrigger } from './ui/dialog';
-import { StatusViewer } from './status-viewer';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Dialog, DialogTrigger } from '@/components/ui/dialog';
+import { StatusViewer } from '@/components/status-viewer';
 
 // The chef object passed here will be augmented with dishCount and averageRating
 interface ChefCardProps {
@@ -28,7 +28,7 @@ export function ChefCard({ chef }: ChefCardProps) {
   const isStatusActive = chef.status && (new Date().getTime() - new Date(chef.status.createdAt).getTime()) < 24 * 60 * 60 * 1000;
   
   // Show indicator if status is active AND (user is not logged in OR user has not viewed it)
-  const hasUnreadStatus = isStatusActive && (!user || !isStoryViewed(chef.status.id!, user.id));
+    const hasUnreadStatus = isStatusActive && chef.status && (!user || !isStoryViewed(chef.status.id!, user.id));
 
   const statusMap: { [key: string]: { labelKey: string; className: string; } } = {
     available: { labelKey: 'status_available', className: 'bg-green-500 text-white hover:bg-green-500/90' },

@@ -224,7 +224,7 @@ export default function SettingsPage() {
 
         setIsSaving(true);
         try {
-            const userDetails: Partial<User> = { name, email, phone, imageUrl: imagePreview };
+            const userDetails: Partial<User> = { name, email, phone, imageUrl: imagePreview || undefined };
             if (user.role === 'customer') {
                 userDetails.address = address;
                 userDetails.deliveryZone = deliveryZone;

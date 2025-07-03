@@ -10,8 +10,8 @@ import { DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } f
 import { useToast } from '@/hooks/use-toast';
 import { useOrders } from '@/context/order-context';
 import { useTranslation } from 'react-i18next';
-import { RadioGroup, RadioGroupItem } from './ui/radio-group';
-import { Textarea } from './ui/textarea';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Textarea } from '@/components/ui/textarea';
 import type { NotDeliveredResponsibility } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
 
@@ -35,10 +35,12 @@ export function NotDeliveredForm({ orderId, onFinished }: NotDeliveredFormProps)
 
   const notDeliveredSchema = z.object({
     responsibility: z.enum(responsibilityOptions, {
-      required_error: t('you_need_to_select_a_reason'),
+      required_error: t('you_need_to_select_a_reason', 'You need to select a reason'),
     }),
     reason: z.string().min(10, {
-      message: t('reason_must_be_10_chars'),
+      message: t('reason_must_be_10_chars', 'Reason must be at least 10 characters'),
+    }).max(500, {
+      message: t('reason_must_be_less_than_500_chars', 'Reason must be less than 500 characters'),
     }),
   });
   
@@ -46,15 +48,24 @@ export function NotDeliveredForm({ orderId, onFinished }: NotDeliveredFormProps)
 
   const form = useForm<NotDeliveredFormValues>({
     resolver: zodResolver(notDeliveredSchema),
+    defaultValues: {
+      reason: '',
+    },
+    mode: 'onChange',
   });
 
   const onSubmit = async (data: NotDeliveredFormValues) => {
     try {
       await markOrderAsNotDelivered(orderId, data);
-      toast({ title: t('non_delivery_report_submitted') });
+      toast({ title: t('non_delivery_report_submitted', 'Non-delivery report submitted') });
       onFinished?.();
     } catch (error) {
-      toast({ variant: 'destructive', title: t('error'), description: t('something_went_wrong') });
+      console.error('Error submitting non-delivery report:', error);
+      toast({ 
+        variant: 'destructive', 
+        title: t('error', 'Error'), 
+        description: t('something_went_wrong', 'Something went wrong. Please try again.') 
+      });
     }
   };
 

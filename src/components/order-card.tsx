@@ -15,12 +15,12 @@ import { Home, Phone, User, Star, Tag, Clock, PackageCheck, Check, X, Truck, Ute
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { Textarea } from './ui/textarea';
-import { Separator } from './ui/separator';
+import { Textarea } from '@/components/ui/textarea';
+import { Separator } from '@/components/ui/separator';
 import { useTranslation } from 'react-i18next';
-import { Dialog, DialogTrigger } from './ui/dialog';
-import { NotDeliveredForm } from './not-delivered-form';
-import { InvoiceDialog } from './invoice-dialog';
+import { Dialog, DialogTrigger } from '@/components/ui/dialog';
+import { NotDeliveredForm } from '@/components/not-delivered-form';
+import { InvoiceDialog } from '@/components/invoice-dialog';
 
 interface OrderCardProps {
   order: Order;

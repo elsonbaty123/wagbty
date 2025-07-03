@@ -1,6 +1,8 @@
 'use client';
 
 import { useTranslation } from 'react-i18next';
+import { useTheme } from 'next-themes';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Languages } from 'lucide-react';
 import {
@@ -10,8 +12,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-export function LanguageSwitcher() {
+interface LanguageSwitcherProps {
+  isScrolled?: boolean;
+}
+
+export function LanguageSwitcher({ isScrolled = true }: LanguageSwitcherProps) {
   const { i18n, t } = useTranslation();
+  const { theme } = useTheme();
 
   const changeLanguage = (lng: string) => {
     i18n.changeLanguage(lng);
@@ -20,7 +27,16 @@ export function LanguageSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon">
+        <Button 
+          variant="ghost" 
+          size="icon"
+          className={cn(
+            'h-10 w-10',
+            !isScrolled && 'text-white hover:bg-white/20 hover:text-white',
+            'transition-colors duration-300',
+            theme === 'dark' ? 'text-white' : 'text-foreground'
+          )}
+        >
           <Languages className="h-5 w-5" />
           <span className="sr-only">{t('change_language')}</span>
         </Button>

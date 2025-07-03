@@ -61,21 +61,167 @@
 @layer base {
   * {
     @apply border-border;
+    scroll-behavior: smooth;
   }
+  
   body {
-    @apply text-foreground;
-    background-color: hsl(var(--background));
-    /* Apply a light, semi-transparent overlay in light mode over the background image */
-    background-image: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url("https://firebasestorage.googleapis.com/v0/b/project-revolver-prod.appspot.com/o/images%2F125e1975-f09b-4497-a75d-f2e7b3992015?alt=media&token=8679f2fe-b50a-4a6f-a89c-497d3b516bde");
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
   }
 
-  .dark body {
-    /* The dark background color is set via theme variables. */
-    /* Apply a dark, semi-transparent overlay over the background image. */
-    background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url("https://firebasestorage.googleapis.com/v0/b/project-revolver-prod.appspot.com/o/images%2F125e1975-f09b-4497-a75d-f2e7b3992015?alt=media&token=8679f2fe-b50a-4a6f-a89c-497d3b516bde");
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-gray-100 dark:bg-gray-800;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-400 dark:bg-gray-600 rounded-full hover:bg-gray-500 dark:hover:bg-gray-500;
+  }
+
+  /* Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+  }
+
+  /* Transitions */
+  .transition-bg {
+    @apply transition-colors duration-300;
+  }
+
+  /* Card Styles */
+  .card {
+    @apply rounded-xl border bg-card text-card-foreground shadow-sm transition-all hover:shadow-md;
+  }
+
+  .card-header {
+    @apply flex flex-col space-y-1.5 p-6;
+  }
+
+  .card-title {
+    @apply text-2xl font-semibold leading-none tracking-tight;
+  }
+
+  .card-description {
+    @apply text-sm text-muted-foreground;
+  }
+
+  .card-content {
+    @apply p-6 pt-0;
+  }
+
+  .card-footer {
+    @apply flex items-center p-6 pt-0;
+  }
+
+  /* Glass Effect */
+  .glass {
+    @apply bg-white/10 backdrop-blur-md border border-white/10;
+  }
+
+  .dark .glass {
+    @apply bg-black/20 backdrop-blur-md border border-white/5;
+  }
+
+  /* Gradient Text */
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent;
+  }
+
+  /* Custom Focus Styles */
+  .focus-ring {
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+  }
+
+  /* RTL Support */
+  [dir='rtl'] .rtl-mirror {
+    transform: scaleX(-1);
+  }
+
+  /* Custom Underline Animation */
+  .underline-animate {
+    @apply relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full;
+  }
+
+  /* Blob Animation */
+  @keyframes blob {
+    0% {
+      transform: translate(0px, 0px) scale(1);
+    }
+    33% {
+      transform: translate(30px, -30px) scale(1.1);
+    }
+    66% {
+      transform: translate(-20px, 20px) scale(0.9);
+    }
+    100% {
+      transform: translate(0px, 0px) scale(1);
+    }
+  }
+
+  .animate-blob {
+    animation: blob 7s infinite;
+  }
+
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+
+  /* Pulse Animation */
+  @keyframes pulse-slow {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+
+  .animate-pulse-slow {
+    animation: pulse-slow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  /* Floating Animation */
+  @keyframes float {
+    0% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+    100% {
+      transform: translateY(0px);
+    }
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  /* Gradient Background Animation */
+  .animate-gradient {
+    background-size: 200% 200%;
+    animation: gradient 8s ease infinite;
+  }
+
+  @keyframes gradient {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
   }
 }

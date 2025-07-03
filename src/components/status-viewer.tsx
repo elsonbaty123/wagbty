@@ -9,12 +9,12 @@ import { Button } from '@/components/ui/button';
 import type { User } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 import { useTranslation } from 'react-i18next';
-import { dateLocales } from './language-manager';
+import { dateLocales } from '@/components/language-manager';
 import { Clock, Send, X, Loader2, Heart, Volume2, VolumeX } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { useStatus } from '@/context/status-context';
 import { cn } from '@/lib/utils';
-import { Input } from './ui/input';
+import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 
 interface StatusViewerProps {

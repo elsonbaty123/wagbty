@@ -1,4 +1,8 @@
 {
     "IDX.aI.enableInlineCompletion": true,
-    "IDX.aI.enableCodebaseIndexing": true
+    "IDX.aI.enableCodebaseIndexing": true,
+    "css.validate": true,
+    "css.lint.unknownAtRules": "ignore",
+    "scss.validate": true,
+    "scss.lint.unknownAtRules": "ignore"
 }

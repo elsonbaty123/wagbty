@@ -17,7 +17,7 @@ import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { dateLocales } from './language-manager';
+import { dateLocales } from '@/components/language-manager';
 
 interface DiscountFormProps {
   dish: Dish;

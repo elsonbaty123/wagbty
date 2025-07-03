@@ -9,10 +9,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Dialog } from '@/components/ui/dialog';
 import { PlusCircle, Utensils } from 'lucide-react';
 import type { Dish } from '@/lib/types';
-import { DishForm } from './dish-form';
-import { DishManagementCard } from './dish-management-card';
+import { DishForm } from '@/components/dish-form';
+import { DishManagementCard } from '@/components/dish-management-card';
 import { useTranslation } from 'react-i18next';
-import { DiscountForm } from './discount-form';
+import { DiscountForm } from '@/components/discount-form';
 
 export function MenuManagementTab() {
   const { t } = useTranslation();

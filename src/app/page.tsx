@@ -1,236 +1,397 @@
-
-
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Input } from '@/components/ui/input';
-import { ChefCard } from '@/components/chef-card';
+import { Button } from '@/components/ui/button';
+import { ChefShowcase } from '@/components/chef-showcase';
 import { useOrders } from '@/context/order-context';
 import { useAuth } from '@/context/auth-context';
-import { Users, Search } from 'lucide-react';
+import { Search, Users, Clock, Shield, Truck, Utensils, ChevronDown } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useTranslation } from 'react-i18next';
-import { PopularDishesCarousel } from '@/components/popular-dishes-carousel';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FeatureHighlights } from '@/components/home/FeatureHighlights';
 import { DiscountedDishesCarousel } from '@/components/discounted-dishes-carousel';
-import type { Dish } from '@/lib/types';
+import type { Dish, User, UserRole, Coupon } from '@/lib/types';
+
+// Sample hero images (replace with your actual image paths)
+const heroImages = [
+  'https://images.unsplash.com/photo-1504674900247-087703934869?q=80&w=2070',
+  'https://images.unsplash.com/photo-1544025162-d76694265947?q=80&w=2069',
+  'https://images.unsplash.com/photo-1559847844-5315695dadae?q=80&w=1998',
+];
+
+interface ChefWithStats extends User {
+  dishCount: number;
+  averageRating: number;
+  experienceYears?: number;
+}
 
 export default function Home() {
   const { t } = useTranslation();
-  const { dishes, orders, coupons, loading: dishesLoading } = useOrders();
-  const { chefs, loading: authLoading } = useAuth();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { dishes = [], orders = [], coupons = [], loading: dishesLoading } = useOrders();
+  const { chefs = [], loading: authLoading } = useAuth();
+  
+  // State
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   
   const loading = dishesLoading || authLoading;
+  const noData = !loading && (!dishes.length || !chefs.length);
+  
+  // Handle search form submission
+  const handleSearch = useCallback((e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+    
+    setIsSearching(true);
+    router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
+  }, [searchQuery, router]);
+  
+  // Scroll to section helper
+  const scrollToSection = useCallback((sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, []);
 
+  // Auto-rotate hero images
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => 
+        prevIndex === heroImages.length - 1 ? 0 : prevIndex + 1
+      );
+    }, 5000);
+    
+    return () => clearInterval(timer);
+  }, []);
+  
+  // Get popular dishes (most ordered in the last week)
   const popularDishes = useMemo(() => {
-    const dishOrderCounts = new Map<string, number>();
+    if (!orders?.length || !dishes?.length) return [];
+    
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-  
+    
+    const dishOrderCounts = new Map<string, number>();
+    
     orders.forEach(order => {
-      if (new Date(order.createdAt) < oneWeekAgo) return;
-      dishOrderCounts.set(order.dish.id, (dishOrderCounts.get(order.dish.id) || 0) + order.quantity);
+      const orderDate = new Date(order.createdAt);
+      if (orderDate < oneWeekAgo) return;
+      
+      // Since Order type has a single dish, we'll use that instead of items array
+      if (order.dish?.id) {
+        dishOrderCounts.set(
+          order.dish.id, 
+          (dishOrderCounts.get(order.dish.id) || 0) + (order.quantity || 1)
+        );
+      }
     });
-  
-    // Sort dish IDs by popularity
-    const sortedDishIds = Array.from(dishOrderCounts.entries())
+    
+    return Array.from(dishOrderCounts.entries())
       .sort((a, b) => b[1] - a[1])
-      .map(entry => entry[0]);
+      .slice(0, 10)
+      .map(([dishId]) => dishes.find(dish => dish.id === dishId))
+      .filter((dish): dish is Dish => dish !== undefined);
+  }, [dishes, orders]);
   
-    // Take top 5 dishes for the carousel
-    return sortedDishIds
-      .map(id => dishes.find(dish => dish.id === id))
-      .filter((dish): dish is Dish => !!dish)
-      .slice(0, 5);
-  }, [orders, dishes]);
-
+  // Get top-rated dishes
+  const topRatedDishes = useMemo(() => {
+    return [...dishes]
+      .filter(dish => {
+        if (!dish.ratings?.length) return false;
+        const avgRating = dish.ratings.reduce((sum, r) => sum + r.rating, 0) / dish.ratings.length;
+        return avgRating >= 4.5;
+      })
+      .sort((a, b) => {
+        const avgRatingA = a.ratings?.length 
+          ? a.ratings.reduce((sum, r) => sum + r.rating, 0) / a.ratings.length 
+          : 0;
+        const avgRatingB = b.ratings?.length 
+          ? b.ratings.reduce((sum, r) => sum + r.rating, 0) / b.ratings.length 
+          : 0;
+        return avgRatingB - avgRatingA;
+      })
+      .slice(0, 10);
+  }, [dishes]);
+  
+  // Get discounted dishes with their discount information
   const discountedDishes = useMemo(() => {
+    if (!dishes?.length || !coupons?.length) return [];
+    
     const now = new Date();
-    const discountsMap = new Map<string, { dish: Dish; originalPrice: number; discountedPrice: number; discountPercentage: number; }>();
-
-    // 1. Process direct discounts on dishes
-    dishes.forEach(dish => {
-        if (dish.discountPercentage && dish.discountPercentage > 0 && dish.discountEndDate && new Date(dish.discountEndDate) > now) {
-            const discountAmount = dish.price * (dish.discountPercentage / 100);
-            discountsMap.set(dish.id, {
-                dish,
-                originalPrice: dish.price,
-                discountedPrice: dish.price - discountAmount,
-                discountPercentage: dish.discountPercentage,
-            });
-        }
-    });
-
-    // 2. Process coupon-based discounts
-    const activeDishCoupons = coupons.filter(c => 
-        c.isActive && 
-        c.appliesTo === 'specific' && 
-        c.applicableDishIds && 
-        c.applicableDishIds.length > 0 &&
-        new Date(c.endDate) > now &&
-        c.timesUsed < c.usageLimit
-    );
-
-    activeDishCoupons.forEach(coupon => {
-        (coupon.applicableDishIds || []).forEach(dishId => {
-            const dish = dishes.find(d => d.id === dishId);
-            if (!dish) return;
-
-            let discountAmount = coupon.discountType === 'fixed' 
-                ? coupon.discountValue 
-                : dish.price * (coupon.discountValue / 100);
-            
-            discountAmount = Math.min(discountAmount, dish.price);
-            
-            const existingDiscount = discountsMap.get(dishId);
-            const existingDiscountAmount = existingDiscount ? existingDiscount.originalPrice - existingDiscount.discountedPrice : 0;
-
-            if (discountAmount > existingDiscountAmount) {
-                const discountPercentage = Math.round((discountAmount / dish.price) * 100);
-                discountsMap.set(dishId, {
-                    dish,
-                    originalPrice: dish.price,
-                    discountedPrice: dish.price - discountAmount,
-                    discountPercentage: discountPercentage,
-                 });
-            }
-        });
-    });
-
-    return Array.from(discountsMap.values()).sort((a, b) => b.discountPercentage - a.discountPercentage);
-  }, [coupons, dishes]);
-
-
-  const chefsWithDishData = useMemo(() => {
-    return chefs.map(chef => {
-      const chefDishes = dishes.filter(dish => dish.chefId === chef.id && dish.status !== 'hidden');
-      const allRatings = chefDishes.flatMap(d => d.ratings?.map(r => r.rating) || []);
-      const averageRating = allRatings.length > 0
-        ? allRatings.reduce((a, b) => a + b, 0) / allRatings.length
-        : 0;
-
-      return {
-        ...chef,
-        dishCount: chefDishes.length,
-        averageRating,
-      };
-    }).filter(chef => chef.dishCount > 0); // Only show chefs with at least one dish
+    return dishes
+      .map(dish => {
+        // Find the best applicable coupon for this dish
+        const bestCoupon = coupons
+          .filter(coupon => {
+            if (!coupon.endDate || !coupon.isActive) return false;
+            if (new Date(coupon.endDate) <= now) return false;
+            return coupon.appliesTo === 'all' || 
+                   (coupon.applicableDishIds && coupon.applicableDishIds.includes(dish.id));
+          })
+          .sort((a, b) => b.discountValue - a.discountValue)[0];
+        
+        if (!bestCoupon) return null;
+        
+        const discountPercentage = bestCoupon.discountType === 'percentage' 
+          ? bestCoupon.discountValue 
+          : (bestCoupon.discountValue / dish.price) * 100;
+        
+        const discountedPrice = bestCoupon.discountType === 'percentage'
+          ? dish.price * (1 - bestCoupon.discountValue / 100)
+          : Math.max(0, dish.price - bestCoupon.discountValue);
+        
+        return {
+          dish,
+          originalPrice: dish.price,
+          discountedPrice: parseFloat(discountedPrice.toFixed(2)),
+          discountPercentage: parseFloat(discountPercentage.toFixed(1))
+        };
+      })
+      .filter((dish): dish is NonNullable<typeof dish> => dish !== null)
+      .sort((a, b) => b.discountPercentage - a.discountPercentage);
+  }, [dishes, coupons]);
+  
+  // Get top chefs (based on number of dishes and ratings)
+  const topChefs = useMemo(() => {
+    return chefs
+      .filter(chef => {
+        if (chef.role !== 'chef') return false;
+        const chefDishes = dishes.filter(dish => dish.chefId === chef.id);
+        const totalRatings = chefDishes.flatMap(d => d.ratings || []);
+        const avgRating = totalRatings.length > 0 
+          ? totalRatings.reduce((sum, r) => sum + r.rating, 0) / totalRatings.length 
+          : 0;
+        return avgRating >= 4.0;
+      })
+      .map(chef => {
+        const chefDishes = dishes.filter(dish => dish.chefId === chef.id);
+        const totalRatings = chefDishes.flatMap(d => d.ratings || []);
+        const avgRating = totalRatings.length > 0 
+          ? totalRatings.reduce((sum, r) => sum + r.rating, 0) / totalRatings.length 
+          : 0;
+          
+        return {
+          ...chef,
+          dishCount: chefDishes.length,
+          averageRating: avgRating
+        };
+      })
+      .sort((a, b) => b.averageRating * Math.log(a.dishCount + 1) - a.averageRating * Math.log(b.dishCount + 1))
+      .slice(0, 8);
   }, [chefs, dishes]);
-
-
-  const filteredChefs = searchQuery
-    ? chefsWithDishData.filter(chef =>
-        chef.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        chef.specialty?.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : chefsWithDishData;
-
+  
+  // Get chefs with their stats
+  const chefsWithStats = useMemo<ChefWithStats[]>(() => {
+    return chefs
+      .filter((chef): chef is User => chef !== null)
+      .map(chef => {
+        const chefDishes = dishes.filter(dish => dish.chefId === chef.id);
+        const allRatings = chefDishes.flatMap(dish => dish.ratings || []);
+        
+        const averageRating = allRatings.length > 0 
+          ? allRatings.reduce((sum, r) => sum + r.rating, 0) / allRatings.length 
+          : 0;
+        
+        return {
+          ...chef,
+          dishCount: chefDishes.length,
+          averageRating,
+        };
+      })
+      .filter(chef => chef.dishCount > 0) // Only show chefs with dishes
+      .sort((a, b) => b.averageRating - a.averageRating); // Sort by rating
+  }, [chefs, dishes]);
+  
+  // Loading state
   if (loading) {
     return (
-        <div className="flex flex-col">
-          <section className="w-full py-12 md:py-20 lg:py-28">
-             <div className="container mx-auto px-4 md:px-6">
-                <div className="flex flex-col items-center space-y-4 text-center">
-                    <Skeleton className="h-16 w-3/4" />
-                    <Skeleton className="h-8 w-1/2 mt-2" />
-                    <Skeleton className="h-12 w-full max-w-lg mt-4" />
-                </div>
-             </div>
-          </section>
-          
-          <section className="w-full py-12 md:py-16 lg:py-20 bg-muted/50">
-             <div className="container mx-auto px-4 md:px-6">
-                <div className="flex flex-col items-center space-y-4 text-center">
-                  <Skeleton className="h-10 w-48" />
-                  <Skeleton className="h-6 w-3/4 max-w-md" />
-                </div>
-                <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
-                   <Skeleton className="h-[225px] w-full" />
-                   <Skeleton className="h-[225px] w-full hidden sm:block" />
-                   <Skeleton className="h-[225px] w-full hidden lg:block" />
-                </div>
-             </div>
-          </section>
-
-          <section className="w-full py-12 md:py-16 lg:py-20 bg-background">
-              <div className="container mx-auto px-4 md:px-6">
-                  <div className="flex flex-col items-center space-y-4 text-center">
-                      <Skeleton className="h-10 w-48" />
-                      <Skeleton className="h-6 w-3/4 max-w-md" />
-                  </div>
-                  <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto">
-                      <Skeleton className="h-[400px] w-full" />
-                      <Skeleton className="h-[400px] w-full hidden sm:block" />
-                      <Skeleton className="h-[400px] w-full hidden lg:block" />
-                  </div>
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="space-y-4">
+                <Skeleton className="h-48 w-full rounded-lg" />
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
               </div>
-          </section>
-
-          <section id="chefs" className="w-full py-12 md:py-24 lg:py-32">
-            <div className="container mx-auto px-4 md:px-6">
-                 <div className="mx-auto grid grid-cols-1 gap-8 py-12 sm:grid-cols-2 md:grid-cols-3 lg:gap-12">
-                  {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-[450px] w-full" />)}
-                </div>
-            </div>
-          </section>
+            ))}
+          </div>
         </div>
+      </div>
+    );
+  }
+  
+  // No data state
+  if (noData) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center p-8">
+          <h1 className="text-2xl font-bold mb-4">
+            {t('no_data_available', 'No data available')}
+          </h1>
+          <p className="text-muted-foreground">
+            {t('check_back_later', 'Please check back later')}
+          </p>
+        </div>
+      </div>
     );
   }
 
   return (
-    <div className="flex flex-col">
-      <section className="w-full py-12 md:py-20 lg:py-28">
-        <div className="container mx-auto px-4 md:px-6">
-          <div className="flex flex-col items-center space-y-4 text-center">
-            <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none text-primary">
-              {t('discover_best_chefs')}
-            </h1>
-            <p className="max-w-[700px] text-muted-foreground md:text-xl">
-              {t('discover_best_chefs_desc')}
-            </p>
-            <div className="w-full max-w-lg">
-               <div className="relative">
-                <Search className="absolute start-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-20 pointer-events-none" />
-                <Input
-                  type="search"
-                  placeholder={t('search_placeholder')}
-                  className="peer z-10 w-full rounded-full bg-background ps-12 pe-4 py-3 text-lg border-2 border-border focus:border-transparent focus-visible:ring-0 focus-visible:ring-offset-0 transition-colors duration-300"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <div className="absolute inset-0 rounded-full border-2 border-primary scale-x-0 peer-focus:scale-x-100 transition-transform duration-500 ease-in-out origin-left rtl:origin-right pointer-events-none z-20" />
-              </div>
-            </div>
-          </div>
+    <div className="min-h-screen bg-background">
+      {/* Hero Section */}
+      <section className="relative h-screen flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 z-0">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentImageIndex}
+              className="absolute inset-0 bg-cover bg-center"
+              style={{
+                backgroundImage: `url(${heroImages[currentImageIndex]})`,
+              }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1 }}
+            />
+          </AnimatePresence>
+          <div className="absolute inset-0 bg-black/50" />
+        </div>
+
+        <div className="container mx-auto px-4 z-10 text-center text-white">
+          <motion.h1 
+            className="text-4xl md:text-6xl font-bold mb-6"
+            initial={{ y: -50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.8 }}
+          >
+            {t('home.hero.title', 'Delicious Food Delivered To Your Door')}
+          </motion.h1>
+          
+          <motion.p 
+            className="text-xl md:text-2xl mb-8 max-w-2xl mx-auto"
+            initial={{ y: 50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            {t('home.hero.subtitle', 'Order from the best restaurants in town and enjoy your meal at home')}
+          </motion.p>
+          
+          <motion.div
+            className="max-w-2xl mx-auto relative"
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
+            <form onSubmit={handleSearch} className="relative">
+              <Input
+                type="text"
+                placeholder={t('search.placeholder', 'Search for dishes, cuisines, or restaurants')}
+                className="w-full py-6 px-6 pr-16 rounded-full text-foreground"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setIsSearchFocused(true)}
+                onBlur={() => setIsSearchFocused(false)}
+              />
+              <Button
+                type="submit"
+                className="absolute right-2 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full"
+                size="icon"
+                disabled={isSearching}
+              >
+                <Search className="h-5 w-5" />
+              </Button>
+            </form>
+          </motion.div>
+          
+          <motion.div 
+            className="absolute bottom-8 left-1/2 -translate-x-1/2 cursor-pointer"
+            onClick={() => scrollToSection('featured')}
+            initial={{ y: 0 }}
+            animate={{ y: [0, 10, 0] }}
+            transition={{ repeat: Infinity, duration: 2 }}
+          >
+            <ChevronDown className="h-8 w-8 text-white" />
+          </motion.div>
         </div>
       </section>
 
-      {popularDishes.length > 0 && <PopularDishesCarousel dishes={popularDishes} />}
-      
-      {discountedDishes.length > 0 && <DiscountedDishesCarousel dishes={discountedDishes} />}
+      {/* Feature Highlights */}
+      <section className="py-16 bg-background">
+        <div className="container mx-auto px-4">
+          <FeatureHighlights />
+        </div>
+      </section>
 
-      <section id="chefs" className="w-full py-12 md:py-24 lg:py-32">
-        <div className="container mx-auto px-4 md:px-6">
-          <h2 className="font-headline text-3xl font-bold text-primary mb-6 text-center">{t('our_chefs_title', 'Our Talented Chefs')}</h2>
-          {filteredChefs.length > 0 ? (
-            <div className="mx-auto grid grid-cols-1 gap-8 py-12 sm:grid-cols-2 md:grid-cols-3 lg:gap-12">
-              {filteredChefs.map((chef) => (
-                <ChefCard key={chef.id} chef={chef} />
+      {/* Popular Dishes */}
+      <section id="popular-dishes" className="py-16 bg-muted/50">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold mb-8 text-center">
+            {t('home.popular_dishes', 'Popular Dishes')}
+          </h2>
+          {popularDishes.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {popularDishes.map((dish) => (
+                <motion.div
+                  key={dish.id}
+                  className="bg-card rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow"
+                  whileHover={{ y: -5 }}
+                >
+                  <div className="h-48 bg-cover bg-center" style={{ backgroundImage: `url(${dish.imageUrl})` }} />
+                  <div className="p-4">
+                    <h3 className="font-semibold text-lg mb-1">{dish.name}</h3>
+                    <p className="text-muted-foreground text-sm line-clamp-2">{dish.description}</p>
+                    <div className="mt-3 flex justify-between items-center">
+                      <span className="font-bold">${dish.price.toFixed(2)}</span>
+                      <Button size="sm">
+                        {t('common.add_to_cart', 'Add to Cart')}
+                      </Button>
+                    </div>
+                  </div>
+                </motion.div>
               ))}
             </div>
           ) : (
-            <div className="text-center py-24 border-2 border-dashed rounded-lg mt-12">
-              <Users className="mx-auto h-16 w-16 text-muted-foreground" />
-              <h3 className="mt-4 text-xl font-medium">
-                {searchQuery ? t('no_chefs_match_search') : t('no_chefs_available')}
-              </h3>
-              <p className="mt-2 text-md text-muted-foreground">
-                {searchQuery ? t('try_different_search') : t('wait_for_chefs')}
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">
+                {t('home.no_popular_dishes', 'No popular dishes available at the moment')}
               </p>
             </div>
           )}
         </div>
       </section>
+
+      {/* Top Chefs */}
+      <ChefShowcase 
+        chefs={chefsWithStats.slice(0, 4).map(chef => ({
+          ...chef,
+          dishCount: chef.dishCount,
+          averageRating: chef.averageRating,
+          experienceYears: chef.experienceYears || 0
+        }))}
+        title="home.top_chefs"
+        subtitle="home.meet_our_chefs"
+      />
+
+      {/* Special Offers */}
+      {discountedDishes.length > 0 && (
+        <section className="py-16 bg-muted/30">
+          <div className="container mx-auto px-4">
+            <h2 className="text-3xl font-bold mb-8 text-center">
+              {t('home.special_offers', 'Special Offers')}
+            </h2>
+            <DiscountedDishesCarousel dishes={discountedDishes} />
+          </div>
+        </section>
+      )}
     </div>
   );
 }

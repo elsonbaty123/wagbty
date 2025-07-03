@@ -10,12 +10,16 @@ import { useNotifications } from '@/context/notification-context';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/auth-context';
-import { ScrollArea } from './ui/scroll-area';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useTranslation } from 'react-i18next';
-import { dateLocales } from './language-manager';
+import { dateLocales } from '@/components/language-manager';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-export function NotificationsPopover() {
+interface NotificationsPopoverProps {
+  isScrolled?: boolean;
+}
+
+export function NotificationsPopover({ isScrolled = true }: NotificationsPopoverProps) {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const { notificationsForUser, unreadCount, markAllAsRead, markAsRead } = useNotifications();
@@ -83,7 +87,15 @@ export function NotificationsPopover() {
   return (
     <Popover open={isPopoverOpen} onOpenChange={setPopoverOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative h-10 w-10">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className={cn(
+            'relative',
+            !isScrolled && 'text-white hover:bg-white/20 hover:text-white',
+            'transition-colors duration-300'
+          )}
+        >
           <Bell className="h-5 w-5" />
           {userUnreadCount > 0 && (
             <span className="absolute top-2 end-2 flex h-2 w-2">

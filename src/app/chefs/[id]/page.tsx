@@ -72,7 +72,7 @@ export default function ChefProfilePage() {
   }
 
   const isStatusActive = chef.status && (new Date().getTime() - new Date(chef.status.createdAt).getTime()) < 24 * 60 * 60 * 1000;
-  const hasUnreadStatus = isStatusActive && user && !isStoryViewed(chef.status.id!, user.id);
+  const hasUnreadStatus = isStatusActive && user && chef.status && !isStoryViewed(chef.status.id, user.id);
   
   const statusMap: { [key: string]: { labelKey: string; className: string; } } = {
     available: { labelKey: 'status_available', className: 'bg-green-500 text-white hover:bg-green-500/90' },

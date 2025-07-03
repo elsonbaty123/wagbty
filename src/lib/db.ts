@@ -5,7 +5,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import bcrypt from 'bcryptjs';
 import { initialUsers, allDishes, initialOrders, initialCoupons, initialStatusReactions, initialViewedStatuses, DEFAULT_CUSTOMER_AVATAR, DEFAULT_CHEF_AVATAR, DEFAULT_DELIVERY_AVATAR } from './data';
-import type { User, Dish, Order, Coupon, Notification, ChatMessage, StatusReaction, ViewedStatus, UserRole, NotDeliveredResponsibility, DishRating } from './types';
+import type { User, Dish, Order, Coupon, Notification, ChatMessage, StatusReaction, ViewedStatus, UserRole, NotDeliveredResponsibility, DishRating, OrderStatus } from './types';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const USERS_PATH = path.join(DATA_DIR, 'users.json');
@@ -16,6 +16,7 @@ const NOTIFICATIONS_PATH = path.join(DATA_DIR, 'notifications.json');
 const CHAT_MESSAGES_PATH = path.join(DATA_DIR, 'chat_messages.json');
 const STATUS_REACTIONS_PATH = path.join(DATA_DIR, 'status_reactions.json');
 const VIEWED_STATUSES_PATH = path.join(DATA_DIR, 'viewed_statuses.json');
+const DELIVERY_ZONES_PATH = path.join(DATA_DIR, 'delivery_zones.json');
 
 type StoredUser = User & { hashedPassword?: string };
 
@@ -61,6 +62,7 @@ async function initializeData() {
         await writeData(CHAT_MESSAGES_PATH, []);
         await writeData(STATUS_REACTIONS_PATH, initialStatusReactions);
         await writeData(VIEWED_STATUSES_PATH, initialViewedStatuses);
+        await writeData(DELIVERY_ZONES_PATH, []);
         console.log('Database files initialized.');
     }
 }
@@ -277,6 +279,14 @@ export const deleteDish = async (dishId: string) => {
     let dishes = await getDishes();
     dishes = dishes.filter(d => d.id !== dishId);
     await writeData(DISHES_PATH, dishes);
+};
+
+// --- Delivery Zones ---
+export const getDeliveryZones = async (): Promise<any[]> => readData<any[]>(DELIVERY_ZONES_PATH);
+
+export const updateDeliveryZones = async (zones: any[]) => {
+    await writeData(DELIVERY_ZONES_PATH, zones);
+    return zones;
 };
 
 // --- Orders ---

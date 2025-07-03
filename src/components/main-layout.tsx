@@ -1,6 +1,5 @@
 
 'use client';
-
 import type { ReactNode } from 'react';
 import dynamic from 'next/dynamic';
 import { usePathname } from 'next/navigation';
@@ -12,9 +11,9 @@ import { ChatProvider } from '@/context/chat-context';
 import { StatusProvider } from '@/context/status-context';
 import { ThemeProvider } from '@/components/theme-provider';
 import I18nProvider from '@/app/i18n-provider';
-import { BottomNavBar } from './bottom-nav-bar';
-import { ChefBottomNavBar } from './chef-bottom-nav-bar';
-import { DeliveryBottomNavBar } from './delivery-bottom-nav-bar';
+import { BottomNavBar } from '@/components/bottom-nav-bar';
+import { ChefBottomNavBar } from '@/components/chef-bottom-nav-bar';
+import { DeliveryBottomNavBar } from '@/components/delivery-bottom-nav-bar';
 
 const Header = dynamic(() => import('@/components/layout/header').then((mod) => mod.Header), {
   ssr: false,
@@ -23,6 +22,9 @@ const Header = dynamic(() => import('@/components/layout/header').then((mod) => 
 const Footer = dynamic(() => import('@/components/layout/footer').then((mod) => mod.Footer), {
   ssr: false,
 });
+
+// Lazy-load WelcomeScreen only on client
+const WelcomeScreen = dynamic(() => import('@/components/welcome-screen'), { ssr: false });
 
 
 function LayoutWrapper({ children }: { children: ReactNode }) {
@@ -68,6 +70,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
                 <OrderProvider>
                 <ChatProvider>
                 <StatusProvider>
+                    <WelcomeScreen />
                     <LayoutWrapper>{children}</LayoutWrapper>
                     <Toaster />
                 </StatusProvider>

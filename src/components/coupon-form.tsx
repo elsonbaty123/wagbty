@@ -20,7 +20,7 @@ import { Calendar as CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
-import { dateLocales } from './language-manager';
+import { dateLocales } from '@/components/language-manager';
 
 interface CouponFormProps {
   coupon?: Coupon | null;

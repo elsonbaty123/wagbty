@@ -1,10 +1,12 @@
-
 'use client';
 
 import * as React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
+import useEmblaCarousel from 'embla-carousel-react';
+import Autoplay from 'embla-carousel-autoplay';
+import { EmblaCarouselType } from 'embla-carousel';
 
 import type { Dish } from '@/lib/types';
 import {
@@ -31,10 +33,151 @@ interface DiscountedDishesCarouselProps {
 
 export function DiscountedDishesCarousel({ dishes }: DiscountedDishesCarouselProps) {
   const { t, i18n } = useTranslation();
+  const [emblaApi, setEmblaApi] = React.useState<EmblaCarouselType | null>(null);
+  const inactivityTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+  const autoplayPlugin = React.useRef<ReturnType<typeof Autoplay> | null>(null);
+  
+  // Function to start inactivity timer
+  const startInactivityTimer = React.useCallback(() => {
+    // Clear any existing timer
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+      inactivityTimerRef.current = null;
+    }
+    
+    // Only set timer if we have slides
+    if (dishes.length > 0) {
+      inactivityTimerRef.current = setTimeout(() => {
+        try {
+          if (autoplayPlugin.current && emblaApi) {
+            autoplayPlugin.current.play();
+          }
+        } catch (error) {
+          console.error('Error starting autoplay:', error);
+        }
+      }, 2000);
+    }
+  }, [dishes.length, emblaApi]);
+  
+  // Initialize autoplay plugin only once when component mounts
+  React.useEffect(() => {
+    let isMounted = true;
+    
+    const initializeAutoplay = () => {
+      if (dishes.length === 0) return;
+      
+      try {
+        if (isMounted) {
+          autoplayPlugin.current = Autoplay({ 
+            delay: 4000, 
+            stopOnInteraction: false, 
+            stopOnMouseEnter: true,
+            playOnInit: false // We'll start it manually
+          });
+          console.log('Autoplay plugin initialized');
+        }
+      } catch (error) {
+        console.error('Failed to initialize autoplay plugin:', error);
+        autoplayPlugin.current = null;
+      }
+    };
+    
+    // Initialize with a small delay to ensure DOM is ready
+    const initTimer = setTimeout(initializeAutoplay, 100);
+    
+    return () => {
+      isMounted = false;
+      clearTimeout(initTimer);
+      
+      if (autoplayPlugin.current) {
+        try {
+          autoplayPlugin.current.stop();
+        } catch (error) {
+          console.error('Error stopping autoplay on cleanup:', error);
+        } finally {
+          autoplayPlugin.current = null;
+        }
+      }
+    };
+  }, [dishes.length]);
+  
+  // Setup embla events and autoplay
+  // Setup embla events and autoplay
+  React.useEffect(() => {
+    if (!emblaApi) return;
+    
+    // Start autoplay if we have the plugin and slides
+    const startAutoplay = () => {
+      if (autoplayPlugin.current && dishes.length > 0) {
+        try {
+          autoplayPlugin.current.play();
+        } catch (error) {
+          console.error('Error starting autoplay on mount:', error);
+        }
+      }
+    };
+
+    const onPointerDown = () => {
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
+        inactivityTimerRef.current = null;
+      }
+    };
+    
+    const onSettle = () => {
+      try {
+        startInactivityTimer();
+      } catch (error) {
+        console.error('Error in onSettle handler:', error);
+      }
+    };
+
+    // Initial setup
+    emblaApi.on("pointerDown", onPointerDown);
+    emblaApi.on("settle", onSettle);
+    
+    // Start the autoplay after a small delay to ensure everything is ready
+    const autoplayTimeout = setTimeout(() => {
+      startAutoplay();
+      // Initial start of the timer
+      startInactivityTimer();
+    }, 500);
+
+    // Cleanup function
+    return () => {
+      // Clear any pending timeouts
+      clearTimeout(autoplayTimeout);
+      
+      // Remove event listeners
+      emblaApi.off("pointerDown", onPointerDown);
+      emblaApi.off("settle", onSettle);
+      
+      // Clear inactivity timer
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
+        inactivityTimerRef.current = null;
+      }
+      
+      // Stop autoplay if it's running
+      if (autoplayPlugin.current) {
+        try {
+          autoplayPlugin.current.stop();
+        } catch (error) {
+          console.error('Error stopping autoplay on cleanup:', error);
+        }
+      }
+    };
+  }, [emblaApi, startInactivityTimer, dishes.length]);
+  
   const carouselDirection = i18n.dir() === 'rtl' ? 'rtl' : 'ltr';
 
   if (!dishes || dishes.length === 0) {
     return null;
+  }
+  
+  const plugins = [];
+  if (autoplayPlugin.current) {
+    plugins.push(autoplayPlugin.current);
   }
 
   return (
@@ -50,11 +193,13 @@ export function DiscountedDishesCarousel({ dishes }: DiscountedDishesCarouselPro
         </div>
         <div className="mt-8">
             <Carousel
+                setApi={setEmblaApi}
                 opts={{
                     align: "start",
                     loop: dishes.length > 2,
                     direction: carouselDirection,
                 }}
+                plugins={plugins}
                 className="w-full max-w-5xl mx-auto"
             >
                 <CarouselContent>

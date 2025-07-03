@@ -6,7 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Autoplay from "embla-carousel-autoplay";
 import { useTranslation } from 'react-i18next';
-import type { UseEmblaCarouselType } from 'embla-carousel-react';
+import { type EmblaCarouselType } from 'embla-carousel';
 
 import type { Dish } from '@/lib/types';
 import {
@@ -22,61 +22,90 @@ interface PopularDishesCarouselProps {
   dishes: Dish[];
 }
 
-type CarouselApi = UseEmblaCarouselType[1];
-
 export function PopularDishesCarousel({ dishes }: PopularDishesCarouselProps) {
   const { t, i18n } = useTranslation();
-  const [api, setApi] = React.useState<CarouselApi>();
-  const inactivityTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const autoplayPlugin = React.useRef(
-    Autoplay({ delay: 4000, stopOnInteraction: true })
-  );
+  const [emblaApi, setEmblaApi] = React.useState<EmblaCarouselType | undefined>(undefined);
+  const inactivityTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+  const autoplayPlugin = React.useRef(Autoplay({ delay: 4000, stopOnInteraction: false, stopOnMouseEnter: true }));
 
   const startInactivityTimer = React.useCallback(() => {
     if (inactivityTimerRef.current) {
       clearTimeout(inactivityTimerRef.current);
+      inactivityTimerRef.current = null;
     }
+
     inactivityTimerRef.current = setTimeout(() => {
-      autoplayPlugin.current?.play();
+      const autoplay = autoplayPlugin.current;
+      if (!autoplay) return;
+
+      try {
+        // Ensure the carousel has slides before trying to play
+        if (emblaApi && emblaApi.scrollSnapList().length > 0) {
+            autoplay.play();
+        }
+      } catch (error) {
+        console.error('Error starting autoplay:', error);
+      }
     }, 10000); // 10 seconds
-  }, []);
-  
+  }, [emblaApi]);
+
   React.useEffect(() => {
-    if (!api) {
-      return
-    }
+    if (!emblaApi) return;
 
     const onPointerDown = () => {
-        if (inactivityTimerRef.current) {
-            clearTimeout(inactivityTimerRef.current);
-            inactivityTimerRef.current = null;
-        }
-    }
-    
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
+        inactivityTimerRef.current = null;
+      }
+    };
+
     const onSettle = () => {
-        startInactivityTimer();
-    }
+      startInactivityTimer();
+    };
 
-    api.on("pointerDown", onPointerDown)
-    api.on("settle", onSettle)
+    emblaApi.on("pointerDown", onPointerDown);
+    emblaApi.on("settle", onSettle);
 
-    // Initial start of the timer
     startInactivityTimer();
 
     return () => {
-      api.off("pointerDown", onPointerDown)
-      api.off("settle", onSettle)
+      emblaApi.off("pointerDown", onPointerDown);
+      emblaApi.off("settle", onSettle);
       if (inactivityTimerRef.current) {
         clearTimeout(inactivityTimerRef.current);
       }
-    }
-  }, [api, startInactivityTimer])
+      // It's good practice to stop the plugin on unmount
+      const autoplay = autoplayPlugin.current;
+      if (autoplay && typeof autoplay.stop === 'function') {
+        try {
+            autoplay.stop();
+        } catch (error) {
+            console.error('Error stopping autoplay:', error);
+        }
+      }
+    };
+  }, [emblaApi, startInactivityTimer]);
   
   const carouselDirection = i18n.dir() === 'rtl' ? 'rtl' : 'ltr';
 
+  // Check if dishes array is empty or undefined
   if (!dishes || dishes.length === 0) {
-    return null;
+    // Return a placeholder message instead of null
+    // This provides better user experience while preventing carousel initialization errors
+    return (
+      <section className="w-full py-12 md:py-16 lg:py-20 bg-muted/50">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="flex flex-col items-center space-y-4 text-center">
+            <h2 className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl text-primary">
+              {t('popular_dishes_title', 'Our Most Popular Dishes')}
+            </h2>
+            <p className="max-w-[700px] text-muted-foreground md:text-xl">
+              {t('no_popular_dishes', 'No popular dishes available at the moment. Check back soon!')}
+            </p>
+          </div>
+        </div>
+      </section>
+    );
   }
 
   return (
@@ -92,7 +121,7 @@ export function PopularDishesCarousel({ dishes }: PopularDishesCarouselProps) {
         </div>
         <div className="mt-8">
             <Carousel
-                setApi={setApi}
+                setApi={setEmblaApi}
                 opts={{
                     align: "start",
                     loop: true,

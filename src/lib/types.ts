@@ -52,6 +52,8 @@ export interface User {
   specialty?: string;
   bio?: string;
   rating?: number;
+  coverImage?: string;
+  experienceYears?: number;
   availabilityStatus?: 'available' | 'busy' | 'closed';
   status?: StatusObject;
   // Delivery-specific properties

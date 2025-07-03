@@ -18,6 +18,7 @@ const AdminNav = () => {
       { href: '/admin/approvals', labelKey: 'account_approvals' },
       { href: '/admin/dishes', labelKey: 'dish_management' },
       { href: '/admin/orders', labelKey: 'order_monitoring' },
+      { href: '/admin/delivery-zones', labelKey: 'delivery_zones_management' },
       { href: '/admin/community', labelKey: 'community_chat' },
     ];
 

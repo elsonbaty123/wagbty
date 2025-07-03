@@ -1,11 +1,23 @@
 [
   {
+    "recipientId": "user_1751393343233",
+    "titleKey": "order_confirmed_notification_title",
+    "messageKey": "order_confirmed_notification_desc",
+    "params": {
+      "dishName": "بيسبيس"
+    },
+    "link": "/profile",
+    "id": "notif_1751491432566",
+    "createdAt": "2025-07-02T21:23:52.566Z",
+    "isRead": false
+  },
+  {
     "recipientId": "user_1751373322555",
     "titleKey": "account_approved_title",
     "messageKey": "account_approved_desc",
     "link": "/login",
     "id": "notif_1751373383107",
     "createdAt": "2025-07-01T12:36:23.107Z",
-    "isRead": false
+    "isRead": true
   }
 ]

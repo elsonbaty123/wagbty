@@ -1,6 +1,5 @@
 
 import type { Metadata } from 'next';
-import { cookies } from 'next/headers';
 import './globals.css';
 import { cn } from '@/lib/utils';
 import MainLayout from '@/components/main-layout';
@@ -19,9 +18,9 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const cookieStore = cookies();
-  const lang = cookieStore.get('i18next')?.value || 'ar';
-  const dir = lang === 'ar' ? 'rtl' : 'ltr';
+  // Default to Arabic if language can't be determined
+  const lang = 'ar';
+  const dir = 'rtl';
 
   return (
     <html lang={lang} dir={dir} suppressHydrationWarning>
