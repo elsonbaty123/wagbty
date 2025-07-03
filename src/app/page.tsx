@@ -24,26 +24,24 @@ export default function Home() {
 
   const popularDishes = useMemo(() => {
     const dishOrderCounts = new Map<string, number>();
-
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+  
     orders.forEach(order => {
-        dishOrderCounts.set(order.dish.id, (dishOrderCounts.get(order.dish.id) || 0) + order.quantity);
+      if (new Date(order.createdAt) < oneWeekAgo) return;
+      dishOrderCounts.set(order.dish.id, (dishOrderCounts.get(order.dish.id) || 0) + order.quantity);
     });
-    
+  
     // Sort dish IDs by popularity
     const sortedDishIds = Array.from(dishOrderCounts.entries())
-        .sort((a, b) => b[1] - a[1])
-        .map(entry => entry[0]);
-
-    // Map back to dish objects, maintaining order
-    const sortedDishes = sortedDishIds
-        .map(id => dishes.find(dish => dish.id === id))
-        .filter((dish): dish is Dish => !!dish); // Type guard to remove undefined
-
-    // Add remaining dishes that haven't been ordered to the end, to ensure we have enough items
-    const orderedDishIds = new Set(sortedDishIds);
-    const unorderedDishes = dishes.filter(dish => !orderedDishIds.has(dish.id));
-    
-    return [...sortedDishes, ...unorderedDishes].slice(0, 6); // Take top 6 for the carousel
+      .sort((a, b) => b[1] - a[1])
+      .map(entry => entry[0]);
+  
+    // Take top 5 dishes for the carousel
+    return sortedDishIds
+      .map(id => dishes.find(dish => dish.id === id))
+      .filter((dish): dish is Dish => !!dish)
+      .slice(0, 5);
   }, [orders, dishes]);
 
   const discountedDishes = useMemo(() => {
