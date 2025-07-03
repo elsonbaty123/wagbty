@@ -35,8 +35,8 @@ interface ChefShowcaseProps {
 
 export function ChefShowcase({ 
   chefs, 
-  title, 
-  subtitle, 
+  title = 'Our Top Chefs', 
+  subtitle = 'Meet our talented chefs',
   showViewAll = true
 }: ChefShowcaseProps) {
   // Remove useTranslations since we're not using it anymore
