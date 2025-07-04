@@ -19,12 +19,15 @@ import {
 import { NotificationsPopover } from "../notifications-popover"
 import { ThemeToggleButton } from "../theme-toggle-button"
 import { LanguageSwitcher } from "../language-switcher"
+import { usePathname } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
 export function Header() {
   const { t, i18n } = useTranslation();
   const { user, logout, loading } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
+  const pathname = usePathname();
+  const isHomePage = pathname === '/';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -181,9 +184,9 @@ export function Header() {
               href="/" 
               className={cn(
                 'transition-colors px-3 py-2 rounded-md',
-                isScrolled 
-                  ? 'text-foreground hover:bg-accent/10 hover:text-accent-foreground' 
-                  : 'text-white hover:bg-white/20 dark:text-white',
+                isHomePage && !isScrolled 
+                  ? 'text-white hover:bg-white/20 dark:text-white'
+                  : 'text-foreground hover:bg-accent/10 hover:text-accent-foreground',
                 'font-medium'
               )}
             >
