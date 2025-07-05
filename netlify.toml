@@ -1,0 +1,18 @@
+# Netlify configuration for Next.js app with Server Actions
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[plugins]
+  # Use the official Next.js runtime to enable server-side features (Server Actions, API routes, etc.)
+  package = "@netlify/next-runtime"
+
+[functions]
+  # Bundle Node functions with esbuild for smaller size / faster cold starts.
+  node_bundler = "esbuild"
+  included_files = ["data/**"]
+
+# Optional: Increase function memory if needed
+#[[functions]]
+#  path = "*"
+#  memory = 1024

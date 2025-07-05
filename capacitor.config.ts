@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'nextn',
   webDir: 'public',
   server: {
-    url: 'http://10.0.2.2:3000',
+    url: 'https://manasd.netlify.app/',
     cleartext: true
   }
 };
