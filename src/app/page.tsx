@@ -1,6 +1,10 @@
 'use client';
 
-import { useState, useMemo, useEffect, useCallback } from 'react';
+// Force dynamic rendering because this client component uses useSearchParams.
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+
+import { Suspense, useState, useMemo, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -50,7 +54,7 @@ interface ChefWithStats extends User {
   experienceYears?: number;
 }
 
-export default function Home() {
+function HomeInner() {
   const { t } = useTranslation();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -502,5 +506,13 @@ export default function Home() {
         </section>
       )}
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={null}>
+      <HomeInner />
+    </Suspense>
   );
 }

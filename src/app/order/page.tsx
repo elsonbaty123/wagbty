@@ -2,6 +2,11 @@
 
 'use client';
 
+// Force dynamic rendering because we rely on useSearchParams in a Client Component.
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+
+import { Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -22,7 +27,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { deliveryZones } from '@/lib/data';
 import type { Dish } from '@/lib/types';
 
-export default function OrderPage() {
+function OrderPageInner() {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -340,5 +345,13 @@ export default function OrderPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function OrderPage() {
+  return (
+    <Suspense fallback={null}>
+      <OrderPageInner />
+    </Suspense>
   );
 }
