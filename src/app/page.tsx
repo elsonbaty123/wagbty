@@ -16,10 +16,32 @@ import { DiscountedDishesCarousel } from '@/components/discounted-dishes-carouse
 import type { Dish, User, UserRole, Coupon } from '@/lib/types';
 
 // Sample hero images (replace with your actual image paths)
-const heroImages = [
-  'https://images.unsplash.com/photo-1504674900247-087703934869?q=80&w=2070',
-  'https://images.unsplash.com/photo-1544025162-d76694265947?q=80&w=2069',
-  'https://images.unsplash.com/photo-1559847844-5315695dadae?q=80&w=1998',
+const fallbackHeroImages = [
+  'https://images.unsplash.com/photo-1504674900247-087703934869?auto=format&fit=crop&w=2100&q=80',
+  'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=2100&q=80',
+  'https://images.unsplash.com/photo-1559847844-5315695dadae?auto=format&fit=crop&w=2100&q=80',
+  'https://images.unsplash.com/photo-1498579150354-977475b7f386?auto=format&fit=crop&w=2100&q=80',
+  'https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?auto=format&fit=crop&w=2100&q=80',
+  'https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=2100&q=80',
+  'https://images.unsplash.com/photo-1506368083636-6defb67639b2?auto=format&fit=crop&w=2100&q=80',
+  'https://images.unsplash.com/photo-1551348509-953b503ef59b?auto=format&fit=crop&w=2100&q=80',
+  'https://images.unsplash.com/photo-1600891964373-8a1e24cc2705?auto=format&fit=crop&w=2100&q=80',
+  'https://images.unsplash.com/photo-1544510808-96f01d366116?auto=format&fit=crop&w=2100&q=80',
+  'https://images.unsplash.com/photo-1576866209830-aadc3a36db40?auto=format&fit=crop&w=2100&q=80',
+  'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=2100&q=80',
+  'https://images.unsplash.com/photo-1448907503123-67254d59ca4a?auto=format&fit=crop&w=2100&q=80',
+  'https://images.unsplash.com/photo-1457423404272-5a80ae0e1251?auto=format&fit=crop&w=2100&q=80',
+  'https://images.unsplash.com/photo-1481931715705-36f1df2d46f2?auto=format&fit=crop&w=2100&q=80',
+  'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=2100&q=80',
+  'https://images.unsplash.com/photo-1529189451916-c988f0f0a284?auto=format&fit=crop&w=2100&q=80',
+  'https://images.unsplash.com/photo-1532768641073-503a250f9754?auto=format&fit=crop&w=2100&q=80',
+  'https://images.unsplash.com/photo-1523906834658-6e24ef6b9b96?auto=format&fit=crop&w=2100&q=80',
+  'https://images.unsplash.com/photo-1589927986089-35812388d1e7?auto=format&fit=crop&w=2100&q=80',
+  'https://images.unsplash.com/photo-1543353071-873f17a7a088?auto=format&fit=crop&w=2100&q=80',
+  'https://images.unsplash.com/photo-1556909158-325220c86715?auto=format&fit=crop&w=2100&q=80',
+  'https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=2100&q=80',
+  'https://images.unsplash.com/photo-1504674900247-087703934869?auto=format&fit=crop&w=2100&q=80',
+  'https://images.unsplash.com/photo-1521302084564-659aa84f986d?auto=format&fit=crop&w=2100&q=80',
 ];
 
 interface ChefWithStats extends User {
@@ -37,12 +59,62 @@ export default function Home() {
   
   // State
   const [searchQuery, setSearchQuery] = useState('');
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [currentImageIndex, setCurrentImageIndex] = useState(() => {
+    return Math.floor(Math.random() * fallbackHeroImages.length);
+  });
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   
+  // Dynamic hero images loaded from /api/hero-images (fallback to Unsplash list)
+  const [heroImages, setHeroImages] = useState<string[]>(fallbackHeroImages);
+  
+  // Fetch images residing in /public/hero on first client render
+  useEffect(() => {
+    fetch('/api/hero-images')
+      .then((res) => (res.ok ? res.json() : Promise.reject(res)))
+      .then((data) => {
+        if (Array.isArray(data.images) && data.images.length > 0) {
+          setHeroImages(data.images);
+        }
+      })
+      .catch(() => {
+        /* Keep fallback list on any error */
+      });
+  }, []);
+  
   const loading = dishesLoading || authLoading;
   const noData = !loading && (!dishes.length || !chefs.length);
+  
+  // Track which hero images are fully loaded to avoid showing blank frames
+  const [imagesLoaded, setImagesLoaded] = useState<boolean[]>([]);
+
+  // Preload hero images whenever list changes
+  useEffect(() => {
+    if (!heroImages.length) return;
+
+    // Reset loaded array to match new list length
+    setImagesLoaded(new Array(heroImages.length).fill(false));
+
+    heroImages.forEach((src, idx) => {
+      const img = new Image();
+      img.src = src;
+      img.onload = () => {
+        setImagesLoaded((prev) => {
+          const updated = [...prev];
+          updated[idx] = true;
+          return updated;
+        });
+      };
+    });
+  }, [heroImages]);
+
+  // Ensure index is valid when heroImages list changes
+  useEffect(() => {
+    if (heroImages.length) {
+      const randomIdx = Math.floor(Math.random() * heroImages.length);
+      setCurrentImageIndex(randomIdx);
+    }
+  }, [heroImages]);
   
   // Handle search form submission
   const handleSearch = useCallback((e: React.FormEvent) => {
@@ -61,16 +133,31 @@ export default function Home() {
     }
   }, []);
 
-  // Auto-rotate hero images
+  // Auto-rotate hero images randomly (only among loaded ones)
   useEffect(() => {
+    if (!heroImages.length) return;
+
     const timer = setInterval(() => {
-      setCurrentImageIndex((prevIndex) => 
-        prevIndex === heroImages.length - 1 ? 0 : prevIndex + 1
-      );
-    }, 5000);
-    
+      setCurrentImageIndex(prev => {
+        // indices of images that are fully loaded
+        const loadedIndices = heroImages
+          .map((_, idx) => idx)
+          .filter(idx => imagesLoaded[idx]);
+
+        if (loadedIndices.length === 0) return prev;
+
+        // Exclude current index if we have more than one candidate
+        const candidates = loadedIndices.length > 1
+          ? loadedIndices.filter(idx => idx !== prev)
+          : loadedIndices;
+
+        const randomIdx = candidates[Math.floor(Math.random() * candidates.length)];
+        return randomIdx;
+      });
+    }, 7000); // 7-second interval
+
     return () => clearInterval(timer);
-  }, []);
+  }, [imagesLoaded, heroImages]);
   
   // Get popular dishes (most ordered in the last week)
   const popularDishes = useMemo(() => {
@@ -250,7 +337,7 @@ export default function Home() {
       {/* Hero Section */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
-          <AnimatePresence mode="wait">
+          <AnimatePresence>
             <motion.div
               key={currentImageIndex}
               className="absolute inset-0 bg-cover bg-center"
@@ -263,7 +350,10 @@ export default function Home() {
               transition={{ duration: 1 }}
             />
           </AnimatePresence>
-          <div className="absolute inset-0 bg-black/50" />
+          <>
+             <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-transparent" />
+             <div className="absolute inset-0 bg-gradient-radial from-primary/40 via-transparent to-transparent mix-blend-multiply" />
+           </>
         </div>
 
         <div className="container mx-auto px-4 z-10 text-center text-white">
@@ -310,6 +400,25 @@ export default function Home() {
                 <Search className="h-5 w-5" />
               </Button>
             </form>
+
+             {/* Call to Action Buttons */}
+             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+               <Button
+                 size="lg"
+                 className="px-8 py-4 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/40"
+                 onClick={() => router.push('/order')}
+               >
+                 {t('home.order_now', 'اطلب الآن')}
+               </Button>
+               <Button
+                 size="lg"
+                 variant="outline"
+                 className="px-8 py-4 text-white border-white/70 hover:bg-white/10"
+                 onClick={() => scrollToSection('popular-dishes')}
+               >
+                 {t('home.browse_menu', 'عرض القائمة')}
+               </Button>
+             </div>
           </motion.div>
           
           <motion.div 
@@ -325,7 +434,7 @@ export default function Home() {
       </section>
 
       {/* Feature Highlights */}
-      <section className="py-16 bg-background">
+      <section id="featured" className="py-16 bg-background">
         <div className="container mx-auto px-4">
           <FeatureHighlights />
         </div>

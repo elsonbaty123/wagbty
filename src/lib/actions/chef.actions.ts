@@ -1,9 +1,11 @@
 'use server';
 
 import { User, StatusObject } from '@/lib/types';
+import { getUsers, getDishes } from '@/lib/db';
 
-// Mock data for chefs
-const MOCK_CHEFS: (User & { 
+/* Mock data for chefs (legacy - kept for reference) 
+// NOTE: Removed mocked chefs. We'll fetch real chefs from the local JSON DB via getUsers.
+// If no chefs are found, the caller should handle displaying an appropriate message. 
   dishCount: number; 
   averageRating: number; 
   experienceYears: number;
@@ -87,17 +89,39 @@ const MOCK_CHEFS: (User & {
       createdAt: new Date().toISOString()
     }
   }
-];
+]; */
 
 export async function getChefs() {
-  try {
-    // In a real app, you would fetch from your database:
-    // const chefs = await prisma.user.findMany({ where: { role: 'CHEF' } });
-    
-    // For now, return mock data
-    return MOCK_CHEFS;
-  } catch (error) {
-    console.error('Error fetching chefs:', error);
-    return [];
-  }
+  // Fetch users and dishes from the JSON "database"
+  const users = await getUsers();
+  const dishes = await getDishes();
+
+  // Select only users with role 'chef'
+  const chefs = users.filter(u => u.role === 'chef');
+
+  // Map each chef to include stats (dishCount, averageRating)
+  const chefsWithStats = chefs.map((chef) => {
+    const chefDishes = dishes.filter(d => d.chefId === chef.id);
+    const dishCount = chefDishes.length;
+
+    // Calculate average rating across all dishes
+    let ratingSum = 0;
+    let ratingCount = 0;
+    chefDishes.forEach(d => {
+      d.ratings?.forEach(r => {
+        ratingSum += r.rating;
+        ratingCount += 1;
+      });
+    });
+    const averageRating = ratingCount ? ratingSum / ratingCount : 0;
+
+    return {
+      ...chef,
+      dishCount,
+      averageRating,
+    } as User & { dishCount: number; averageRating: number; };
+  });
+
+  return chefsWithStats;
 }
+
