@@ -31,9 +31,12 @@ export function ThemeToggleButton({ isScrolled = true }: ThemeToggleButtonProps)
           size="icon" 
           className={cn(
             'h-10 w-10',
-            !isScrolled && 'text-white hover:bg-white/20 hover:text-white',
-            'transition-colors duration-300',
-            theme === 'dark' ? 'text-white' : 'text-foreground'
+            'transition-colors duration-150 ease-in-out',
+            theme === 'dark'
+              ? 'text-white'
+              : isScrolled
+                ? 'text-foreground'
+                : 'text-white hover:bg-white/20 hover:text-white'
           )}
         >
           <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />

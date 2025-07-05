@@ -50,7 +50,21 @@ export function DiscountedDishesCarousel({ dishes }: DiscountedDishesCarouselPro
       inactivityTimerRef.current = setTimeout(() => {
         try {
           if (autoplayPlugin.current && emblaApi) {
-            autoplayPlugin.current.play();
+            // Ensure the plugin has been initialized with Embla before calling play
+      if ((autoplayPlugin.current as any)?.internalEngine) {
+        autoplayPlugin.current.play();
+      } else {
+        // Retry shortly after Embla has likely attached the plugin
+        setTimeout(() => {
+          try {
+            if ((autoplayPlugin.current as any)?.internalEngine) {
+              autoplayPlugin.current!.play();
+            }
+          } catch (err) {
+            console.error('Autoplay retry failed:', err);
+          }
+        }, 300);
+      }
           }
         } catch (error) {
           console.error('Error starting autoplay:', error);
@@ -110,7 +124,21 @@ export function DiscountedDishesCarousel({ dishes }: DiscountedDishesCarouselPro
     const startAutoplay = () => {
       if (autoplayPlugin.current && dishes.length > 0) {
         try {
-          autoplayPlugin.current.play();
+          // Ensure the plugin has been initialized with Embla before calling play
+      if ((autoplayPlugin.current as any)?.internalEngine) {
+        autoplayPlugin.current.play();
+      } else {
+        // Retry shortly after Embla has likely attached the plugin
+        setTimeout(() => {
+          try {
+            if ((autoplayPlugin.current as any)?.internalEngine) {
+              autoplayPlugin.current!.play();
+            }
+          } catch (err) {
+            console.error('Autoplay retry failed:', err);
+          }
+        }, 300);
+      }
         } catch (error) {
           console.error('Error starting autoplay on mount:', error);
         }

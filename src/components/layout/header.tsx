@@ -265,9 +265,12 @@ export function Header() {
 
           {!loading && !user && (
             <div className="hidden md:flex items-center gap-2">
-              <LanguageSwitcher />
-              <ThemeToggleButton />
-              <Button variant="ghost" asChild>
+              <LanguageSwitcher isScrolled={isScrolled} />
+              <ThemeToggleButton isScrolled={isScrolled} />
+              <Button variant="ghost" className={cn(
+                !isScrolled && 'text-white hover:bg-white/20 hover:text-white',
+                'transition-colors duration-300'
+              )} asChild>
                 <Link href="/login">{t('login')}</Link>
               </Button>
               <Button asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">

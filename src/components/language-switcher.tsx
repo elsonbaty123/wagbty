@@ -32,9 +32,12 @@ export function LanguageSwitcher({ isScrolled = true }: LanguageSwitcherProps) {
           size="icon"
           className={cn(
             'h-10 w-10',
-            !isScrolled && 'text-white hover:bg-white/20 hover:text-white',
             'transition-colors duration-300',
-            theme === 'dark' ? 'text-white' : 'text-foreground'
+            theme === 'dark'
+              ? 'text-white'
+              : isScrolled
+                ? 'text-foreground'
+                : 'text-white hover:bg-white/20 hover:text-white'
           )}
         >
           <Languages className="h-5 w-5" />

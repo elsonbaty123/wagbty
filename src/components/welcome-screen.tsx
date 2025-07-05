@@ -137,7 +137,7 @@ export default function WelcomeScreen() {
             >
               <div className="relative w-32 h-32 md:w-40 md:h-40">
                 <img
-                  src="/logo.png"
+                  src="/logo.svg"
                   alt="شعار وجبتي"
                   className="w-full h-full object-contain drop-shadow-lg"
                 />
